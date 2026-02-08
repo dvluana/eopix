@@ -3,9 +3,10 @@
 interface ClimateBlockProps {
   weatherStatus: 'sol' | 'chuva';
   message?: string;
+  occurrenceCount?: number;
 }
 
-export default function ClimateBlock({ weatherStatus, message }: ClimateBlockProps) {
+export default function ClimateBlock({ weatherStatus, message, occurrenceCount }: ClimateBlockProps) {
   const config = {
     sol: {
       icon: '☀️',
@@ -17,11 +18,17 @@ export default function ClimateBlock({ weatherStatus, message }: ClimateBlockPro
       icon: '🌧️',
       bg: 'var(--color-bg-secondary)',
       border: 'var(--color-border-subtle)',
-      defaultMessage: 'Encontramos alguns pontos de atenção.',
+      defaultMessage: 'Clima instável.',
     },
   };
 
   const cfg = config[weatherStatus];
+
+  // Build message with occurrence count for chuva
+  let displayMessage = message || cfg.defaultMessage;
+  if (weatherStatus === 'chuva' && occurrenceCount !== undefined && occurrenceCount > 0) {
+    displayMessage = `Clima instável. ${occurrenceCount} ocorrência${occurrenceCount > 1 ? 's' : ''} encontrada${occurrenceCount > 1 ? 's' : ''}.`;
+  }
 
   return (
     <div
@@ -45,7 +52,7 @@ export default function ClimateBlock({ weatherStatus, message }: ClimateBlockPro
           color: 'var(--color-text-primary)',
         }}
       >
-        {message || cfg.defaultMessage}
+        {displayMessage}
       </div>
     </div>
   );

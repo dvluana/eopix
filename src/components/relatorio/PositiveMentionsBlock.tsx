@@ -2,51 +2,32 @@
 
 interface MentionItem {
   fonte: string;
-  data: string;
   resumo: string;
   url?: string;
-  classification?: 'positive' | 'negative' | 'neutral';
 }
 
-interface WebMentionsCardProps {
+interface PositiveMentionsBlockProps {
   mentions: MentionItem[];
-  variant?: 'sol' | 'chuva';
 }
 
-export default function WebMentionsCard({ mentions, variant = 'chuva' }: WebMentionsCardProps) {
+export default function PositiveMentionsBlock({ mentions }: PositiveMentionsBlockProps) {
   if (mentions.length === 0) return null;
-
-  const isSol = variant === 'sol';
-
-  // For 'sol' variant, show positive/neutral mentions
-  // For 'chuva' variant, show negative mentions (default behavior)
-  const filteredMentions = isSol
-    ? mentions.filter(m => m.classification !== 'negative')
-    : mentions.filter(m => m.classification === 'negative' || m.classification === undefined);
-
-  if (filteredMentions.length === 0) return null;
-
-  const headerBg = isSol ? 'var(--color-status-success-bg)' : 'var(--color-status-warning-bg)';
-  const headerColor = isSol ? 'var(--color-status-success)' : 'var(--color-status-warning)';
-  const icon = isSol ? '✨' : '📰';
-  const title = isSol ? 'Menções Positivas' : 'Menções na Web';
 
   return (
     <div
       style={{
         marginTop: '24px',
-        background: 'var(--color-bg-primary)',
-        border: `1px solid ${isSol ? 'var(--color-status-success)' : 'var(--color-border-subtle)'}`,
+        background: 'var(--color-status-success-bg)',
+        border: '1px solid var(--color-status-success)',
         borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
         overflow: 'hidden',
       }}
     >
+      {/* Header */}
       <div
         style={{
-          background: headerBg,
           padding: '12px 20px',
-          borderBottom: '1px solid var(--color-border-subtle)',
+          borderBottom: '1px solid rgba(34, 197, 94, 0.2)',
         }}
       >
         <h3
@@ -54,26 +35,27 @@ export default function WebMentionsCard({ mentions, variant = 'chuva' }: WebMent
             fontFamily: 'var(--font-family-heading)',
             fontSize: '14px',
             fontWeight: 700,
-            color: headerColor,
+            color: 'var(--color-status-success)',
             margin: 0,
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
           }}
         >
-          <span>{icon}</span>
-          {title} — {filteredMentions.length} menç{filteredMentions.length > 1 ? 'ões' : 'ão'} encontrada{filteredMentions.length > 1 ? 's' : ''}
+          <span>✨</span>
+          Menções Positivas — {mentions.length} menç{mentions.length > 1 ? 'ões' : 'ão'} encontrada{mentions.length > 1 ? 's' : ''}
         </h3>
       </div>
 
+      {/* Content */}
       <div style={{ padding: '16px 20px' }}>
-        {filteredMentions.map((mention, index) => (
+        {mentions.map((mention, index) => (
           <div
             key={index}
             style={{
-              paddingTop: index > 0 ? '16px' : 0,
-              paddingBottom: '16px',
-              borderBottom: index < filteredMentions.length - 1 ? '1px dashed var(--color-border-subtle)' : 'none',
+              paddingTop: index > 0 ? '12px' : 0,
+              paddingBottom: '12px',
+              borderBottom: index < mentions.length - 1 ? '1px dashed rgba(34, 197, 94, 0.3)' : 'none',
             }}
           >
             <div
@@ -93,15 +75,6 @@ export default function WebMentionsCard({ mentions, variant = 'chuva' }: WebMent
                 }}
               >
                 {mention.fonte}
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '11px',
-                  color: 'var(--color-text-tertiary)',
-                }}
-              >
-                {mention.data}
               </span>
             </div>
             <p
@@ -123,7 +96,7 @@ export default function WebMentionsCard({ mentions, variant = 'chuva' }: WebMent
                 style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '11px',
-                  color: isSol ? 'var(--color-status-success)' : 'var(--color-text-primary)',
+                  color: 'var(--color-status-success)',
                   textDecoration: 'underline',
                   marginTop: '6px',
                   display: 'inline-block',

@@ -15,6 +15,11 @@ import {
   AiSummary,
   ReportFooter,
   ReportError,
+  CompanyInfoCard,
+  ReclameAquiCard,
+  ActivityIndicator,
+  LimitedDataWarning,
+  PositiveMentionsBlock,
 } from '@/components/relatorio';
 
 interface ApiFullData {
@@ -60,10 +65,34 @@ interface GoogleData {
   reclameAqui?: GoogleResult[]
 }
 
+interface CnaeItem {
+  codigo: string
+  descricao: string
+}
+
+interface SocioItem {
+  nome: string
+  qualificacao: string
+}
+
 interface BrasilApiData {
   razaoSocial: string
   situacao?: string
   dataAbertura?: string
+  dataBaixa?: string
+  cnaePrincipal?: CnaeItem
+  cnaeSecundarios?: CnaeItem[]
+  socios?: SocioItem[]
+  capitalSocial?: number
+}
+
+interface ReclameAquiData {
+  nota: number
+  indiceResolucao: number
+  totalReclamacoes?: number
+  respondidas?: number
+  seloRA1000?: boolean
+  url: string
 }
 
 interface ReportData {
@@ -76,6 +105,7 @@ interface ReportData {
     brasilApi?: BrasilApiData
     processes?: ProcessData[]
     google?: GoogleData
+    reclameAqui?: ReclameAquiData
   }
   summary: string
   createdAt: string
@@ -332,17 +362,32 @@ export default function Page() {
   const processes = report.data.processes || [];
   const google = report.data.google || {};
   const brasilApi = report.data.brasilApi;
+  const reclameAqui = report.data.reclameAqui;
 
   // Determine weather status based on data
   const hasProtests = (apiFull.protests?.length || 0) > 0 || (apiFull.totalProtests || 0) > 0;
   const hasDebts = (apiFull.debts?.length || 0) > 0;
+  const hasBouncedChecks = (apiFull.bouncedChecks || 0) > 0;
   const hasProcesses = processes.length > 0;
-  const hasNegativeMentions = [
-    ...(google.general || []),
-    ...(google.focused || []),
-  ].some(m => m.classification === 'negative');
+  const allMentions = [...(google.general || []), ...(google.focused || [])];
+  const hasNegativeMentions = allMentions.some(m => m.classification === 'negative');
+  const isCompanyInactive = report.type === 'CNPJ' && brasilApi && brasilApi.situacao !== 'ATIVA';
+  const hasNegativeReclameAqui = reclameAqui && reclameAqui.nota < 7;
 
-  const weatherStatus = (hasProtests || hasDebts || hasProcesses || hasNegativeMentions) ? 'chuva' : 'sol';
+  const weatherStatus = (hasProtests || hasDebts || hasBouncedChecks || hasProcesses || hasNegativeMentions || isCompanyInactive || hasNegativeReclameAqui) ? 'chuva' : 'sol';
+
+  // Calculate total occurrences for climate message
+  const totalOccurrences =
+    (apiFull.totalProtests || apiFull.protests?.length || 0) +
+    (apiFull.debts?.length || 0) +
+    (hasBouncedChecks ? 1 : 0) +
+    processes.length +
+    allMentions.filter(m => m.classification === 'negative').length +
+    (isCompanyInactive ? 1 : 0) +
+    (hasNegativeReclameAqui ? 1 : 0);
+
+  // Check for limited data
+  const hasLimitedData = !apiFull.name && !apiFull.razaoSocial && processes.length === 0 && allMentions.length === 0;
 
   // Build checklist items
   const checklistItems = [];
@@ -421,6 +466,16 @@ export default function Page() {
     cartorio: p.registry,
   }));
 
+  // Format debts for FinancialCard
+  const dividas = (apiFull.debts || []).map(d => ({
+    tipo: d.type,
+    valor: formatCurrency(d.amount),
+    origem: d.origin,
+  }));
+
+  // Calculate total amounts for financial card
+  const totalProtestosValor = apiFull.totalProtestsAmount ? formatCurrency(apiFull.totalProtestsAmount) : undefined;
+
   // Format processes for JudicialCard
   const processos = processes.slice(0, 5).map(p => ({
     tribunal: p.tribunal,
@@ -429,8 +484,8 @@ export default function Page() {
     polo: (p.polo?.toLowerCase() === 'reu' || p.polo?.toLowerCase() === 'réu') ? 'reu' as const : 'autor' as const,
   }));
 
-  // Format web mentions for WebMentionsCard
-  const mentions = [...(google.general || []), ...(google.focused || [])]
+  // Format web mentions for WebMentionsCard (negative)
+  const negativeMentions = allMentions
     .filter(m => m.classification === 'negative')
     .slice(0, 5)
     .map(m => ({
@@ -438,11 +493,22 @@ export default function Page() {
       data: '',
       resumo: m.snippet || m.title,
       url: m.url,
+      classification: m.classification,
+    }));
+
+  // Format web mentions for PositiveMentionsBlock (positive/neutral)
+  const positiveMentions = allMentions
+    .filter(m => m.classification === 'positive' || m.classification === 'neutral')
+    .slice(0, 5)
+    .map(m => ({
+      fonte: new URL(m.url).hostname.replace('www.', ''),
+      resumo: m.snippet || m.title,
+      url: m.url,
     }));
 
   const climateMessage = weatherStatus === 'sol'
     ? 'Céu limpo. Nenhuma ocorrência encontrada.'
-    : 'Encontramos alguns pontos de atenção.';
+    : undefined; // Will use occurrenceCount
 
   const closingMessage = weatherStatus === 'sol'
     ? 'Pelo que encontramos, o céu está limpo. Boa parceria!'
@@ -522,7 +588,13 @@ export default function Page() {
         <ClimateBlock
           weatherStatus={weatherStatus}
           message={climateMessage}
+          occurrenceCount={weatherStatus === 'chuva' ? totalOccurrences : undefined}
         />
+
+        {/* 2.1 AVISO DE DADOS LIMITADOS (se aplicável) */}
+        {hasLimitedData && (
+          <LimitedDataWarning />
+        )}
 
         {/* 3. DISCLAIMER */}
         <Disclaimer />
@@ -533,13 +605,58 @@ export default function Page() {
           variant={weatherStatus}
         />
 
+        {/* 4.1 COMPANY INFO CARD (CNPJ only) */}
+        {report.type === 'CNPJ' && brasilApi && (
+          <CompanyInfoCard
+            razaoSocial={brasilApi.razaoSocial}
+            situacao={brasilApi.situacao || 'ATIVA'}
+            dataAbertura={brasilApi.dataAbertura}
+            dataBaixa={brasilApi.dataBaixa}
+            cnaePrincipal={brasilApi.cnaePrincipal}
+            cnaeSecundarios={brasilApi.cnaeSecundarios}
+            socios={brasilApi.socios}
+            capitalSocial={brasilApi.capitalSocial}
+          />
+        )}
+
+        {/* 4.2 ACTIVITY INDICATOR (CPF only) */}
+        {report.type === 'CPF' && apiFull.recentInquiries && apiFull.recentInquiries > 0 && (
+          <ActivityIndicator recentInquiries={apiFull.recentInquiries} />
+        )}
+
+        {/* 4.3 RECLAME AQUI CARD */}
+        {reclameAqui && (
+          <ReclameAquiCard
+            nota={reclameAqui.nota}
+            indiceResolucao={reclameAqui.indiceResolucao}
+            totalReclamacoes={reclameAqui.totalReclamacoes}
+            respondidas={reclameAqui.respondidas}
+            seloRA1000={reclameAqui.seloRA1000}
+            url={reclameAqui.url}
+          />
+        )}
+
         {/* 5. CARDS ESPECÍFICOS DE CHUVA */}
         {weatherStatus === 'chuva' && (
           <>
-            {protestos.length > 0 && <FinancialCard protestos={protestos} />}
+            {(protestos.length > 0 || dividas.length > 0 || hasBouncedChecks) && (
+              <FinancialCard
+                protestos={protestos}
+                dividas={dividas}
+                chequesDevolvidos={apiFull.bouncedChecks}
+                nomeSujo={hasProtests || hasDebts}
+                totalProtestos={apiFull.totalProtests}
+                totalProtestosValor={totalProtestosValor}
+              />
+            )}
             {processos.length > 0 && <JudicialCard processos={processos} />}
-            {mentions.length > 0 && <WebMentionsCard mentions={mentions} />}
+            {negativeMentions.length > 0 && <WebMentionsCard mentions={negativeMentions} variant="chuva" />}
           </>
+        )}
+
+        {/* 5.1 MENÇÕES POSITIVAS (Sol) */}
+        {weatherStatus === 'sol' && positiveMentions.length > 0 && (
+          <PositiveMentionsBlock mentions={positiveMentions} />
         )}
 
         {/* 6. RESUMO IA + BOTÃO ERRO (dentro de card para Sol) */}
@@ -595,41 +712,7 @@ export default function Page() {
           </p>
         </div>
 
-        {/* 8. LINKS EXTERNOS */}
-        <div
-          style={{
-            marginTop: '20px',
-            textAlign: 'center',
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '12px',
-          }}
-        >
-          <a
-            href="https://servicos.receita.fazenda.gov.br/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: 'var(--color-text-primary)',
-              textDecoration: 'underline',
-            }}
-          >
-            Consultar Receita Federal →
-          </a>
-          <span style={{ margin: '0 8px', color: '#888888' }}>|</span>
-          <a
-            href="https://www.serasa.com.br/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: 'var(--color-text-primary)',
-              textDecoration: 'underline',
-            }}
-          >
-            Consultar Serasa →
-          </a>
-        </div>
-
-        {/* 9. FOOTER DO RELATÓRIO */}
+        {/* 8. FOOTER DO RELATÓRIO */}
         <ReportFooter
           dataConsulta={formatDate(report.createdAt)}
           dataExpiracao={formatDateOnly(report.expiresAt)}

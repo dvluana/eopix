@@ -8,3 +8,8 @@ export { default as WebMentionsCard } from './WebMentionsCard';
 export { default as AiSummary } from './AiSummary';
 export { default as ReportFooter } from './ReportFooter';
 export { default as ReportError } from './ReportError';
+export { default as CompanyInfoCard } from './CompanyInfoCard';
+export { default as ReclameAquiCard } from './ReclameAquiCard';
+export { default as ActivityIndicator } from './ActivityIndicator';
+export { default as LimitedDataWarning } from './LimitedDataWarning';
+export { default as PositiveMentionsBlock } from './PositiveMentionsBlock';
