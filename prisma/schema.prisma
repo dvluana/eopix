@@ -103,3 +103,17 @@ model WebhookLog {
 
   @@index([createdAt])
 }
+
+model LgpdRequest {
+  id        String   @id @default(cuid())
+  protocol  String   @unique // formato: LGPD-2026-XXXX
+  nome      String
+  cpfCnpj   String
+  email     String
+  tipo      String   // "ACESSO" | "CORRECAO" | "EXCLUSAO" | "PORTABILIDADE" | "OPOSICAO" | "REVOGACAO"
+  descricao String
+  createdAt DateTime @default(now())
+
+  @@index([protocol])
+  @@index([cpfCnpj])
+}

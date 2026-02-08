@@ -18,6 +18,8 @@ export default function Page() {
   const [tipoSolicitacao, setTipoSolicitacao] = useState('');
   const [descricao, setDescricao] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   // Validação de CPF básica
   const validateCPF = (cpf: string): boolean => {
@@ -61,8 +63,18 @@ export default function Page() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Mapeia os valores do form para os tipos do backend
+  const tipoMap: Record<string, string> = {
+    'exclusao': 'EXCLUSAO',
+    'correcao': 'CORRECAO',
+    'homonimo': 'EXCLUSAO', // Homônimo é tratado como exclusão com descrição específica
+    'acesso': 'ACESSO',
+    'oposicao': 'OPOSICAO',
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError('');
 
     const newErrors: Record<string, string> = {};
 
@@ -81,12 +93,38 @@ export default function Page() {
       return;
     }
 
-    // TODO: Enviar para backend ou Tally
-    // Gerar protocolo
-    const year = new Date().getFullYear();
-    const randomNum = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-    setProtocol(`LGPD-${year}-${randomNum}`);
-    setFormSubmitted(true);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/lgpd-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nome: nome.trim(),
+          cpfCnpj: cpf,
+          email: email.trim(),
+          tipo: tipoMap[tipoSolicitacao] || 'EXCLUSAO',
+          descricao: tipoSolicitacao === 'homonimo'
+            ? `[HOMÔNIMO] ${descricao.trim()}`
+            : descricao.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao enviar solicitação');
+      }
+
+      setProtocol(data.protocol);
+      setFormSubmitted(true);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Erro ao enviar solicitação. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleVoltarInicio = () => {
@@ -844,8 +882,32 @@ export default function Page() {
               )}
             </div>
 
+            {submitError && (
+              <div
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid var(--color-status-error)',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  marginBottom: '16px',
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: 'var(--font-family-body)',
+                    fontSize: '14px',
+                    color: 'var(--color-status-error)',
+                    margin: 0,
+                  }}
+                >
+                  {submitError}
+                </p>
+              </div>
+            )}
+
             <button
               type="submit"
+              disabled={isSubmitting}
               style={{
                 width: '100%',
                 fontFamily: 'var(--font-family-body)',
@@ -856,17 +918,18 @@ export default function Page() {
                 border: 'none',
                 borderRadius: '8px',
                 padding: '14px 24px',
-                cursor: 'pointer',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.7 : 1,
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.filter = 'brightness(0.9)';
+                if (!isSubmitting) e.currentTarget.style.filter = 'brightness(0.9)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.filter = 'brightness(1)';
               }}
             >
-              Enviar solicitação
+              {isSubmitting ? 'Enviando...' : 'Enviar solicitação'}
             </button>
           </form>
 
@@ -912,7 +975,7 @@ export default function Page() {
                 }}
               >
                 CPF/CNPJ adicionado à Blocklist, relatórios existentes serão excluídos, futuras
-                consultas bloqueadas com mensagem "Dados indisponíveis por solicitação do titular."
+                consultas bloqueadas com mensagem &ldquo;Dados indisponíveis por solicitação do titular.&rdquo;
               </p>
             </div>
 
