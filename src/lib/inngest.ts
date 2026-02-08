@@ -8,6 +8,7 @@ import { searchDatajud } from './datajud'
 import { searchWeb } from './google-search'
 import { generateSummary } from './openai'
 import { sendReportReady } from './resend'
+import { refundPayment } from './asaas'
 
 // Create Inngest client
 export const inngest = new Inngest({
@@ -167,6 +168,7 @@ export const processSearch = inngest.createFunction(
           brasilApi: brasilApiData,
           processes: uniqueProcesses,
           google: googleData,
+          reclameAqui: summaryResult.reclameAqui || null,
         })) as Prisma.InputJsonValue
 
         return prisma.searchResult.create({
@@ -176,7 +178,7 @@ export const processSearch = inngest.createFunction(
             name,
             data: jsonData,
             summary: summaryResult.summary,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
           },
         })
       })
@@ -248,12 +250,12 @@ export const cleanupLeads = inngest.createFunction(
   },
   { cron: '15 3 * * *' },
   async ({ step }) => {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
 
     const result = await step.run('delete-old-leads', async () => {
       return prisma.leadCapture.deleteMany({
         where: {
-          createdAt: { lt: thirtyDaysAgo },
+          createdAt: { lt: ninetyDaysAgo },
         },
       })
     })
@@ -312,6 +314,67 @@ export const cleanupPendingPurchases = inngest.createFunction(
   }
 )
 
+// Auto-refund failed purchases (every 30 minutes)
+export const autoRefundFailedPurchases = inngest.createFunction(
+  {
+    id: 'auto-refund-failed-purchases',
+  },
+  { cron: '*/30 * * * *' },
+  async ({ step }) => {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
+
+    // Find purchases stuck in PROCESSING for more than 2 hours
+    const stuckPurchases = await step.run('find-stuck-purchases', async () => {
+      return prisma.purchase.findMany({
+        where: {
+          status: 'PROCESSING',
+          updatedAt: { lt: twoHoursAgo },
+          asaasPaymentId: { not: null },
+        },
+        select: {
+          id: true,
+          asaasPaymentId: true,
+          code: true,
+        },
+      })
+    })
+
+    if (stuckPurchases.length === 0) {
+      console.log('No stuck purchases to refund')
+      return { refunded: 0 }
+    }
+
+    let refundedCount = 0
+
+    for (const purchase of stuckPurchases) {
+      if (!purchase.asaasPaymentId) continue
+
+      const refundResult = await step.run(`refund-${purchase.id}`, async () => {
+        try {
+          const result = await refundPayment(purchase.asaasPaymentId!)
+          if (result.success) {
+            await prisma.purchase.update({
+              where: { id: purchase.id },
+              data: { status: 'REFUNDED' },
+            })
+            console.log(`Refunded purchase ${purchase.code}`)
+            return true
+          }
+          return false
+        } catch (error) {
+          console.error(`Failed to refund purchase ${purchase.code}:`, error)
+          return false
+        }
+      })
+
+      if (refundResult) refundedCount++
+    }
+
+    console.log(`Auto-refunded ${refundedCount} stuck purchases`)
+    return { refunded: refundedCount }
+  }
+)
+
 // Export all functions
 export const functions = [
   processSearch,
@@ -319,4 +382,5 @@ export const functions = [
   cleanupLeads,
   cleanupMagicCodes,
   cleanupPendingPurchases,
+  autoRefundFailedPurchases,
 ]

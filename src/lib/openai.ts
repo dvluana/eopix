@@ -13,9 +13,19 @@ export interface MentionClassification {
   reason: string
 }
 
+export interface ReclameAquiData {
+  nota: number | null
+  indiceResolucao: number | null
+  totalReclamacoes: number | null
+  respondidas: number | null
+  seloRA1000: boolean
+  url: string | null
+}
+
 export interface SummaryResponse {
   summary: string
   mentionClassifications: MentionClassification[]
+  reclameAqui?: ReclameAquiData
 }
 
 function isChuvaScenario(document: string): boolean {
@@ -60,6 +70,15 @@ Retorne as classificacoes no campo mentionClassifications.
 
 O ${type} e da regiao ${region}. Ignore noticias de outros estados para evitar homonimos.
 
+Se houver resultados do Reclame Aqui nos dados (em google.reclameAqui), extraia as metricas:
+- "nota": numero de 0 a 10 (se encontrar padrao "Nota X.X", "X.X/10", ou "avaliacao X.X")
+- "indiceResolucao": percentual inteiro (se encontrar "respondeu X%", "resolucao X%", "resolve X%")
+- "totalReclamacoes": numero total de reclamacoes (se encontrar "X reclamacoes", "X queixas")
+- "respondidas": numero de reclamacoes respondidas (se encontrar "respondeu X", "X respondidas")
+- "seloRA1000": true se encontrar mencao a "RA1000", "selo RA 1000", "RA 1000"
+- "url": URL da pagina do Reclame Aqui (primeira URL encontrada)
+Se nao conseguir extrair algum campo, retorne null para ele.
+
 Dados para analisar:
 ${JSON.stringify(data, null, 2)}
 
@@ -68,7 +87,15 @@ Responda em JSON com o formato:
   "summary": "resumo de 2-3 frases",
   "mentionClassifications": [
     { "url": "...", "classification": "positive|neutral|negative", "reason": "..." }
-  ]
+  ],
+  "reclameAqui": {
+    "nota": null ou numero,
+    "indiceResolucao": null ou numero inteiro,
+    "totalReclamacoes": null ou numero,
+    "respondidas": null ou numero,
+    "seloRA1000": false ou true,
+    "url": null ou "https://..."
+  }
 }`
 
   const response = await openai.chat.completions.create({

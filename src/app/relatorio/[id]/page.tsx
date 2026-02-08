@@ -21,6 +21,13 @@ import {
   LimitedDataWarning,
   PositiveMentionsBlock,
 } from '@/components/relatorio';
+import {
+  sortProcessesByGravity,
+  sortFinancialByValue,
+  sortMentionsByClassification,
+  generateProcessDetail,
+  generateFinancialDetail,
+} from '@/lib/report-utils';
 
 interface ApiFullData {
   name?: string
@@ -87,12 +94,12 @@ interface BrasilApiData {
 }
 
 interface ReclameAquiData {
-  nota: number
-  indiceResolucao: number
-  totalReclamacoes?: number
-  respondidas?: number
+  nota: number | null
+  indiceResolucao: number | null
+  totalReclamacoes?: number | null
+  respondidas?: number | null
   seloRA1000?: boolean
-  url: string
+  url: string | null
 }
 
 interface ReportData {
@@ -372,7 +379,7 @@ export default function Page() {
   const allMentions = [...(google.general || []), ...(google.focused || [])];
   const hasNegativeMentions = allMentions.some(m => m.classification === 'negative');
   const isCompanyInactive = report.type === 'CNPJ' && brasilApi && brasilApi.situacao !== 'ATIVA';
-  const hasNegativeReclameAqui = reclameAqui && reclameAqui.nota < 7;
+  const hasNegativeReclameAqui = reclameAqui && reclameAqui.nota !== null && reclameAqui.nota < 7;
 
   const weatherStatus = (hasProtests || hasDebts || hasBouncedChecks || hasProcesses || hasNegativeMentions || isCompanyInactive || hasNegativeReclameAqui) ? 'chuva' : 'sol';
 
@@ -392,16 +399,22 @@ export default function Page() {
   // Build checklist items
   const checklistItems = [];
 
-  // Financial status
+  // Financial status - with rich detail including values
   if (hasProtests || hasDebts) {
     const protestCount = apiFull.totalProtests || apiFull.protests?.length || 0;
+    const protestTotal = apiFull.totalProtestsAmount || 0;
     const debtCount = apiFull.debts?.length || 0;
-    const details: string[] = [];
-    if (protestCount > 0) details.push(`${protestCount} protesto${protestCount > 1 ? 's' : ''}`);
-    if (debtCount > 0) details.push(`${debtCount} dívida${debtCount > 1 ? 's' : ''}`);
+    const debtTotal = apiFull.debts?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0;
+
+    const financialDetail = generateFinancialDetail(
+      { count: protestCount, totalAmount: protestTotal },
+      { count: debtCount, totalAmount: debtTotal },
+      apiFull.bouncedChecks || 0
+    );
+
     checklistItems.push({
       label: 'Situação financeira',
-      detail: details.join(', ') + ' encontrado(s)',
+      detail: financialDetail,
       status: 'warning' as const,
     });
   } else {
@@ -414,14 +427,12 @@ export default function Page() {
     });
   }
 
-  // Judicial status
+  // Judicial status - with rich detail including process types
   if (hasProcesses) {
-    const asReu = processes.filter(p => p.polo?.toLowerCase() === 'reu' || p.polo?.toLowerCase() === 'réu').length;
+    const processDetail = generateProcessDetail(processes);
     checklistItems.push({
       label: 'Processos judiciais',
-      detail: asReu > 0
-        ? `${asReu} processo${asReu > 1 ? 's' : ''} como réu`
-        : `${processes.length} processo${processes.length > 1 ? 's' : ''} encontrado${processes.length > 1 ? 's' : ''}`,
+      detail: processDetail,
       status: 'warning' as const,
     });
   } else {
@@ -459,35 +470,44 @@ export default function Page() {
     });
   }
 
-  // Format protests for FinancialCard
-  const protestos = (apiFull.protests || []).map(p => ({
+  // Format protests for FinancialCard (sorted by value, highest first)
+  const protestosFormatted = (apiFull.protests || []).map(p => ({
     data: formatDateOnly(p.date),
     valor: formatCurrency(p.amount),
     cartorio: p.registry,
   }));
+  const protestos = sortFinancialByValue(protestosFormatted);
 
-  // Format debts for FinancialCard
-  const dividas = (apiFull.debts || []).map(d => ({
+  // Format debts for FinancialCard (sorted by value, highest first)
+  const dividasFormatted = (apiFull.debts || []).map(d => ({
     tipo: d.type,
     valor: formatCurrency(d.amount),
     origem: d.origin,
   }));
+  const dividas = sortFinancialByValue(dividasFormatted);
 
   // Calculate total amounts for financial card
   const totalProtestosValor = apiFull.totalProtestsAmount ? formatCurrency(apiFull.totalProtestsAmount) : undefined;
 
-  // Format processes for JudicialCard
-  const processos = processes.slice(0, 5).map(p => ({
+  // Sort processes by gravity and format for JudicialCard
+  const sortedProcesses = sortProcessesByGravity(processes);
+  const processos = sortedProcesses.map(p => ({
     tribunal: p.tribunal,
     data: formatDateOnly(p.date),
     classe: p.classe,
-    polo: (p.polo?.toLowerCase() === 'reu' || p.polo?.toLowerCase() === 'réu') ? 'reu' as const : 'autor' as const,
+    polo: (p.polo?.toLowerCase() === 'reu' || p.polo?.toLowerCase() === 'réu')
+      ? 'reu' as const
+      : p.polo?.toLowerCase() === 'testemunha'
+        ? 'testemunha' as const
+        : 'autor' as const,
   }));
 
+  // Sort mentions by classification (negative first)
+  const sortedMentions = sortMentionsByClassification(allMentions);
+
   // Format web mentions for WebMentionsCard (negative)
-  const negativeMentions = allMentions
-    .filter(m => m.classification === 'negative')
-    .slice(0, 5)
+  const negativeMentions = sortedMentions
+    .filter((m): m is GoogleResult & { classification: 'negative' } => m.classification === 'negative')
     .map(m => ({
       fonte: new URL(m.url).hostname.replace('www.', ''),
       data: '',
@@ -497,9 +517,8 @@ export default function Page() {
     }));
 
   // Format web mentions for PositiveMentionsBlock (positive/neutral)
-  const positiveMentions = allMentions
+  const positiveMentions = sortedMentions
     .filter(m => m.classification === 'positive' || m.classification === 'neutral')
-    .slice(0, 5)
     .map(m => ({
       fonte: new URL(m.url).hostname.replace('www.', ''),
       resumo: m.snippet || m.title,
@@ -625,12 +644,12 @@ export default function Page() {
         )}
 
         {/* 4.3 RECLAME AQUI CARD */}
-        {reclameAqui && (
+        {reclameAqui && reclameAqui.nota !== null && reclameAqui.indiceResolucao !== null && reclameAqui.url && (
           <ReclameAquiCard
             nota={reclameAqui.nota}
             indiceResolucao={reclameAqui.indiceResolucao}
-            totalReclamacoes={reclameAqui.totalReclamacoes}
-            respondidas={reclameAqui.respondidas}
+            totalReclamacoes={reclameAqui.totalReclamacoes ?? undefined}
+            respondidas={reclameAqui.respondidas ?? undefined}
             seloRA1000={reclameAqui.seloRA1000}
             url={reclameAqui.url}
           />
