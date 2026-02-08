@@ -61,29 +61,46 @@ export default function Page({ params }: PageProps) {
   // Tipo do documento detectado automaticamente (CPF ou CNPJ)
   const documentType = getDocumentType(params.term);
 
-  const handlePurchase = () => {
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const handlePurchase = async () => {
     if (!email) {
       alert('Por favor, informe seu e-mail');
       return;
     }
 
-    // Gera código de compra alfanumérico 6 chars (ex: A7K2M9)
-    const generatePurchaseCode = () => {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let code = '';
-      for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/purchases', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          term: params.term,
+          email,
+          termsAccepted: true,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Erro ao criar compra');
+        return;
       }
-      return code;
-    };
 
-    const purchaseCode = generatePurchaseCode();
-
-    // TODO: Integração real com Asaas
-    console.log('Redirect para Asaas checkout com email:', email);
-
-    // Navega para página de confirmação
-    router.push(`/compra/confirmacao?code=${purchaseCode}`);
+      // Redireciona para checkout ou confirmação
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        router.push(`/compra/confirmacao?code=${data.code}`);
+      }
+    } catch (err) {
+      console.error('Purchase error:', err);
+      alert('Erro ao processar compra. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Cards com blur
@@ -265,18 +282,18 @@ export default function Page({ params }: PageProps) {
             {/* Botão de compra */}
             <button
               type="submit"
-              disabled={isMaintenance}
+              disabled={isMaintenance || isLoading}
               className="btn btn--primary btn--lg"
               style={{
                 width: '100%',
                 fontSize: '18px',
                 padding: '18px 32px',
                 marginBottom: 'var(--primitive-space-3)',
-                opacity: isMaintenance ? 0.5 : 1,
-                cursor: isMaintenance ? 'not-allowed' : 'pointer'
+                opacity: (isMaintenance || isLoading) ? 0.5 : 1,
+                cursor: (isMaintenance || isLoading) ? 'not-allowed' : 'pointer'
               }}
             >
-              {isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
+              {isLoading ? 'Processando...' : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
             </button>
           </form>
 
@@ -601,14 +618,17 @@ export default function Page({ params }: PageProps) {
 
           <button
             onClick={handlePurchase}
+            disabled={isLoading}
             className="btn btn--primary btn--lg"
             style={{
               width: '100%',
               fontSize: '18px',
-              padding: '18px 32px'
+              padding: '18px 32px',
+              opacity: isLoading ? 0.5 : 1,
+              cursor: isLoading ? 'not-allowed' : 'pointer'
             }}
           >
-            DESBLOQUEAR AGORA POR R$ 29,90
+            {isLoading ? 'Processando...' : 'DESBLOQUEAR AGORA POR R$ 29,90'}
           </button>
 
           <p className="caption text-muted" style={{ marginTop: 'var(--primitive-space-3)', fontStyle: 'italic' }}>

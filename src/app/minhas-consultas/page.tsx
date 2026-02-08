@@ -9,52 +9,19 @@ import Footer from '@/components/Footer';
 // ============================================
 // TIPOS
 // ============================================
-type PurchaseStatus = 'COMPLETED' | 'PROCESSING' | 'FAILED' | 'REFUND_PENDING' | 'EXPIRED';
+type PurchaseStatus = 'COMPLETED' | 'PROCESSING' | 'FAILED' | 'REFUND_PENDING' | 'EXPIRED' | 'PENDING' | 'PAID';
 type LoginStep = 'email' | 'codigo';
 
 interface Purchase {
   id: string;
+  code: string;
   status: PurchaseStatus;
-  searchTerm: string;
+  term: string;
+  type: 'CPF' | 'CNPJ';
   createdAt: string;
-  processedMessage?: string;
+  hasReport: boolean;
+  reportId?: string;
 }
-
-// ============================================
-// DADOS MOCK
-// ============================================
-const mockPurchases: Purchase[] = [
-  {
-    id: '1',
-    status: 'COMPLETED',
-    searchTerm: '***.456.789-**',
-    createdAt: '05/02/2026 às 14:32',
-  },
-  {
-    id: '2',
-    status: 'PROCESSING',
-    searchTerm: '12.345.678/0001-**',
-    createdAt: 'Iniciado há 2 minutos',
-  },
-  {
-    id: '3',
-    status: 'FAILED',
-    searchTerm: '***.789.012-**',
-    createdAt: 'Reembolso automático processado',
-  },
-  {
-    id: '4',
-    status: 'REFUND_PENDING',
-    searchTerm: '***.321.654-**',
-    createdAt: 'Estamos resolvendo. Entraremos em contato.',
-  },
-  {
-    id: '5',
-    status: 'EXPIRED',
-    searchTerm: '98.765.432/0001-**',
-    createdAt: 'Relatório expirado em 28/01/2026',
-  },
-];
 
 // ============================================
 // CARD DE CONSULTA
@@ -74,8 +41,15 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
           color: '#339933',
         };
       case 'PROCESSING':
+      case 'PAID':
         return {
           label: '⏳ PROCESSANDO',
+          bg: 'rgba(255, 214, 0, 0.15)',
+          color: '#B87700',
+        };
+      case 'PENDING':
+        return {
+          label: '💳 AGUARDANDO PAGAMENTO',
           bg: 'rgba(255, 214, 0, 0.15)',
           color: '#B87700',
         };
@@ -97,11 +71,17 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
           bg: 'var(--color-border-subtle)',
           color: 'var(--color-text-tertiary)',
         };
+      default:
+        return {
+          label: status,
+          bg: 'var(--color-border-subtle)',
+          color: 'var(--color-text-tertiary)',
+        };
     }
   };
 
   const badge = getBadgeConfig(purchase.status);
-  const documentType = purchase.searchTerm.includes('/') ? 'CNPJ' : 'CPF';
+  const documentType = purchase.type;
 
   return (
     <div
@@ -144,7 +124,7 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
             marginTop: '8px',
           }}
         >
-          {documentType}: {purchase.searchTerm}
+          {documentType}: {purchase.term}
         </div>
 
         {/* Data/mensagem */}
@@ -156,16 +136,22 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
             marginTop: '4px',
           }}
         >
-          {purchase.createdAt}
+          {new Date(purchase.createdAt).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
         </div>
       </div>
 
       {/* Lado direito */}
       <div>
-        {purchase.status === 'COMPLETED' && (
+        {purchase.status === 'COMPLETED' && purchase.hasReport && purchase.reportId && (
           <button
             type="button"
-            onClick={() => onViewReport(purchase.id)}
+            onClick={() => onViewReport(purchase.reportId!)}
             style={{
               background: 'var(--primitive-white)',
               color: 'var(--primitive-black)',
@@ -182,7 +168,7 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
           </button>
         )}
 
-        {purchase.status === 'PROCESSING' && (
+        {(purchase.status === 'PROCESSING' || purchase.status === 'PAID') && (
           <div
             style={{
               fontFamily: 'var(--font-family-body)',
@@ -192,6 +178,19 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
             }}
           >
             Aguarde...
+          </div>
+        )}
+
+        {purchase.status === 'PENDING' && (
+          <div
+            style={{
+              fontFamily: 'var(--font-family-body)',
+              fontSize: '12px',
+              color: 'var(--color-text-tertiary)',
+              fontStyle: 'italic',
+            }}
+          >
+            Aguardando pagamento
           </div>
         )}
 
@@ -221,8 +220,11 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
 // ============================================
 export default function Page() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false); // TODO: pegar da session real
-  const userEmail = 'joao.silva@gmail.com'; // TODO: pegar da session
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [userEmail, setUserEmail] = React.useState('');
+  const [purchases, setPurchases] = React.useState<Purchase[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   // Estados do Login
   const [step, setStep] = React.useState<LoginStep>('email');
@@ -230,43 +232,121 @@ export default function Page() {
   const [code, setCode] = React.useState(['', '', '', '', '', '']);
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
+  // Fetch purchases when authenticated
+  const fetchPurchases = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/purchases');
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
+      if (!res.ok) {
+        throw new Error('Erro ao carregar consultas');
+      }
+      const data = await res.json();
+      setPurchases(data.purchases || []);
+      if (data.email) {
+        setUserEmail(data.email);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar consultas:', err);
+    }
+  }, []);
+
+  // Check session on mount
+  React.useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await fetch('/api/purchases');
+        if (res.ok) {
+          const data = await res.json();
+          setIsAuthenticated(true);
+          setPurchases(data.purchases || []);
+          if (data.email) {
+            setUserEmail(data.email);
+          }
+        }
+      } catch {
+        // Not authenticated
+      }
+    };
+    checkSession();
+  }, []);
+
   // ============================================
   // ESTADO 1: ENVIAR CÓDIGO
   // ============================================
-  const handleSendCode = (e: React.FormEvent) => {
+  const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
     if (!email) {
-      alert('Por favor, informe seu e-mail');
+      setError('Por favor, informe seu e-mail');
       return;
     }
 
-    // TODO: POST /api/auth/send-code { email }
-    console.log('Enviando código para:', email);
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/auth/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-    // Avança para o estado de código
-    setStep('codigo');
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Erro ao enviar código');
+        return;
+      }
+
+      // Avança para o estado de código
+      setStep('codigo');
+    } catch {
+      setError('Erro ao enviar código. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // ============================================
   // ESTADO 2: VERIFICAR CÓDIGO
   // ============================================
-  const handleVerifyCode = (e: React.FormEvent) => {
+  const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
     const fullCode = code.join('');
 
     if (fullCode.length !== 6) {
-      alert('Por favor, digite o código completo');
+      setError('Por favor, digite o código completo');
       return;
     }
 
-    // TODO: POST /api/auth/verify-code { email, code }
-    // TODO: Criar session JWT após verificação
-    console.log('Verificando código:', fullCode, 'para email:', email);
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: fullCode }),
+      });
 
-    // Simula autenticação
-    setIsAuthenticated(true);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Código inválido');
+        return;
+      }
+
+      // Autenticação bem sucedida
+      setUserEmail(email);
+      setIsAuthenticated(true);
+      await fetchPurchases();
+    } catch {
+      setError('Erro ao verificar código. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // ============================================
@@ -308,9 +388,15 @@ export default function Page() {
     }
   };
 
-  const handleLogout = () => {
-    // TODO: Implementar logout real
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignore errors
+    }
     setIsAuthenticated(false);
+    setPurchases([]);
+    setUserEmail('');
     setStep('email');
     setEmail('');
     setCode(['', '', '', '', '', '']);
@@ -394,13 +480,9 @@ export default function Page() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    onClick={() => {
-                      if (!email) {
-                        setEmail('exemplo@email.com');
-                      }
-                    }}
                     placeholder="seu@email.com"
                     autoFocus
+                    disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '14px 16px',
@@ -415,16 +497,29 @@ export default function Page() {
                     }}
                   />
 
+                  {error && (
+                    <div style={{
+                      color: '#CC3333',
+                      fontSize: '13px',
+                      marginBottom: '12px',
+                      textAlign: 'center'
+                    }}>
+                      {error}
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     className="btn btn--primary btn--lg"
+                    disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '16px',
-                      fontSize: '14px'
+                      fontSize: '14px',
+                      opacity: isLoading ? 0.7 : 1,
                     }}
                   >
-                    Enviar código
+                    {isLoading ? 'Enviando...' : 'Enviar código'}
                   </button>
                 </form>
               </>
@@ -475,13 +570,8 @@ export default function Page() {
                         onChange={(e) => handleCodeChange(index, e.target.value)}
                         onKeyDown={(e) => handleCodeKeyDown(index, e)}
                         onPaste={index === 0 ? handleCodePaste : undefined}
-                        onClick={() => {
-                          if (code.every(c => !c)) {
-                            setCode(['4', '8', '2', '7', '1', '5']);
-                            inputRefs.current[5]?.focus();
-                          }
-                        }}
                         autoFocus={index === 0}
+                        disabled={isLoading}
                         style={{
                           width: '48px',
                           height: '56px',
@@ -499,17 +589,30 @@ export default function Page() {
                     ))}
                   </div>
 
+                  {error && (
+                    <div style={{
+                      color: '#CC3333',
+                      fontSize: '13px',
+                      marginBottom: '12px',
+                      textAlign: 'center'
+                    }}>
+                      {error}
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     className="btn btn--primary btn--lg"
+                    disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '16px',
                       fontSize: '14px',
-                      marginBottom: '20px'
+                      marginBottom: '20px',
+                      opacity: isLoading ? 0.7 : 1,
                     }}
                   >
-                    Entrar
+                    {isLoading ? 'Verificando...' : 'Entrar'}
                   </button>
                 </form>
 
@@ -726,9 +829,32 @@ export default function Page() {
             gap: '12px',
           }}
         >
-          {mockPurchases.map((purchase) => (
-            <CardConsulta key={purchase.id} purchase={purchase} onViewReport={handleViewReport} />
-          ))}
+          {purchases.length === 0 ? (
+            <div
+              style={{
+                background: 'var(--primitive-white)',
+                border: '1px solid var(--color-border-subtle)',
+                borderRadius: '6px',
+                padding: '40px',
+                textAlign: 'center',
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  margin: 0,
+                }}
+              >
+                Você ainda não tem consultas. Faça sua primeira consulta!
+              </p>
+            </div>
+          ) : (
+            purchases.map((purchase) => (
+              <CardConsulta key={purchase.id} purchase={purchase} onViewReport={handleViewReport} />
+            ))
+          )}
         </div>
       </main>
 
