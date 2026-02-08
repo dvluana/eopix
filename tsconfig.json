@@ -22,5 +22,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "[EOPIX] Sistema"]
+  "exclude": ["node_modules", "[EOPIX] Sistema", "prisma.config.ts"]
 }

@@ -1,4 +1,6 @@
-export const MOCK_GOOGLE_SOL = {
+import type { GoogleSearchResponse } from '../google-search'
+
+export const MOCK_GOOGLE_SOL: GoogleSearchResponse = {
   general: [
     {
       title: 'Premio Top Empresas SC 2025',
@@ -24,7 +26,7 @@ export const MOCK_GOOGLE_SOL = {
   ],
 }
 
-export const MOCK_GOOGLE_CHUVA = {
+export const MOCK_GOOGLE_CHUVA: GoogleSearchResponse = {
   general: [
     {
       title: 'Reportagem sobre fraudes em SC',
@@ -44,13 +46,13 @@ export const MOCK_GOOGLE_CHUVA = {
   reclameAqui: [],
 }
 
-export const MOCK_GOOGLE_CPF_SOL = {
+export const MOCK_GOOGLE_CPF_SOL: GoogleSearchResponse = {
   general: [],
   focused: [],
   reclameAqui: [],
 }
 
-export const MOCK_GOOGLE_CPF_CHUVA = {
+export const MOCK_GOOGLE_CPF_CHUVA: GoogleSearchResponse = {
   general: [
     {
       title: 'Noticia sobre golpe',
