@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isMockMode } from '@/lib/mock-mode'
+import { requireAdmin } from '@/lib/auth'
 
 // In-memory incident store (in production, use a database or external service)
 interface Incident {
@@ -36,6 +37,9 @@ if (isMockMode && incidents.length === 0) {
 }
 
 export async function GET(request: NextRequest) {
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) return authResult
+
   try {
     const searchParams = request.nextUrl.searchParams
     const days = parseInt(searchParams.get('days') || '7', 10)

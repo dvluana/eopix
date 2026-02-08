@@ -32,6 +32,7 @@ type CleanupEvent = {
   data: Record<string, never>
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type AllEvents = SearchProcessEvent | CleanupEvent
 
 // Process search job
@@ -42,7 +43,7 @@ export const processSearch = inngest.createFunction(
   },
   { event: 'search/process' },
   async ({ event, step }) => {
-    const { purchaseId, purchaseCode, term, type, email } = event.data
+    const { purchaseId, term, type, email } = event.data
 
     // Update purchase to PROCESSING
     await step.run('set-processing', async () => {

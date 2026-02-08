@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isValidCPF, isValidCNPJ, cleanDocument } from '@/lib/validators'
+import { requireAdmin } from '@/lib/auth'
 
 interface AddBlocklistRequest {
   term: string
@@ -9,6 +10,9 @@ interface AddBlocklistRequest {
 }
 
 export async function GET(request: NextRequest) {
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) return authResult
+
   try {
     const searchParams = request.nextUrl.searchParams
     const page = parseInt(searchParams.get('page') || '1', 10)
@@ -63,6 +67,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) return authResult
+
   try {
     const body = await request.json() as AddBlocklistRequest
     const { term, associatedName, reason } = body

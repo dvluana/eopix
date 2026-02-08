@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth'
 
 interface RouteParams {
   params: Promise<{ id: string }>
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const authResult = await requireAdmin(request)
+  if (authResult instanceof NextResponse) return authResult
+
   try {
     const { id } = await params
 
