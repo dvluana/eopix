@@ -667,7 +667,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              <strong style={{ color: 'var(--color-text-primary)' }}>Cookie de sessão (estritamente necessário):</strong> Utilizamos um cookie <strong style={{ color: 'var(--color-text-primary)' }}>httpOnly</strong> contendo um token JWT exclusivamente para manter a sessão do usuário na área "Minhas Consultas". Este cookie é necessário para o funcionamento do serviço, expira em 30 dias e não rastreia comportamento do usuário.
+              <strong style={{ color: 'var(--color-text-primary)' }}>Cookie de sessão (estritamente necessário):</strong> Utilizamos um cookie <strong style={{ color: 'var(--color-text-primary)' }}>httpOnly</strong> contendo um token JWT exclusivamente para manter a sessão do usuário na área &ldquo;Minhas Consultas&rdquo;. Este cookie é necessário para o funcionamento do serviço, expira em 30 dias e não rastreia comportamento do usuário.
             </p>
             <p
               style={{

@@ -1,26 +1,29 @@
 "use client"
 
+import CollapsibleCard from './CollapsibleCard'
+import { generateFinancialSummary } from '@/lib/report-utils'
+
 interface ProtestoItem {
-  data: string;
-  valor: string;
-  cartorio: string;
+  data: string
+  valor: string
+  cartorio: string
 }
 
 interface DividaItem {
-  tipo: string;
-  valor: string;
-  origem: string;
+  tipo: string
+  valor: string
+  origem: string
 }
 
 interface FinancialCardProps {
-  protestos?: ProtestoItem[];
-  dividas?: DividaItem[];
-  chequesDevolvidos?: number;
-  nomeSujo?: boolean;
-  totalProtestos?: number;
-  totalProtestosValor?: string;
-  totalDividas?: number;
-  totalDividasValor?: string;
+  protestos?: ProtestoItem[]
+  dividas?: DividaItem[]
+  chequesDevolvidos?: number
+  nomeSujo?: boolean
+  totalProtestos?: number
+  totalProtestosValor?: string
+  totalDividas?: number
+  totalDividasValor?: string
 }
 
 export default function FinancialCard({
@@ -33,56 +36,36 @@ export default function FinancialCard({
   totalDividas,
   totalDividasValor,
 }: FinancialCardProps) {
-  const hasProtestos = protestos.length > 0;
-  const hasDividas = dividas.length > 0;
-  const hasCheques = chequesDevolvidos > 0;
-  const hasNomeSujo = nomeSujo !== undefined;
+  const hasProtestos = protestos.length > 0
+  const hasDividas = dividas.length > 0
+  const hasCheques = chequesDevolvidos > 0
+  const hasNomeSujo = nomeSujo !== undefined
 
-  if (!hasProtestos && !hasDividas && !hasCheques && !hasNomeSujo) return null;
+  if (!hasProtestos && !hasDividas && !hasCheques && !hasNomeSujo) return null
 
   // Calculate totals from items if not provided
-  const displayTotalProtestos = totalProtestos ?? protestos.length;
-  const displayTotalDividas = totalDividas ?? dividas.length;
+  const displayTotalProtestos = totalProtestos ?? protestos.length
+  const displayTotalDividas = totalDividas ?? dividas.length
 
   // Count total issues
-  const totalIssues = displayTotalProtestos + displayTotalDividas + (hasCheques ? 1 : 0);
+  const totalIssues = displayTotalProtestos + displayTotalDividas + (hasCheques ? chequesDevolvidos : 0)
+
+  // Generate summary
+  const summary = generateFinancialSummary(displayTotalProtestos, displayTotalDividas, chequesDevolvidos)
+
+  // Expand by default if few items
+  const totalItems = protestos.length + dividas.length
+  const defaultExpanded = totalItems <= 3
 
   return (
-    <div
-      style={{
-        marginTop: '24px',
-        background: 'var(--color-bg-primary)',
-        border: '1px solid var(--color-border-subtle)',
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-        overflow: 'hidden',
-      }}
+    <CollapsibleCard
+      icon="💰"
+      title="Situação Financeira"
+      count={totalIssues}
+      summary={summary}
+      variant="danger"
+      defaultExpanded={defaultExpanded}
     >
-      {/* Header */}
-      <div
-        style={{
-          background: 'var(--color-status-error-bg)',
-          padding: '12px 20px',
-          borderBottom: '1px solid var(--color-border-subtle)',
-        }}
-      >
-        <h3
-          style={{
-            fontFamily: 'var(--font-family-heading)',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: 'var(--color-status-error)',
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span>💰</span>
-          Situação Financeira — {totalIssues} ocorrência{totalIssues > 1 ? 's' : ''} encontrada{totalIssues > 1 ? 's' : ''}
-        </h3>
-      </div>
-
       {/* Nome Sujo Status */}
       {hasNomeSujo && (
         <div
@@ -485,6 +468,6 @@ export default function FinancialCard({
           </table>
         </>
       )}
-    </div>
-  );
+    </CollapsibleCard>
+  )
 }

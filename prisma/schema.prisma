@@ -117,3 +117,25 @@ model LgpdRequest {
   @@index([protocol])
   @@index([cpfCnpj])
 }
+
+// Log de requisições às APIs externas para debug e auditoria
+model ApiRequestLog {
+  id           String   @id @default(cuid())
+  purchaseId   String?  // Referência à purchase (se aplicável)
+  purchaseCode String?  // Código da purchase para busca fácil
+  term         String   // CPF/CNPJ consultado (mascarado para LGPD)
+  type         String   // "CPF" | "CNPJ"
+  source       String   // "apifull" | "escavador" | "datajud" | "serper" | "brasilapi" | "openai"
+  endpoint     String   // URL ou identificador do endpoint
+  statusCode   Int?     // HTTP status code da resposta
+  requestBody  Json?    // Body enviado (sem dados sensíveis)
+  responseRaw  Json     // Resposta bruta completa da API
+  responseTime Int?     // Tempo de resposta em ms
+  error        String?  // Mensagem de erro se houver
+  createdAt    DateTime @default(now())
+
+  @@index([purchaseCode])
+  @@index([term, type])
+  @@index([source])
+  @@index([createdAt])
+}

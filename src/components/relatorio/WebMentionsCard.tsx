@@ -1,71 +1,53 @@
 "use client"
 
+import CollapsibleCard from './CollapsibleCard'
+import { generateMentionsSummary } from '@/lib/report-utils'
+
 interface MentionItem {
-  fonte: string;
-  data: string;
-  resumo: string;
-  url?: string;
-  classification?: 'positive' | 'negative' | 'neutral';
+  fonte: string
+  data: string
+  resumo: string
+  url?: string
+  classification?: 'positive' | 'negative' | 'neutral'
 }
 
 interface WebMentionsCardProps {
-  mentions: MentionItem[];
-  variant?: 'sol' | 'chuva';
+  mentions: MentionItem[]
+  variant?: 'sol' | 'chuva'
 }
 
 export default function WebMentionsCard({ mentions, variant = 'chuva' }: WebMentionsCardProps) {
-  if (mentions.length === 0) return null;
+  if (mentions.length === 0) return null
 
-  const isSol = variant === 'sol';
+  const isSol = variant === 'sol'
 
   // For 'sol' variant, show positive/neutral mentions
   // For 'chuva' variant, show negative mentions (default behavior)
   const filteredMentions = isSol
     ? mentions.filter(m => m.classification !== 'negative')
-    : mentions.filter(m => m.classification === 'negative' || m.classification === undefined);
+    : mentions.filter(m => m.classification === 'negative' || m.classification === undefined)
 
-  if (filteredMentions.length === 0) return null;
+  if (filteredMentions.length === 0) return null
 
-  const headerBg = isSol ? 'var(--color-status-success-bg)' : 'var(--color-status-warning-bg)';
-  const headerColor = isSol ? 'var(--color-status-success)' : 'var(--color-status-warning)';
-  const icon = isSol ? '✨' : '📰';
-  const title = isSol ? 'Menções Positivas' : 'Menções na Web';
+  // Generate summary
+  const summary = generateMentionsSummary(filteredMentions)
+
+  // Expand by default if 3 or fewer items
+  const defaultExpanded = filteredMentions.length <= 3
+
+  const icon = isSol ? '✨' : '📰'
+  const title = isSol ? 'Menções Positivas' : 'Notícias e Web'
+  const cardVariant = isSol ? 'default' : 'danger'
 
   return (
-    <div
-      style={{
-        marginTop: '24px',
-        background: 'var(--color-bg-primary)',
-        border: `1px solid ${isSol ? 'var(--color-status-success)' : 'var(--color-border-subtle)'}`,
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-        overflow: 'hidden',
-      }}
+    <CollapsibleCard
+      icon={icon}
+      title={title}
+      count={filteredMentions.length}
+      summary={summary}
+      variant={cardVariant}
+      defaultExpanded={defaultExpanded}
     >
-      <div
-        style={{
-          background: headerBg,
-          padding: '12px 20px',
-          borderBottom: '1px solid var(--color-border-subtle)',
-        }}
-      >
-        <h3
-          style={{
-            fontFamily: 'var(--font-family-heading)',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: headerColor,
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span>{icon}</span>
-          {title} — {filteredMentions.length} menç{filteredMentions.length > 1 ? 'ões' : 'ão'} encontrada{filteredMentions.length > 1 ? 's' : ''}
-        </h3>
-      </div>
-
       <div style={{ padding: '16px 20px' }}>
         {filteredMentions.map((mention, index) => (
           <div
@@ -90,9 +72,54 @@ export default function WebMentionsCard({ mentions, variant = 'chuva' }: WebMent
                   fontSize: '13px',
                   fontWeight: 600,
                   color: 'var(--color-text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
                 }}
               >
                 {mention.fonte}
+                {mention.classification === 'negative' && (
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: 'var(--color-status-error-bg)',
+                      color: 'var(--color-status-error)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Negativa
+                  </span>
+                )}
+                {mention.classification === 'positive' && (
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: 'var(--color-status-success-bg)',
+                      color: 'var(--color-status-success)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Positiva
+                  </span>
+                )}
+                {mention.classification === 'neutral' && (
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: 'var(--color-bg-secondary)',
+                      color: 'var(--color-text-tertiary)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Neutra
+                  </span>
+                )}
               </span>
               <span
                 style={{
@@ -135,6 +162,6 @@ export default function WebMentionsCard({ mentions, variant = 'chuva' }: WebMent
           </div>
         ))}
       </div>
-    </div>
-  );
+    </CollapsibleCard>
+  )
 }

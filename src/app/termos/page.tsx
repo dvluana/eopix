@@ -197,7 +197,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              O serviço é destinado a maiores de 18 anos. Ao utilizar o E O PIX?, você declara ser maior de idade e possuir capacidade civil plena. Você informa um CPF ou CNPJ, realiza o pagamento via Pix, e nosso sistema consulta fontes públicas para gerar um relatório consolidado. O relatório fica disponível na área "Minhas Consultas", vinculada ao e-mail informado no momento da compra, por um período de 7 (sete) dias.
+              O serviço é destinado a maiores de 18 anos. Ao utilizar o E O PIX?, você declara ser maior de idade e possuir capacidade civil plena. Você informa um CPF ou CNPJ, realiza o pagamento via Pix, e nosso sistema consulta fontes públicas para gerar um relatório consolidado. O relatório fica disponível na área &ldquo;Minhas Consultas&rdquo;, vinculada ao e-mail informado no momento da compra, por um período de 7 (sete) dias.
             </p>
           </section>
 
@@ -578,7 +578,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              O serviço é oferecido "como está" (as is). Não garantimos disponibilidade ininterrupta. Manutenções programadas ou indisponibilidade de fontes externas podem temporariamente impedir a geração de relatórios. Nessas situações, o sistema bloqueia novas compras até que o serviço seja restabelecido.
+              O serviço é oferecido &ldquo;como está&rdquo; (as is). Não garantimos disponibilidade ininterrupta. Manutenções programadas ou indisponibilidade de fontes externas podem temporariamente impedir a geração de relatórios. Nessas situações, o sistema bloqueia novas compras até que o serviço seja restabelecido.
             </p>
           </section>
 

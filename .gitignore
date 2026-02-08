@@ -28,6 +28,9 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# test data with personal information
+docs/DADOS-TESTE.md
+
 # vercel
 .vercel
 

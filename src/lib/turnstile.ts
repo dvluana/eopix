@@ -1,8 +1,14 @@
 import { isMockMode } from './mock-mode'
 
+// TEST_MODE: Bypass do Turnstile para testes sem CAPTCHA configurado
+// TODO: Remover TEST_MODE=true quando Turnstile estiver configurado em produção
+const isTestMode = process.env.TEST_MODE === 'true'
+
 export async function verifyTurnstile(token: string): Promise<boolean> {
-  if (isMockMode) {
-    console.log('[MOCK] Turnstile bypass')
+  // TEST_MODE ou MOCK_MODE: bypass do CAPTCHA
+  if (isTestMode || isMockMode) {
+    const mode = isTestMode ? 'TEST' : 'MOCK'
+    console.log(`🧪 [${mode}] Turnstile bypass`)
     return true
   }
 

@@ -1,54 +1,43 @@
 "use client"
 
+import CollapsibleCard from './CollapsibleCard'
+import { generateProcessSummary } from '@/lib/report-utils'
+
 interface ProcessoItem {
-  tribunal: string;
-  data: string;
-  classe: string;
-  polo: 'autor' | 'reu';
+  tribunal: string
+  data: string
+  classe: string
+  polo: 'autor' | 'reu' | 'testemunha'
 }
 
 interface JudicialCardProps {
-  processos: ProcessoItem[];
+  processos: ProcessoItem[]
 }
 
 export default function JudicialCard({ processos }: JudicialCardProps) {
-  if (processos.length === 0) return null;
+  if (processos.length === 0) return null
+
+  const summary = generateProcessSummary(
+    processos.map((p) => ({
+      tribunal: p.tribunal,
+      date: p.data,
+      classe: p.classe,
+      polo: p.polo,
+    }))
+  )
+
+  // Expand by default if 3 or fewer items
+  const defaultExpanded = processos.length <= 3
 
   return (
-    <div
-      style={{
-        marginTop: '24px',
-        background: 'var(--color-bg-primary)',
-        border: '1px solid var(--color-border-subtle)',
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-        overflow: 'hidden',
-      }}
+    <CollapsibleCard
+      icon="⚖️"
+      title="Processos Judiciais"
+      count={processos.length}
+      summary={summary}
+      variant="danger"
+      defaultExpanded={defaultExpanded}
     >
-      <div
-        style={{
-          background: 'var(--color-status-error-bg)',
-          padding: '12px 20px',
-          borderBottom: '1px solid var(--color-border-subtle)',
-        }}
-      >
-        <h3
-          style={{
-            fontFamily: 'var(--font-family-heading)',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: 'var(--color-status-error)',
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span>⚖️</span>
-          Processos Judiciais — {processos.length} processo{processos.length > 1 ? 's' : ''} encontrado{processos.length > 1 ? 's' : ''}
-        </h3>
-      </div>
-
       <table
         style={{
           width: '100%',
@@ -157,18 +146,21 @@ export default function JudicialCard({ processos }: JudicialCardProps) {
                 style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '13px',
-                  color: processo.polo === 'reu' ? 'var(--color-status-error)' : 'var(--color-text-secondary)',
+                  color:
+                    processo.polo === 'reu'
+                      ? 'var(--color-status-error)'
+                      : 'var(--color-text-secondary)',
                   fontWeight: processo.polo === 'reu' ? 600 : 400,
                   padding: '12px 20px',
                   textTransform: 'capitalize',
                 }}
               >
-                {processo.polo === 'reu' ? 'Réu' : 'Autor'}
+                {processo.polo === 'reu' ? 'Réu' : processo.polo === 'autor' ? 'Autor' : 'Testemunha'}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
-  );
+    </CollapsibleCard>
+  )
 }

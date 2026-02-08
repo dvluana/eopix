@@ -5,6 +5,10 @@ import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidEmail } from '@/lib/validators'
 import { generateMagicCode } from '@/lib/auth'
 
+// TEST_MODE: Loga código no console em vez de enviar email
+// TODO: Remover TEST_MODE=true quando Resend estiver configurado em produção
+const TEST_MODE = process.env.TEST_MODE === 'true'
+
 interface SendCodeRequest {
   email: string
 }
@@ -92,7 +96,19 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Send email
+    // TEST_MODE: Loga código no console, não envia email
+    if (TEST_MODE) {
+      console.log(`🧪 [TEST_MODE] Código de acesso para ${normalizedEmail}: ${code}`)
+      console.log(`🧪 [TEST_MODE] Ou use o código fixo: 123456`)
+      return NextResponse.json({
+        success: true,
+        message: 'Codigo enviado para seu email.',
+        // Em TEST_MODE, retorna hint para usar código fixo
+        _testHint: 'Use o código 123456 para login em modo de teste',
+      })
+    }
+
+    // Fluxo normal: envia email via Resend
     await sendMagicCode(normalizedEmail, code)
 
     return NextResponse.json({

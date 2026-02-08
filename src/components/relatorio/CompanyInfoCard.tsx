@@ -1,5 +1,7 @@
 "use client"
 
+import { calculateYearsSince } from '@/lib/report-utils';
+
 interface CnaeItem {
   codigo: string;
   descricao: string;
@@ -8,6 +10,7 @@ interface CnaeItem {
 interface SocioItem {
   nome: string;
   qualificacao: string;
+  dataEntrada?: string;
 }
 
 interface CompanyInfoCardProps {
@@ -19,6 +22,22 @@ interface CompanyInfoCardProps {
   cnaeSecundarios?: CnaeItem[];
   socios?: SocioItem[];
   capitalSocial?: number;
+}
+
+/**
+ * Generate natural language role description
+ */
+function formatPartnerRole(qualificacao: string): string {
+  const qual = qualificacao?.toLowerCase() || '';
+
+  if (qual.includes('administrador')) return 'Sócio-administrador';
+  if (qual.includes('diretor')) return 'Diretor';
+  if (qual.includes('presidente')) return 'Presidente';
+  if (qual.includes('gerente')) return 'Gerente';
+  if (qual.includes('procurador')) return 'Procurador';
+  if (qual.includes('sócio')) return 'Sócio';
+
+  return qualificacao;
 }
 
 function formatDate(dateStr: string): string {
@@ -318,38 +337,49 @@ export default function CompanyInfoCard({
               Quadro Societário ({socios.length})
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {socios.slice(0, 5).map((socio, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '8px 12px',
-                    background: 'var(--color-bg-secondary)',
-                    borderRadius: '4px',
-                  }}
-                >
-                  <span
+              {socios.slice(0, 5).map((socio, index) => {
+                const role = formatPartnerRole(socio.qualificacao);
+                const years = socio.dataEntrada ? calculateYearsSince(socio.dataEntrada) : null;
+                const timeDesc = years !== null
+                  ? years > 0
+                    ? `há ${years} ano${years > 1 ? 's' : ''}`
+                    : 'desde este ano'
+                  : null;
+
+                return (
+                  <div
+                    key={index}
                     style={{
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '13px',
-                      color: 'var(--color-text-primary)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      padding: '10px 12px',
+                      background: 'var(--color-bg-secondary)',
+                      borderRadius: '4px',
+                      gap: '2px',
                     }}
                   >
-                    {socio.nome}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '11px',
-                      color: 'var(--color-text-tertiary)',
-                    }}
-                  >
-                    {socio.qualificacao}
-                  </span>
-                </div>
-              ))}
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-family-body)',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      {socio.nome}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-family-body)',
+                        fontSize: '12px',
+                        color: 'var(--color-text-secondary)',
+                      }}
+                    >
+                      {role}{timeDesc ? ` ${timeDesc}` : ''}
+                    </span>
+                  </div>
+                );
+              })}
               {socios.length > 5 && (
                 <span
                   style={{
