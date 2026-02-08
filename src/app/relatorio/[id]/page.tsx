@@ -16,6 +16,7 @@ import {
   ReportFooter,
   ReportError,
   CompanyInfoCard,
+  PersonInfoCard,
   ReclameAquiCard,
   ActivityIndicator,
   LimitedDataWarning,
@@ -102,6 +103,43 @@ interface ReclameAquiData {
   url: string | null
 }
 
+interface CadastralEnderecoItem {
+  logradouro: string
+  numero: string
+  complemento: string
+  bairro: string
+  cidade: string
+  uf: string
+  cep: string
+}
+
+interface CadastralTelefoneItem {
+  ddd: string
+  numero: string
+  tipo: string
+}
+
+interface CadastralEmpresaVinculadaItem {
+  cnpj: string
+  razaoSocial: string
+  participacao: string
+}
+
+interface CadastralCpfData {
+  nome: string
+  cpf: string
+  dataNascimento: string | null
+  idade: number | null
+  nomeMae: string | null
+  sexo: string | null
+  signo: string | null
+  situacaoRF: string | null
+  enderecos: CadastralEnderecoItem[]
+  telefones: CadastralTelefoneItem[]
+  emails: string[]
+  empresasVinculadas: CadastralEmpresaVinculadaItem[]
+}
+
 interface ReportData {
   id: string
   term: string
@@ -109,6 +147,7 @@ interface ReportData {
   name: string
   data: {
     apiFull?: ApiFullData
+    cadastral?: CadastralCpfData
     brasilApi?: BrasilApiData
     processes?: ProcessData[]
     google?: GoogleData
@@ -366,6 +405,7 @@ export default function Page() {
 
   // Transform API data to component format
   const apiFull = report.data.apiFull || {};
+  const cadastral = report.data.cadastral;
   const processes = report.data.processes || [];
   const google = report.data.google || {};
   const brasilApi = report.data.brasilApi;
@@ -638,12 +678,27 @@ export default function Page() {
           />
         )}
 
-        {/* 4.2 ACTIVITY INDICATOR (CPF only) */}
+        {/* 4.2 PERSON INFO CARD (CPF only) */}
+        {report.type === 'CPF' && cadastral && (
+          <PersonInfoCard
+            cadastral={{
+              nome: cadastral.nome,
+              idade: cadastral.idade,
+              situacaoRF: cadastral.situacaoRF,
+              enderecos: cadastral.enderecos || [],
+              telefones: cadastral.telefones || [],
+              emails: cadastral.emails || [],
+              empresasVinculadas: cadastral.empresasVinculadas || [],
+            }}
+          />
+        )}
+
+        {/* 4.3 ACTIVITY INDICATOR (CPF only) */}
         {report.type === 'CPF' && apiFull.recentInquiries && apiFull.recentInquiries > 0 && (
           <ActivityIndicator recentInquiries={apiFull.recentInquiries} />
         )}
 
-        {/* 4.3 RECLAME AQUI CARD */}
+        {/* 4.4 RECLAME AQUI CARD */}
         {reclameAqui && reclameAqui.nota !== null && reclameAqui.indiceResolucao !== null && reclameAqui.url && (
           <ReclameAquiCard
             nota={reclameAqui.nota}

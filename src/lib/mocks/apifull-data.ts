@@ -1,3 +1,75 @@
+// CPF cadastral com problemas (Chuva)
+export const MOCK_APIFULL_CPF_CADASTRAL_CHUVA = {
+  nome: 'Joao Carlos da Silva',
+  cpf: '12345678901',
+  dataNascimento: '1985-03-15',
+  idade: 40,
+  nomeMae: 'Maria da Silva',
+  sexo: 'Masculino',
+  signo: 'Peixes',
+  situacaoRF: 'REGULAR',
+  enderecos: [
+    {
+      logradouro: 'Rua das Flores',
+      numero: '123',
+      complemento: 'Apto 45',
+      bairro: 'Centro',
+      cidade: 'Porto Alegre',
+      uf: 'RS',
+      cep: '90000-000',
+    },
+    {
+      logradouro: 'Av. Brasil',
+      numero: '456',
+      complemento: '',
+      bairro: 'Jardim America',
+      cidade: 'Canoas',
+      uf: 'RS',
+      cep: '92000-000',
+    },
+  ],
+  telefones: [
+    { ddd: '51', numero: '999887766', tipo: 'Celular' },
+    { ddd: '51', numero: '33445566', tipo: 'Fixo' },
+  ],
+  emails: ['joao.silva@email.com'],
+  empresasVinculadas: [
+    {
+      cnpj: '12345678000190',
+      razaoSocial: 'JC SILVA COMERCIO LTDA',
+      participacao: 'Sócio-Administrador',
+    },
+  ],
+}
+
+// CPF cadastral limpo (Sol)
+export const MOCK_APIFULL_CPF_CADASTRAL_SOL = {
+  nome: 'Maria Aparecida Santos',
+  cpf: '98765432109',
+  dataNascimento: '1990-07-22',
+  idade: 35,
+  nomeMae: 'Ana Paula Santos',
+  sexo: 'Feminino',
+  signo: 'Cancer',
+  situacaoRF: 'REGULAR',
+  enderecos: [
+    {
+      logradouro: 'Rua XV de Novembro',
+      numero: '789',
+      complemento: 'Casa',
+      bairro: 'Centro',
+      cidade: 'Florianopolis',
+      uf: 'SC',
+      cep: '88000-000',
+    },
+  ],
+  telefones: [
+    { ddd: '48', numero: '988776655', tipo: 'Celular' },
+  ],
+  emails: ['maria.santos@email.com', 'mariasantos@gmail.com'],
+  empresasVinculadas: [],
+}
+
 // CPF com problemas (Chuva)
 export const MOCK_APIFULL_CPF_CHUVA = {
   name: 'Joao Carlos da Silva',
