@@ -9,6 +9,21 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontSize: {
+        'display': ['48px', { lineHeight: '1.0', fontWeight: '700' }],
+        'h1': ['40px', { lineHeight: '1.1', fontWeight: '700' }],
+        'h2': ['28px', { lineHeight: '1.1', fontWeight: '700' }],
+        'h3': ['18px', { lineHeight: '1.3', fontWeight: '700' }],
+        'body-lg': ['16px', { lineHeight: '1.7', fontWeight: '400' }],
+        'body': ['14px', { lineHeight: '1.7', fontWeight: '400' }],
+        'caption': ['12px', { lineHeight: '1.7', fontWeight: '400' }],
+        'label': ['9px', { lineHeight: '1.0', fontWeight: '700' }],
+        'micro': ['10px', { lineHeight: '1.5', fontWeight: '400' }],
+      },
+      boxShadow: {
+        'card': '0 2px 8px rgba(0,0,0,0.10)',
+        'search': '0 8px 40px rgba(0,0,0,0.30), 0 0 0 1px rgba(240,239,235,0.10)',
+      },
       colors: {
         // Design System Colors
         background: "var(--background)",
@@ -69,9 +84,10 @@ const config: Config = {
         "30": "120px",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        'sm': '4px',
+        'md': '6px',
+        'lg': '8px',
+        'xl': '12px',
       },
       keyframes: {
         "accordion-down": {

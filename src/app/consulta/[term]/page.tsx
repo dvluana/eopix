@@ -1,9 +1,11 @@
 "use client"
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
+import MaintenanceCallout from '@/components/MaintenanceCallout';
+import LeadCaptureForm from '@/components/LeadCaptureForm';
 
 interface PageProps {
   params: { term: string }
@@ -11,7 +13,11 @@ interface PageProps {
 
 export default function Page({ params }: PageProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = React.useState('');
+
+  // Detecta se está em modo manutenção via query param
+  const isMaintenance = searchParams?.get('variant') === 'maintenance';
 
   // ============================================
   // DETECTA SE É CPF (11 dígitos) OU CNPJ (14 dígitos)
@@ -172,12 +178,22 @@ export default function Page({ params }: PageProps) {
           padding: '0 var(--primitive-space-6)',
           textAlign: 'center'
         }}>
-          <div className="section-header__tag section-header__tag--accent" style={{ marginBottom: 'var(--primitive-space-6)' }}>
-            RELATÓRIO PRONTO
+          <div
+            className="section-header__tag"
+            style={{
+              marginBottom: 'var(--primitive-space-6)',
+              background: isMaintenance ? '#CC3333' : undefined,
+              color: isMaintenance ? '#FFFFFF' : undefined
+            }}
+          >
+            {isMaintenance ? 'SISTEMA EM MANUTENÇÃO' : 'RELATÓRIO PRONTO'}
           </div>
 
           <h1 className="display-xl" style={{ marginBottom: 'var(--primitive-space-4)' }}>
-            Encontramos <span className="section-header__highlight">6 fontes</span> sobre este {documentType}
+            {isMaintenance
+              ? 'Sistema temporariamente indisponível'
+              : <>Encontramos <span className="section-header__highlight">6 fontes</span> sobre este {documentType}</>
+            }
           </h1>
 
           {/*
@@ -186,8 +202,17 @@ export default function Page({ params }: PageProps) {
             - CNPJ = 14 dígitos (ex: 12.345.678/0001-90)
           */}
           <p className="caption text-muted" style={{ marginBottom: 'var(--primitive-space-8)', fontStyle: 'italic' }}>
-            {documentType} consultado: {maskedTerm}
+            {isMaintenance
+              ? `Não foi possível processar a consulta para ${maskedTerm}`
+              : `${documentType} consultado: ${maskedTerm}`
+            }
           </p>
+
+          {/* Callout de manutenção - apenas em modo manutenção */}
+          {isMaintenance && <MaintenanceCallout />}
+
+          {/* Lead capture form - apenas em modo manutenção */}
+          {isMaintenance && <LeadCaptureForm />}
 
           {/* Form com input de email e botão - necessário para ativar autoComplete do navegador */}
           <form onSubmit={(e) => {
@@ -240,15 +265,18 @@ export default function Page({ params }: PageProps) {
             {/* Botão de compra */}
             <button
               type="submit"
+              disabled={isMaintenance}
               className="btn btn--primary btn--lg"
               style={{
                 width: '100%',
                 fontSize: '18px',
                 padding: '18px 32px',
-                marginBottom: 'var(--primitive-space-3)'
+                marginBottom: 'var(--primitive-space-3)',
+                opacity: isMaintenance ? 0.5 : 1,
+                cursor: isMaintenance ? 'not-allowed' : 'pointer'
               }}
             >
-              DESBLOQUEAR RELATÓRIO · R$ 29,90
+              {isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
             </button>
           </form>
 
@@ -433,9 +461,9 @@ export default function Page({ params }: PageProps) {
         </section>
 
         {/* ============================================ */}
-        {/* #1 SEÇÃO "POR QUE R$ 29,90?" */}
+        {/* #1 SEÇÃO "POR QUE R$ 29,90?" - apenas no default */}
         {/* ============================================ */}
-        <section style={{
+        {!isMaintenance && <section style={{
           maxWidth: '640px',
           margin: '0 auto var(--primitive-space-12)',
           padding: '0 var(--primitive-space-6)',
@@ -554,12 +582,12 @@ export default function Page({ params }: PageProps) {
               </div>
             </div>
           </div>
-        </section>
+        </section>}
 
         {/* ============================================ */}
-        {/* #3 CTA DUPLICADO - após o preview */}
+        {/* #3 CTA DUPLICADO - apenas no default */}
         {/* ============================================ */}
-        <section style={{
+        {!isMaintenance && <section style={{
           maxWidth: '640px',
           margin: '0 auto var(--primitive-space-12)',
           padding: '0 var(--primitive-space-6)',
@@ -586,7 +614,7 @@ export default function Page({ params }: PageProps) {
           <p className="caption text-muted" style={{ marginTop: 'var(--primitive-space-3)', fontStyle: 'italic' }}>
             Pagamento 100% seguro • Relatório enviado por email em até 3 minutos
           </p>
-        </section>
+        </section>}
 
         {/* Footer note */}
         <div style={{

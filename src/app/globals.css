@@ -2,74 +2,186 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 240 239 235; /* #F0EFEB - Papel */
-  --foreground: 26 26 26; /* #1A1A1A - Preto */
+/* Import Design System */
+@import '../styles/fonts.css';
+@import '../styles/tokens.css';
+@import '../styles/components.css';
 
-  --card: 0 0 100%; /* #FFFFFF - Branco */
-  --card-foreground: 26 26 26;
+/* ============================================
+   Theme overrides (valores do HTML original)
+   ============================================ */
+@layer base {
+  :root {
+    --font-size: 16px;
 
-  --popover: 0 0 100%;
-  --popover-foreground: 26 26 26;
+    /* Primitivos - cores simplificadas */
+    --primitive-black: #1A1A1A;
+    --primitive-yellow: #FFD600;
+    --primitive-paper: #F0EFEB;
+    --primitive-gray: #666666;
+    --primitive-light-gray: #BBBBBB;
+    --primitive-very-light: #E8E7E3;
+    --primitive-white: #FFFFFF;
+    --primitive-mid-gray: #888888;
+    --primitive-red: #CC3333;
 
-  --primary: 48 100 50%; /* #FFD600 - Amarelo */
-  --primary-foreground: 26 26 26;
+    /* Spacing Scale (valores do HTML original) */
+    --primitive-space-1: 4px;
+    --primitive-space-2: 6px;
+    --primitive-space-3: 12px;
+    --primitive-space-4: 16px;
+    --primitive-space-5: 20px;
+    --primitive-space-6: 24px;
+    --primitive-space-7: 28px;
+    --primitive-space-8: 32px;
+    --primitive-space-9: 40px;
+    --primitive-space-10: 48px;
+    --primitive-space-11: 56px;
+    --primitive-space-12: 64px;
+    --primitive-space-14: 80px;
+    --primitive-space-16: 100px;
+    --primitive-space-20: 120px;
 
-  --secondary: 0 0 15%; /* Cinza escuro */
-  --secondary-foreground: 0 0 100%;
+    /* Typography Scale (valores do HTML original) */
+    --primitive-size-micro: 11px;
+    --primitive-size-caption: 12px;
+    --primitive-size-label: 13px;
+    --primitive-size-sm: 14px;
+    --primitive-size-body: 15px;
+    --primitive-size-lg: 18px;
+    --primitive-size-xl: 20px;
+    --primitive-size-display-sm: 28px;
+    --primitive-size-display-md: 38px;
+    --primitive-size-display-lg: 44px;
+    --primitive-size-display-xl: 48px;
 
-  --muted: 0 0 92%; /* #EBEBEB */
-  --muted-foreground: 26 26 26;
+    /* Font Weights */
+    --primitive-weight-regular: 400;
+    --primitive-weight-medium: 500;
+    --primitive-weight-semibold: 600;
+    --primitive-weight-bold: 700;
 
-  --accent: 48 100 50%; /* #FFD600 - Amarelo */
-  --accent-foreground: 26 26 26;
+    /* Font Families */
+    --font-family-heading: 'Zilla Slab', serif;
+    --font-family-body: 'IBM Plex Mono', monospace;
 
-  --destructive: 0 68% 50%; /* #CC3333 - Vermelho */
-  --destructive-foreground: 0 0 100%;
+    /* Border */
+    --primitive-border-thin: 1px;
+    --primitive-border-medium: 2px;
+    --primitive-border-thick: 3px;
 
-  --border: 0 0 85%;
-  --input: 0 0 85%;
-  --ring: 48 100 50%; /* Amarelo para focus ring */
+    /* Radius */
+    --primitive-radius-sm: 4px;
+    --primitive-radius-md: 8px;
+    --primitive-radius-lg: 12px;
+    --primitive-radius-full: 9999px;
 
-  --radius: 8px;
-}
+    /* Semânticos - backgrounds */
+    --color-bg-primary: var(--primitive-white);
+    --color-bg-secondary: var(--primitive-paper);
+    --color-bg-subtle: var(--primitive-paper);
+    --color-bg-inverse: var(--primitive-black);
+    --color-bg-accent: var(--primitive-yellow);
 
-.dark {
-  --background: 26 26 26;
-  --foreground: 240 239 235;
+    /* Semânticos - textos */
+    --color-text-primary: var(--primitive-black);
+    --color-text-secondary: var(--primitive-gray);
+    --color-text-tertiary: var(--primitive-mid-gray);
+    --color-text-muted: var(--primitive-mid-gray);
+    --color-text-placeholder: var(--primitive-gray);
+    --color-text-inverse: var(--primitive-paper);
+    --color-text-inverse-muted: var(--primitive-light-gray);
+    --color-text-inverse-subtle: var(--primitive-mid-gray);
+    --color-text-accent: var(--primitive-yellow);
+    --color-text-danger: var(--primitive-red);
 
-  --card: 26 26 26;
-  --card-foreground: 240 239 235;
+    /* Semânticos - borders */
+    --color-border-default: var(--primitive-very-light);
+    --color-border-subtle: var(--primitive-very-light);
+    --color-border-accent: var(--primitive-yellow);
 
-  --popover: 26 26 26;
-  --popover-foreground: 240 239 235;
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --transition-slow: 0.4s ease;
 
-  --primary: 48 100 50%;
-  --primary-foreground: 26 26 26;
+    /* Shadows */
+    --shadow-low: 0 1px 2px rgba(26,26,26,0.04);
+    --shadow-medium: 0 4px 16px rgba(26,26,26,0.08);
+    --shadow-high: 0 8px 32px rgba(26,26,26,0.12);
 
-  --secondary: 0 0 25%;
-  --secondary-foreground: 0 0 100%;
+    /* Layout */
+    --layout-max-width-narrow: 600px;
+    --layout-max-width-medium: 800px;
+    --layout-max-width-wide: 1200px;
+    --layout-hero-short: 70vh;
+    --layout-depo-collapsed: 340px;
+    --layout-max-width-680: 680px;
+    --layout-max-width-840: 840px;
 
-  --muted: 0 0 20%;
-  --muted-foreground: 0 0 70%;
+    /* shadcn/ui variables */
+    --background: 240 239 235;
+    --foreground: 26 26 26;
+    --card: 0 0 100%;
+    --card-foreground: 26 26 26;
+    --popover: 0 0 100%;
+    --popover-foreground: 26 26 26;
+    --primary: 48 100 50%;
+    --primary-foreground: 26 26 26;
+    --secondary: 0 0 15%;
+    --secondary-foreground: 0 0 100%;
+    --muted: 0 0 92%;
+    --muted-foreground: 26 26 26;
+    --accent: 48 100 50%;
+    --accent-foreground: 26 26 26;
+    --destructive: 0 68% 50%;
+    --destructive-foreground: 0 0 100%;
+    --border: 0 0 85%;
+    --input: 0 0 85%;
+    --ring: 48 100 50%;
+    --radius: 8px;
+  }
 
-  --accent: 48 100 50%;
-  --accent-foreground: 26 26 26;
+  .dark {
+    --background: 26 26 26;
+    --foreground: 240 239 235;
+    --card: 26 26 26;
+    --card-foreground: 240 239 235;
+    --popover: 26 26 26;
+    --popover-foreground: 240 239 235;
+    --primary: 48 100 50%;
+    --primary-foreground: 26 26 26;
+    --secondary: 0 0 25%;
+    --secondary-foreground: 0 0 100%;
+    --muted: 0 0 20%;
+    --muted-foreground: 0 0 70%;
+    --accent: 48 100 50%;
+    --accent-foreground: 26 26 26;
+    --destructive: 0 68% 50%;
+    --destructive-foreground: 0 0 100%;
+    --border: 0 0 25%;
+    --input: 0 0 25%;
+    --ring: 48 100 50%;
+  }
 
-  --destructive: 0 68% 50%;
-  --destructive-foreground: 0 0 100%;
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-  --border: 0 0 25%;
-  --input: 0 0 25%;
-  --ring: 48 100 50%;
-}
+  html {
+    font-size: var(--font-size);
+    scroll-behavior: smooth;
+  }
 
-* {
-  @apply border-border;
-}
-
-body {
-  @apply bg-background text-foreground;
+  body {
+    background: var(--color-bg-secondary);
+    font-family: var(--font-family-body);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
 }
 
 @layer utilities {

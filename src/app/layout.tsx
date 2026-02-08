@@ -75,7 +75,7 @@ export default function RootLayout({
         ></script>
       </head>
       <body
-        className={`${zillaSlab.variable} ${ibmPlexMono.variable} font-mono antialiased`}
+        className={`${zillaSlab.variable} ${ibmPlexMono.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"

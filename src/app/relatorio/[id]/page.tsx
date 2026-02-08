@@ -1,63 +1,87 @@
 "use client"
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import Footer from '@/components/Footer';
+import {
+  ReportHeader,
+  ClimateBlock,
+  Disclaimer,
+  ChecklistCard,
+  FinancialCard,
+  JudicialCard,
+  WebMentionsCard,
+  AiSummary,
+  ReportFooter,
+  ReportError,
+} from '@/components/relatorio';
 
-// ============================================
-// COMPONENTE: CHECKMARK ICON
-// ============================================
-function CheckmarkIcon() {
-  return (
-    <div
-      style={{
-        width: '24px',
-        height: '24px',
-        borderRadius: '50%',
-        background: '#66CC66',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}
-    >
-      <svg
-        width="14"
-        height="11"
-        viewBox="0 0 14 11"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M1 5.5L5 9.5L13 1.5"
-          stroke="white"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </div>
-  );
-}
-
-// ============================================
-// COMPONENTE PRINCIPAL
-// ============================================
 interface PageProps {
   params: { id: string }
 }
 
+// Mock data para demonstração
+const mockDataSol = {
+  cpf: '***.456.789-**',
+  dataConsulta: '05/02/2026 às 14:32',
+  dataExpiracao: '12/02/2026',
+  weatherStatus: 'sol' as const,
+  climateMessage: 'Céu limpo. Nenhuma ocorrência encontrada.',
+  checklistItems: [
+    { label: 'Situação financeira', detail: 'Nome limpo, sem protestos, sem dívidas', status: 'ok' as const },
+    { label: 'Processos judiciais', detail: 'Nenhum encontrado', status: 'ok' as const },
+    { label: 'Menções na web', detail: 'Nenhuma ocorrência negativa', status: 'ok' as const },
+    { label: 'Cadastro empresarial', detail: 'Ativo desde 2018', status: 'ok' as const, note: '(visível apenas para CNPJ)' },
+  ],
+  protestos: [],
+  processos: [],
+  mentions: [],
+  aiSummary: 'Nenhuma ocorrência financeira, judicial ou de menções negativas na web foi encontrada para este CPF nos registros públicos consultados.',
+  closingMessage: 'Pelo que encontramos, o céu está limpo. Boa parceria!',
+};
+
+const mockDataChuva = {
+  cpf: '***.789.123-**',
+  dataConsulta: '05/02/2026 às 15:47',
+  dataExpiracao: '12/02/2026',
+  weatherStatus: 'chuva' as const,
+  climateMessage: 'Encontramos alguns pontos de atenção.',
+  checklistItems: [
+    { label: 'Situação financeira', detail: '2 protestos encontrados', status: 'warning' as const },
+    { label: 'Processos judiciais', detail: '1 processo como réu', status: 'warning' as const },
+    { label: 'Menções na web', detail: 'Nenhuma ocorrência negativa', status: 'ok' as const },
+    { label: 'Cadastro empresarial', detail: 'Regular desde 2020', status: 'ok' as const },
+  ],
+  protestos: [
+    { data: '15/01/2025', valor: 'R$ 1.250,00', cartorio: '3º Cartório de Protestos - SP' },
+    { data: '03/11/2024', valor: 'R$ 890,50', cartorio: '1º Cartório de Protestos - SP' },
+  ],
+  processos: [
+    { tribunal: 'TJSP', data: '22/08/2024', classe: 'Cobrança', polo: 'reu' as const },
+  ],
+  mentions: [
+    {
+      fonte: 'Reclame Aqui',
+      data: '10/12/2024',
+      resumo: 'Reclamação sobre atraso na entrega de produto. Empresa respondeu e caso foi resolvido.',
+      url: 'https://example.com',
+    },
+  ],
+  aiSummary: 'Foram identificados 2 protestos em cartório totalizando R$ 2.140,50 e 1 processo judicial como réu no TJSP. Recomenda-se verificar a situação financeira antes de prosseguir com negociações.',
+  closingMessage: 'Encontramos pontos de atenção. Avalie com cuidado.',
+};
+
 export default function Page({ params }: PageProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const reportId = params.id;
-  // TODO: buscar relatório usando reportId
-  console.log('Loading report:', reportId);
 
-  const userEmail = 'joao.silva@gmail.com'; // TODO: pegar da session
-  const cpf = '***.456.789-**'; // TODO: pegar do SearchResult
-  const dataConsulta = '05/02/2026 às 14:32';
-  const dataExpiracao = '12/02/2026';
+  // Detecta qual layout mostrar via query param (para demo)
+  const variant = searchParams?.get('variant') || 'sol';
+  const data = variant === 'chuva' ? mockDataChuva : mockDataSol;
+
+  const userEmail = 'joao.silva@gmail.com';
 
   const handleLogout = () => {
     alert('Logout realizado!');
@@ -72,11 +96,11 @@ export default function Page({ params }: PageProps) {
     router.push('/minhas-consultas');
   };
 
+  console.log('Loading report:', reportId);
+
   return (
     <div style={{ minHeight: '100vh', background: '#F0EFEB' }}>
-      {/* ============================================ */}
       {/* NAV */}
-      {/* ============================================ */}
       <nav
         style={{
           position: 'fixed',
@@ -94,10 +118,7 @@ export default function Page({ params }: PageProps) {
           zIndex: 1000,
         }}
       >
-        {/* Logo */}
         <LogoFundoPreto />
-
-        {/* User + Logout */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span
             style={{
@@ -127,9 +148,7 @@ export default function Page({ params }: PageProps) {
         </div>
       </nav>
 
-      {/* ============================================ */}
       {/* CONTEÚDO */}
-      {/* ============================================ */}
       <main
         style={{
           maxWidth: '800px',
@@ -140,296 +159,71 @@ export default function Page({ params }: PageProps) {
           paddingRight: '24px',
         }}
       >
-        {/* ============================================ */}
         {/* 1. HEADER DO RELATÓRIO */}
-        {/* ============================================ */}
-        <div>
-          <h1
-            style={{
-              fontFamily: 'var(--font-family-heading)',
-              fontSize: '28px',
-              fontWeight: 700,
-              color: '#1A1A1A',
-              margin: '0 0 8px 0',
-            }}
-          >
-            Consulta: CPF {cpf}
-          </h1>
+        <ReportHeader
+          cpf={data.cpf}
+          dataConsulta={data.dataConsulta}
+          status="concluido"
+        />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '12px',
-                color: '#888888',
-              }}
-            >
-              Consultado em {dataConsulta}
-            </span>
-
-            <div
-              style={{
-                background: 'rgba(102, 204, 102, 0.15)',
-                color: '#339933',
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '10px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                padding: '4px 10px',
-                borderRadius: '3px',
-              }}
-            >
-              CONCLUÍDO
-            </div>
-          </div>
-        </div>
-
-        {/* ============================================ */}
         {/* 2. BLOCO CLIMA */}
-        {/* ============================================ */}
-        <div
-          style={{
-            marginTop: '32px',
-            background: '#FFFDE6',
-            border: '1px solid #F5EDB8',
-            borderRadius: '6px',
-            padding: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '20px',
-          }}
-        >
-          {/* Ícone Sol */}
-          <div style={{ fontSize: '48px', lineHeight: 1 }}>☀️</div>
+        <ClimateBlock
+          weatherStatus={data.weatherStatus}
+          message={data.climateMessage}
+        />
 
-          {/* Texto */}
-          <div
-            style={{
-              fontFamily: 'var(--font-family-heading)',
-              fontSize: '18px',
-              fontWeight: 700,
-              color: '#1A1A1A',
-            }}
-          >
-            Céu limpo. Nenhuma ocorrência encontrada.
-          </div>
-        </div>
-
-        {/* ============================================ */}
         {/* 3. DISCLAIMER */}
-        {/* ============================================ */}
-        <p
-          style={{
-            marginTop: '12px',
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '11px',
-            color: '#888888',
-            fontStyle: 'italic',
-            lineHeight: 1.5,
-          }}
-        >
-          Ícones representam volume de registros públicos, não avaliação de
-          risco de crédito. A interpretação é exclusivamente sua.
-        </p>
+        <Disclaimer />
 
-        {/* ============================================ */}
-        {/* 4. CARD CONSOLIDADO "ATESTADO" */}
-        {/* ============================================ */}
-        <div
-          style={{
-            marginTop: '32px',
-            background: 'var(--primitive-white)',
-            border: '1px solid #E8E7E3',
-            borderRadius: '6px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-            padding: '32px',
-            position: 'relative',
-          }}
-        >
-          {/* Checklist */}
-          <div>
-            {/* Item 1 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                paddingTop: '16px',
-                paddingBottom: '16px',
-                borderBottom: '1px dashed #E8E7E3',
-              }}
-            >
-              <CheckmarkIcon />
-              <div
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '14px',
-                  color: '#1A1A1A',
-                }}
-              >
-                <strong>Situação financeira:</strong> Nome limpo, sem protestos,
-                sem dívidas
-              </div>
-            </div>
+        {/* 4. CHECKLIST */}
+        <ChecklistCard
+          items={data.checklistItems}
+          variant={data.weatherStatus}
+        />
 
-            {/* Item 2 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                paddingTop: '16px',
-                paddingBottom: '16px',
-                borderBottom: '1px dashed #E8E7E3',
-              }}
-            >
-              <CheckmarkIcon />
-              <div
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '14px',
-                  color: '#1A1A1A',
-                }}
-              >
-                <strong>Processos judiciais:</strong> Nenhum encontrado
-              </div>
-            </div>
+        {/* 5. CARDS ESPECÍFICOS DE CHUVA */}
+        {data.weatherStatus === 'chuva' && (
+          <>
+            <FinancialCard protestos={data.protestos} />
+            <JudicialCard processos={data.processos} />
+            <WebMentionsCard mentions={data.mentions} />
+          </>
+        )}
 
-            {/* Item 3 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                paddingTop: '16px',
-                paddingBottom: '16px',
-                borderBottom: '1px dashed #E8E7E3',
-              }}
-            >
-              <CheckmarkIcon />
-              <div
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '14px',
-                  color: '#1A1A1A',
-                }}
-              >
-                <strong>Menções na web:</strong> Nenhuma ocorrência negativa
-              </div>
-            </div>
-
-            {/* Item 4 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                paddingTop: '16px',
-                paddingBottom: '16px',
-              }}
-            >
-              <CheckmarkIcon />
-              <div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '14px',
-                    color: '#1A1A1A',
-                  }}
-                >
-                  <strong>Cadastro empresarial:</strong> Ativo desde 2018
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '10px',
-                    color: '#888888',
-                    marginTop: '4px',
-                  }}
-                >
-                  (visível apenas para CNPJ)
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ============================================ */}
-          {/* 5. RESUMO IA */}
-          {/* ============================================ */}
+        {/* 6. RESUMO IA + BOTÃO ERRO (dentro de card para Sol) */}
+        {data.weatherStatus === 'sol' ? (
           <div
             style={{
-              marginTop: '24px',
-              background: '#F0EFEB',
-              borderRadius: '4px',
-              padding: '16px',
+              marginTop: '-16px',
+              background: 'var(--primitive-white)',
+              border: '1px solid #E8E7E3',
+              borderTop: 'none',
+              borderRadius: '0 0 6px 6px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
+              padding: '0 32px 32px',
             }}
           >
-            {/* Badge */}
+            <AiSummary summary={data.aiSummary} />
+            <ReportError onRelatarErro={handleRelatarErro} />
+          </div>
+        ) : (
+          <div style={{ marginTop: '24px' }}>
             <div
               style={{
-                display: 'inline-block',
-                background: 'var(--primitive-yellow)',
-                color: 'var(--primitive-black)',
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '9px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '1.5px',
-                padding: '3px 8px',
-                borderRadius: '2px',
+                background: 'var(--primitive-white)',
+                border: '1px solid #E8E7E3',
+                borderRadius: '6px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
+                padding: '24px',
               }}
             >
-              RESUMO IA
+              <AiSummary summary={data.aiSummary} />
+              <ReportError onRelatarErro={handleRelatarErro} />
             </div>
-
-            {/* Texto */}
-            <p
-              style={{
-                marginTop: '8px',
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: '#666666',
-                lineHeight: 1.6,
-                margin: '8px 0 0 0',
-              }}
-            >
-              Nenhuma ocorrência financeira, judicial ou de menções negativas na
-              web foi encontrada para este CPF nos registros públicos
-              consultados.
-            </p>
           </div>
+        )}
 
-          {/* ============================================ */}
-          {/* 8. BOTÃO "RELATAR ERRO" */}
-          {/* ============================================ */}
-          <div
-            style={{
-              marginTop: '24px',
-              textAlign: 'right',
-            }}
-          >
-            <button
-              type="button"
-              onClick={handleRelatarErro}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '11px',
-                color: '#888888',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
-              Relatar erro
-            </button>
-          </div>
-        </div>
-
-        {/* ============================================ */}
-        {/* 6. TEXTO DE FECHAMENTO */}
-        {/* ============================================ */}
+        {/* 7. TEXTO DE FECHAMENTO */}
         <div
           style={{
             marginTop: '32px',
@@ -445,13 +239,11 @@ export default function Page({ params }: PageProps) {
               margin: 0,
             }}
           >
-            Pelo que encontramos, o céu está limpo. Boa parceria!
+            {data.closingMessage}
           </p>
         </div>
 
-        {/* ============================================ */}
-        {/* 7. LINKS EXTERNOS */}
-        {/* ============================================ */}
+        {/* 8. LINKS EXTERNOS */}
         <div
           style={{
             marginTop: '20px',
@@ -485,50 +277,15 @@ export default function Page({ params }: PageProps) {
           </a>
         </div>
 
-        {/* ============================================ */}
-        {/* 9. FOOTER */}
-        {/* ============================================ */}
-        <div
-          style={{
-            marginTop: '40px',
-            textAlign: 'center',
-          }}
-        >
-          <p
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '11px',
-              color: '#888888',
-              margin: '0 0 16px 0',
-            }}
-          >
-            Relatório gerado em {dataConsulta.split(' às ')[0]}. Dados expiram
-            em {dataExpiracao}.
-          </p>
-
-          <button
-            type="button"
-            onClick={handleVoltarConsultas}
-            style={{
-              background: 'transparent',
-              border: '2px solid #1A1A1A',
-              color: '#1A1A1A',
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '13px',
-              fontWeight: 600,
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            Voltar para Minhas Consultas
-          </button>
-        </div>
+        {/* 9. FOOTER DO RELATÓRIO */}
+        <ReportFooter
+          dataConsulta={data.dataConsulta}
+          dataExpiracao={data.dataExpiracao}
+          onVoltarConsultas={handleVoltarConsultas}
+        />
       </main>
 
-      {/* ============================================ */}
-      {/* FOOTER */}
-      {/* ============================================ */}
+      {/* FOOTER GLOBAL */}
       <Footer />
     </div>
   );
