@@ -174,9 +174,9 @@ export async function consultCpfCadastral(cpf: string): Promise<ApiFullCpfCadast
     return isChuvaScenario(cpf) ? MOCK_APIFULL_CPF_CADASTRAL_CHUVA : MOCK_APIFULL_CPF_CADASTRAL_SOL
   }
 
-  // === CHAMADA REAL - pf-localizacaocompleta ===
+  // === CHAMADA REAL - ic-cpf-completo ===
   // API cadastral que retorna dados pessoais, endereços, telefones, emails e empresas vinculadas
-  const res = await fetch('https://api.apifull.com.br/api/pf-localizacaocompleta', {
+  const res = await fetch('https://api.apifull.com.br/api/ic-cpf-completo', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -184,7 +184,7 @@ export async function consultCpfCadastral(cpf: string): Promise<ApiFullCpfCadast
     },
     body: JSON.stringify({
       cpf: cpf,
-      link: 'pf-localizacaocompleta',
+      link: 'ic-cpf-completo',
     }),
   })
 
