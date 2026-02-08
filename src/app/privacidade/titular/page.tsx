@@ -284,11 +284,22 @@ export default function Page() {
               fontSize: '28px',
               fontWeight: 700,
               color: 'var(--color-text-primary)',
-              margin: '0 0 16px 0',
+              margin: '0 0 8px 0',
             }}
           >
-            Seus Direitos como Titular
+            Direitos do Titular
           </h1>
+
+          <p
+            style={{
+              fontFamily: 'var(--font-family-body)',
+              fontSize: '12px',
+              color: 'var(--color-text-tertiary)',
+              margin: '0 0 24px 0',
+            }}
+          >
+            Última atualização: Fevereiro 2026
+          </p>
 
           <p
             style={{
@@ -299,9 +310,10 @@ export default function Page() {
               margin: '0 0 24px 0',
             }}
           >
-            Se você foi consultado e deseja solicitar exclusão dos seus dados, corrigir
-            informações ou informar erro de homônimo, preencha o formulário abaixo.
-            Responderemos em até 15 dias úteis.
+            Se você foi consultado no E O PIX? e deseja solicitar exclusão dos seus dados, corrigir
+            informações ou informar erro de homônimo, preencha o formulário abaixo.{' '}
+            <strong>Responderemos em até 15 dias úteis.</strong> Em casos de maior complexidade,
+            o prazo poderá ser estendido mediante comunicação fundamentada.
           </p>
 
           <div
@@ -309,7 +321,7 @@ export default function Page() {
               background: 'var(--color-bg-secondary)',
               borderLeft: '3px solid var(--color-border-accent)',
               padding: '16px',
-              marginBottom: '32px',
+              marginBottom: '24px',
             }}
           >
             <p
@@ -321,8 +333,50 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Você não precisa ter sido cliente para exercer seus direitos. Se alguém
-              consultou seu CPF/CNPJ, você pode solicitar a exclusão dos dados do relatório.
+              Você <strong>não precisa ter sido cliente</strong> para exercer seus direitos. Se alguém
+              consultou seu CPF ou CNPJ, você pode solicitar a exclusão dos dados do relatório e o
+              bloqueio de consultas futuras.
+            </p>
+          </div>
+
+          {/* Seção: Verificação de Identidade */}
+          <div style={{ marginBottom: '32px' }}>
+            <h2
+              style={{
+                fontFamily: 'var(--font-family-heading)',
+                fontSize: '16px',
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                margin: '0 0 12px 0',
+              }}
+            >
+              Verificação de Identidade
+            </h2>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+              }}
+            >
+              Para proteger seus dados contra solicitações indevidas feitas por terceiros,{' '}
+              <strong>poderemos solicitar comprovação de identidade</strong> antes de processar
+              seu pedido. Isso pode incluir confirmação de dados como CPF, data de nascimento ou
+              outro dado que permita confirmar que você é o titular dos dados em questão.
+            </p>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: 0,
+              }}
+            >
+              A verificação é feita exclusivamente para sua proteção e os dados serão utilizados
+              apenas para validar a solicitação.
             </p>
           </div>
 
@@ -527,7 +581,8 @@ export default function Page() {
                         color: 'var(--color-text-tertiary)',
                       }}
                     >
-                      Quero que removam todas as informações vinculadas ao meu CPF/CNPJ
+                      Quero que removam todas as informações vinculadas ao meu CPF/CNPJ e que
+                      futuras consultas sejam bloqueadas.
                     </div>
                   </div>
                 </label>
@@ -629,6 +684,102 @@ export default function Page() {
                 </label>
               </div>
 
+              <div style={{ marginBottom: '12px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="tipo"
+                    value="acesso"
+                    checked={tipoSolicitacao === 'acesso'}
+                    onChange={(e) => {
+                      setTipoSolicitacao(e.target.value);
+                      if (errors.tipo) setErrors({ ...errors, tipo: '' });
+                    }}
+                    style={{
+                      marginTop: '2px',
+                      marginRight: '8px',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-family-body)',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        color: 'var(--color-text-primary)',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      Acesso aos dados
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-family-body)',
+                        fontSize: '12px',
+                        color: 'var(--color-text-tertiary)',
+                      }}
+                    >
+                      Quero saber quais dados vocês possuem sobre mim.
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="tipo"
+                    value="oposicao"
+                    checked={tipoSolicitacao === 'oposicao'}
+                    onChange={(e) => {
+                      setTipoSolicitacao(e.target.value);
+                      if (errors.tipo) setErrors({ ...errors, tipo: '' });
+                    }}
+                    style={{
+                      marginTop: '2px',
+                      marginRight: '8px',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-family-body)',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        color: 'var(--color-text-primary)',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      Oposição ao tratamento
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-family-body)',
+                        fontSize: '12px',
+                        color: 'var(--color-text-tertiary)',
+                      }}
+                    >
+                      Quero me opor ao tratamento dos meus dados por este serviço.
+                    </div>
+                  </div>
+                </label>
+              </div>
+
               {errors.tipo && (
                 <p
                   style={{
@@ -719,11 +870,156 @@ export default function Page() {
             </button>
           </form>
 
+          {/* Seção: O Que Acontece Após a Solicitação */}
+          <div
+            style={{
+              marginTop: '40px',
+              paddingTop: '32px',
+              borderTop: '1px solid var(--color-border-subtle)',
+            }}
+          >
+            <h2
+              style={{
+                fontFamily: 'var(--font-family-heading)',
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                margin: '0 0 20px 0',
+              }}
+            >
+              O Que Acontece Após a Solicitação
+            </h2>
+
+            <div style={{ marginBottom: '16px' }}>
+              <h3
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: 'var(--color-text-primary)',
+                  margin: '0 0 8px 0',
+                }}
+              >
+                Exclusão e bloqueio
+              </h3>
+              <p
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                CPF/CNPJ adicionado à Blocklist, relatórios existentes serão excluídos, futuras
+                consultas bloqueadas com mensagem "Dados indisponíveis por solicitação do titular."
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <h3
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: 'var(--color-text-primary)',
+                  margin: '0 0 8px 0',
+                }}
+              >
+                Correção
+              </h3>
+              <p
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                Análise da informação; se erro da fonte, orientação para correção na fonte; se erro
+                interno, correção feita.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <h3
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: 'var(--color-text-primary)',
+                  margin: '0 0 8px 0',
+                }}
+              >
+                Homônimo
+              </h3>
+              <p
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                Nome associado ao bloqueio para filtragem em futuras consultas.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '0' }}>
+              <h3
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: 'var(--color-text-primary)',
+                  margin: '0 0 8px 0',
+                }}
+              >
+                Acesso
+              </h3>
+              <p
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                Informação sobre dados possuídos, quando coletados e quando serão eliminados.
+              </p>
+            </div>
+          </div>
+
+          {/* Seção: Canais Alternativos */}
+          <div
+            style={{
+              marginTop: '32px',
+              paddingTop: '24px',
+              borderTop: '1px solid var(--color-border-subtle)',
+            }}
+          >
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: 0,
+              }}
+            >
+              Se preferir, você também pode exercer seus direitos pelo e-mail:{' '}
+              <strong>privacidade@somoseopix.com</strong>
+            </p>
+          </div>
+
           <div
             style={{
               paddingTop: '24px',
               borderTop: '1px solid var(--color-border-subtle)',
-              marginTop: '32px',
+              marginTop: '24px',
             }}
           >
             <Link
