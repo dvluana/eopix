@@ -18,8 +18,8 @@ export default function WebMentionsCard({ mentions }: WebMentionsCardProps) {
     <div
       style={{
         marginTop: '24px',
-        background: 'var(--primitive-white)',
-        border: '1px solid #E8E7E3',
+        background: 'var(--color-bg-primary)',
+        border: '1px solid var(--color-border-subtle)',
         borderRadius: '6px',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
         overflow: 'hidden',
@@ -27,9 +27,9 @@ export default function WebMentionsCard({ mentions }: WebMentionsCardProps) {
     >
       <div
         style={{
-          background: '#FFF8E6',
+          background: 'var(--color-status-warning-bg)',
           padding: '12px 20px',
-          borderBottom: '1px solid #E8E7E3',
+          borderBottom: '1px solid var(--color-border-subtle)',
         }}
       >
         <h3
@@ -37,7 +37,7 @@ export default function WebMentionsCard({ mentions }: WebMentionsCardProps) {
             fontFamily: 'var(--font-family-heading)',
             fontSize: '14px',
             fontWeight: 700,
-            color: '#B89600',
+            color: 'var(--color-status-warning)',
             margin: 0,
             display: 'flex',
             alignItems: 'center',
@@ -56,7 +56,7 @@ export default function WebMentionsCard({ mentions }: WebMentionsCardProps) {
             style={{
               paddingTop: index > 0 ? '16px' : 0,
               paddingBottom: '16px',
-              borderBottom: index < mentions.length - 1 ? '1px dashed #E8E7E3' : 'none',
+              borderBottom: index < mentions.length - 1 ? '1px dashed var(--color-border-subtle)' : 'none',
             }}
           >
             <div
@@ -72,7 +72,7 @@ export default function WebMentionsCard({ mentions }: WebMentionsCardProps) {
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '13px',
                   fontWeight: 600,
-                  color: '#1A1A1A',
+                  color: 'var(--color-text-primary)',
                 }}
               >
                 {mention.fonte}
@@ -81,7 +81,7 @@ export default function WebMentionsCard({ mentions }: WebMentionsCardProps) {
                 style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '11px',
-                  color: '#888888',
+                  color: 'var(--color-text-tertiary)',
                 }}
               >
                 {mention.data}
@@ -91,7 +91,7 @@ export default function WebMentionsCard({ mentions }: WebMentionsCardProps) {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '13px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.5,
                 margin: 0,
               }}
@@ -106,7 +106,7 @@ export default function WebMentionsCard({ mentions }: WebMentionsCardProps) {
                 style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '11px',
-                  color: '#1A1A1A',
+                  color: 'var(--color-text-primary)',
                   textDecoration: 'underline',
                   marginTop: '6px',
                   display: 'inline-block',

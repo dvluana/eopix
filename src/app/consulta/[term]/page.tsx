@@ -388,7 +388,7 @@ export default function Page({ params }: PageProps) {
             left: '50%',
             transform: 'translate(-50%, -50%)',
             background: 'rgba(26, 26, 26, 0.85)',
-            color: 'var(--color-bg-accent)',
+            color: 'var(--color-text-accent)',
             padding: '6px 16px',
             borderRadius: 'var(--primitive-radius-sm)',
             zIndex: 10,
@@ -411,8 +411,8 @@ export default function Page({ params }: PageProps) {
               <div
                 key={index}
                 style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #E8E7E3',
+                  background: 'var(--color-bg-primary)',
+                  border: '1px solid var(--color-border-subtle)',
                   borderRadius: '6px',
                   padding: '20px'
                 }}
@@ -422,7 +422,7 @@ export default function Page({ params }: PageProps) {
                   fontFamily: 'var(--font-family-heading)',
                   fontSize: '14px',
                   fontWeight: 700,
-                  color: '#1A1A1A',
+                  color: 'var(--color-text-primary)',
                   marginBottom: '12px'
                 }}>
                   {card.title}
@@ -432,7 +432,7 @@ export default function Page({ params }: PageProps) {
                 <p style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '12px',
-                  color: '#888888',
+                  color: 'var(--color-text-tertiary)',
                   margin: 0,
                   filter: card.risk ? 'blur(8px)' : 'none',
                   userSelect: 'none',

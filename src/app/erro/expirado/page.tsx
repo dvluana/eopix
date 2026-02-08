@@ -10,7 +10,7 @@ export default function Page() {
   const router = useRouter();
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F0EFEB', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)', display: 'flex', flexDirection: 'column' }}>
       {/* NAV */}
       <nav
         style={{
@@ -56,7 +56,7 @@ export default function Page() {
         }}
       >
         {/* Ícone */}
-        <Clock size={64} color="#888888" strokeWidth={1.5} />
+        <Clock size={64} style={{ color: 'var(--color-text-tertiary)' }} strokeWidth={1.5} />
 
         {/* Título */}
         <h1
@@ -64,7 +64,7 @@ export default function Page() {
             fontFamily: 'var(--font-family-heading)',
             fontSize: '28px',
             fontWeight: 700,
-            color: '#1A1A1A',
+            color: 'var(--color-text-primary)',
             marginTop: '20px',
             marginBottom: 0,
             textAlign: 'center',
@@ -78,7 +78,7 @@ export default function Page() {
           style={{
             fontFamily: 'var(--font-family-body)',
             fontSize: '14px',
-            color: '#666666',
+            color: 'var(--color-text-secondary)',
             lineHeight: 1.7,
             maxWidth: '480px',
             textAlign: 'center',
@@ -92,8 +92,8 @@ export default function Page() {
         {/* Callout informativo */}
         <div
           style={{
-            background: '#F0EFEB',
-            borderLeft: '3px solid #FFD600',
+            background: 'var(--color-bg-secondary)',
+            borderLeft: '3px solid var(--color-border-accent)',
             borderRadius: '0 6px 6px 0',
             padding: '12px 16px',
             marginTop: '16px',
@@ -104,7 +104,7 @@ export default function Page() {
             style={{
               fontFamily: 'var(--font-family-body)',
               fontSize: '13px',
-              color: '#666666',
+              color: 'var(--color-text-secondary)',
               lineHeight: 1.6,
               margin: 0,
             }}
@@ -120,8 +120,8 @@ export default function Page() {
             fontFamily: 'var(--font-family-body)',
             fontSize: '14px',
             fontWeight: 700,
-            color: '#1A1A1A',
-            background: '#FFD600',
+            color: 'var(--color-text-primary)',
+            background: 'var(--color-bg-accent)',
             border: 'none',
             borderRadius: '8px',
             padding: '16px 32px',
@@ -130,10 +130,10 @@ export default function Page() {
             transition: 'all 0.2s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#E6C000';
+            e.currentTarget.style.filter = 'brightness(0.9)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = '#FFD600';
+            e.currentTarget.style.filter = 'brightness(1)';
           }}
         >
           Fazer nova consulta

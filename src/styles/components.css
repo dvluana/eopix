@@ -774,7 +774,7 @@
 }
 
 .consulta-card h3 {
-  font-family: var(--font-family-body);
+  font-family: var(--font-family-heading);
   font-size: var(--primitive-size-body);
   font-weight: var(--primitive-weight-bold);
   color: var(--color-text-inverse);

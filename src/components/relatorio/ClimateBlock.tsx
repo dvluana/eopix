@@ -9,14 +9,14 @@ export default function ClimateBlock({ weatherStatus, message }: ClimateBlockPro
   const config = {
     sol: {
       icon: '☀️',
-      bg: '#FFFDE6',
-      border: '#F5EDB8',
+      bg: 'var(--color-bg-accent-light)',
+      border: 'var(--color-border-accent)',
       defaultMessage: 'Céu limpo. Nenhuma ocorrência encontrada.',
     },
     chuva: {
       icon: '🌧️',
-      bg: '#F0EFEB',
-      border: '#D5D4D0',
+      bg: 'var(--color-bg-secondary)',
+      border: 'var(--color-border-subtle)',
       defaultMessage: 'Encontramos alguns pontos de atenção.',
     },
   };
@@ -42,7 +42,7 @@ export default function ClimateBlock({ weatherStatus, message }: ClimateBlockPro
           fontFamily: 'var(--font-family-heading)',
           fontSize: '18px',
           fontWeight: 700,
-          color: '#1A1A1A',
+          color: 'var(--color-text-primary)',
         }}
       >
         {message || cfg.defaultMessage}

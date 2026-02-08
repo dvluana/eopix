@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 
 export default function Page() {
   return (
-    <div style={{ minHeight: '100vh', background: '#F0EFEB' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
       <nav
         style={{
           position: 'fixed',
@@ -41,8 +41,8 @@ export default function Page() {
       >
         <div
           style={{
-            background: 'var(--primitive-white)',
-            border: '1px solid #E8E7E3',
+            background: 'var(--color-bg-primary)',
+            border: '1px solid var(--color-border-subtle)',
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
             padding: '48px',
@@ -53,7 +53,7 @@ export default function Page() {
               fontFamily: 'var(--font-family-heading)',
               fontSize: '28px',
               fontWeight: 700,
-              color: '#1A1A1A',
+              color: 'var(--color-text-primary)',
               margin: '0 0 8px 0',
             }}
           >
@@ -64,14 +64,14 @@ export default function Page() {
             style={{
               fontFamily: 'var(--font-family-body)',
               fontSize: '12px',
-              color: '#888888',
+              color: 'var(--color-text-tertiary)',
               margin: '0 0 32px 0',
             }}
           >
             Última atualização: Fevereiro 2026
           </p>
 
-          <hr style={{ border: 'none', borderTop: '1px solid #E8E7E3', margin: '0 0 32px 0' }} />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-subtle)', margin: '0 0 32px 0' }} />
 
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -79,7 +79,7 @@ export default function Page() {
                 fontFamily: 'var(--font-family-heading)',
                 fontSize: '18px',
                 fontWeight: 700,
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 margin: '0 0 12px 0',
               }}
             >
@@ -89,7 +89,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: '0 0 12px 0',
               }}
@@ -100,7 +100,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 marginBottom: '12px',
               }}
@@ -113,7 +113,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: 0,
               }}
@@ -128,7 +128,7 @@ export default function Page() {
                 fontFamily: 'var(--font-family-heading)',
                 fontSize: '18px',
                 fontWeight: 700,
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 margin: '0 0 12px 0',
               }}
             >
@@ -138,7 +138,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: '0 0 12px 0',
               }}
@@ -149,7 +149,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 marginBottom: '12px',
               }}
@@ -164,7 +164,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: 0,
               }}
@@ -179,7 +179,7 @@ export default function Page() {
                 fontFamily: 'var(--font-family-heading)',
                 fontSize: '18px',
                 fontWeight: 700,
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 margin: '0 0 12px 0',
               }}
             >
@@ -189,7 +189,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: 0,
               }}
@@ -204,7 +204,7 @@ export default function Page() {
                 fontFamily: 'var(--font-family-heading)',
                 fontSize: '18px',
                 fontWeight: 700,
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 margin: '0 0 12px 0',
               }}
             >
@@ -214,7 +214,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: '0 0 12px 0',
               }}
@@ -225,7 +225,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 marginBottom: '12px',
               }}
@@ -239,7 +239,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: 0,
               }}
@@ -254,7 +254,7 @@ export default function Page() {
                 fontFamily: 'var(--font-family-heading)',
                 fontSize: '18px',
                 fontWeight: 700,
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 margin: '0 0 12px 0',
               }}
             >
@@ -264,7 +264,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: '0 0 12px 0',
               }}
@@ -275,7 +275,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 marginBottom: '12px',
               }}
@@ -290,7 +290,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: 0,
               }}
@@ -299,7 +299,7 @@ export default function Page() {
               <a
                 href="mailto:privacidade@somoseopix.com"
                 style={{
-                  color: '#1A1A1A',
+                  color: 'var(--color-text-primary)',
                   textDecoration: 'underline',
                 }}
               >
@@ -312,7 +312,7 @@ export default function Page() {
           <div
             style={{
               paddingTop: '24px',
-              borderTop: '1px solid #E8E7E3',
+              borderTop: '1px solid var(--color-border-subtle)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -323,7 +323,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '12px',
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 textDecoration: 'underline',
               }}
             >
@@ -335,7 +335,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '12px',
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 textDecoration: 'underline',
               }}
             >

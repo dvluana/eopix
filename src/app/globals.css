@@ -61,7 +61,7 @@
     --primitive-weight-semibold: 600;
     --primitive-weight-bold: 700;
 
-    /* Font Families */
+    /* Font Families - fallback names, overridden in body with Next.js variables */
     --font-family-heading: 'Zilla Slab', serif;
     --font-family-body: 'IBM Plex Mono', monospace;
 
@@ -90,7 +90,7 @@
     --color-text-muted: var(--primitive-mid-gray);
     --color-text-placeholder: var(--primitive-gray);
     --color-text-inverse: var(--primitive-paper);
-    --color-text-inverse-muted: var(--primitive-light-gray);
+    --color-text-inverse-muted: var(--primitive-very-light);
     --color-text-inverse-subtle: var(--primitive-mid-gray);
     --color-text-accent: var(--primitive-yellow);
     --color-text-danger: var(--primitive-red);
@@ -99,6 +99,19 @@
     --color-border-default: var(--primitive-very-light);
     --color-border-subtle: var(--primitive-very-light);
     --color-border-accent: var(--primitive-yellow);
+
+    /* Status colors */
+    --color-status-success: #339933;
+    --color-status-success-bg: rgba(102, 204, 102, 0.15);
+    --color-status-warning: #B89600;
+    --color-status-warning-bg: rgba(255, 214, 0, 0.15);
+    --color-status-error: var(--primitive-red);
+    --color-status-error-bg: rgba(204, 51, 51, 0.15);
+
+    /* Light backgrounds with improved contrast */
+    --color-bg-accent-light: rgba(255, 214, 0, 0.15);
+    --color-bg-error-light: rgba(204, 51, 51, 0.1);
+    --color-bg-success-light: rgba(102, 204, 102, 0.1);
 
     /* Transitions */
     --transition-fast: 0.15s ease;
@@ -181,6 +194,9 @@
     color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    /* Override font families with Next.js font variables */
+    --font-family-heading: var(--font-zilla-slab), 'Zilla Slab', serif;
+    --font-family-body: var(--font-ibm-plex-mono), 'IBM Plex Mono', monospace;
   }
 }
 

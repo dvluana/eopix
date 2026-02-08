@@ -9,7 +9,8 @@ export default function AiSummary({ summary }: AiSummaryProps) {
     <div
       style={{
         marginTop: '24px',
-        background: '#F0EFEB',
+        background: 'var(--color-bg-secondary)',
+        border: '1px solid var(--color-border-subtle)',
         borderRadius: '4px',
         padding: '16px',
       }}
@@ -17,8 +18,8 @@ export default function AiSummary({ summary }: AiSummaryProps) {
       <div
         style={{
           display: 'inline-block',
-          background: 'var(--primitive-yellow)',
-          color: 'var(--primitive-black)',
+          background: 'var(--color-bg-accent)',
+          color: 'var(--color-text-primary)',
           fontFamily: 'var(--font-family-body)',
           fontSize: '9px',
           fontWeight: 700,
@@ -36,7 +37,7 @@ export default function AiSummary({ summary }: AiSummaryProps) {
           marginTop: '8px',
           fontFamily: 'var(--font-family-body)',
           fontSize: '14px',
-          color: '#666666',
+          color: 'var(--color-text-secondary)',
           lineHeight: 1.6,
           margin: '8px 0 0 0',
         }}

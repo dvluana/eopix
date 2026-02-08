@@ -18,7 +18,7 @@ export default function ReportFooter({ dataConsulta, dataExpiracao, onVoltarCons
         style={{
           fontFamily: 'var(--font-family-body)',
           fontSize: '11px',
-          color: '#888888',
+          color: 'var(--color-text-tertiary)',
           margin: '0 0 16px 0',
         }}
       >
@@ -31,8 +31,8 @@ export default function ReportFooter({ dataConsulta, dataExpiracao, onVoltarCons
         onClick={onVoltarConsultas}
         style={{
           background: 'transparent',
-          border: '2px solid #1A1A1A',
-          color: '#1A1A1A',
+          border: '2px solid var(--color-text-primary)',
+          color: 'var(--color-text-primary)',
           fontFamily: 'var(--font-family-body)',
           fontSize: '13px',
           fontWeight: 600,

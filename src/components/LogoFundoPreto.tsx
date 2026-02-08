@@ -46,7 +46,7 @@ function LogoText() {
   return (
     <div className="flex flex-col gap-[2px]">
       <p className="font-['Zilla_Slab',sans-serif] font-bold leading-[1.2] text-[#f0efeb] text-[22px] tracking-[-0.5px]">
-        E o Pix?
+        E o Pix<span className="text-[#ffd600]">?</span>
       </p>
       <div className="bg-[#ffd600] h-[2px] rounded-[2px] w-[80%]" />
     </div>

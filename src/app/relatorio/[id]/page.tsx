@@ -99,7 +99,7 @@ export default function Page({ params }: PageProps) {
   console.log('Loading report:', reportId);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F0EFEB' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
       {/* NAV */}
       <nav
         style={{
@@ -124,7 +124,7 @@ export default function Page({ params }: PageProps) {
             style={{
               fontFamily: 'var(--font-family-body)',
               fontSize: '12px',
-              color: '#888888',
+              color: 'var(--color-text-inverse-muted)',
             }}
           >
             {userEmail}
@@ -134,8 +134,8 @@ export default function Page({ params }: PageProps) {
             onClick={handleLogout}
             style={{
               background: 'transparent',
-              border: '1px solid #888888',
-              color: '#888888',
+              border: '1px solid var(--color-text-inverse-muted)',
+              color: 'var(--color-text-inverse-muted)',
               fontFamily: 'var(--font-family-body)',
               fontSize: '12px',
               padding: '6px 12px',
@@ -196,7 +196,7 @@ export default function Page({ params }: PageProps) {
             style={{
               marginTop: '-16px',
               background: 'var(--primitive-white)',
-              border: '1px solid #E8E7E3',
+              border: '1px solid var(--color-border-subtle)',
               borderTop: 'none',
               borderRadius: '0 0 6px 6px',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
@@ -211,7 +211,7 @@ export default function Page({ params }: PageProps) {
             <div
               style={{
                 background: 'var(--primitive-white)',
-                border: '1px solid #E8E7E3',
+                border: '1px solid var(--color-border-subtle)',
                 borderRadius: '6px',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
                 padding: '24px',
@@ -235,7 +235,7 @@ export default function Page({ params }: PageProps) {
               fontFamily: 'var(--font-family-heading)',
               fontSize: '18px',
               fontWeight: 700,
-              color: '#1A1A1A',
+              color: 'var(--color-text-primary)',
               margin: 0,
             }}
           >
@@ -257,7 +257,7 @@ export default function Page({ params }: PageProps) {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              color: '#1A1A1A',
+              color: 'var(--color-text-primary)',
               textDecoration: 'underline',
             }}
           >
@@ -269,7 +269,7 @@ export default function Page({ params }: PageProps) {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              color: '#1A1A1A',
+              color: 'var(--color-text-primary)',
               textDecoration: 'underline',
             }}
           >

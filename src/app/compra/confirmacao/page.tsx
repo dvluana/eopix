@@ -95,7 +95,7 @@ function ConfirmacaoContent() {
               width: '48px',
               height: '48px',
               borderRadius: '50%',
-              background: '#66CC66',
+              background: 'var(--color-status-success)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -139,7 +139,7 @@ function ConfirmacaoContent() {
 
               <div style={{
                 display: 'inline-block',
-                background: '#FFFDE6',
+                background: 'var(--color-bg-accent-light)',
                 padding: '8px 12px',
                 borderRadius: 'var(--primitive-radius-sm)',
                 fontSize: '16px',

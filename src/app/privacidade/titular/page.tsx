@@ -95,7 +95,7 @@ export default function Page() {
 
   if (formSubmitted) {
     return (
-      <div style={{ minHeight: '100vh', background: '#F0EFEB' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
         <nav
           style={{
             position: 'fixed',
@@ -129,8 +129,8 @@ export default function Page() {
         >
           <div
             style={{
-              background: 'var(--primitive-white)',
-              border: '1px solid #E8E7E3',
+              background: 'var(--color-bg-primary)',
+              border: '1px solid var(--color-border-subtle)',
               borderRadius: '6px',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
               padding: '48px',
@@ -142,7 +142,7 @@ export default function Page() {
                 width: '48px',
                 height: '48px',
                 borderRadius: '50%',
-                background: '#66CC66',
+                background: 'var(--color-status-success)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -171,7 +171,7 @@ export default function Page() {
                 fontFamily: 'var(--font-family-heading)',
                 fontSize: '28px',
                 fontWeight: 700,
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 margin: '0 0 16px 0',
               }}
             >
@@ -182,7 +182,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
                 margin: '0 0 16px 0',
               }}
@@ -196,7 +196,7 @@ export default function Page() {
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
                 fontWeight: 700,
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 margin: '0 0 32px 0',
               }}
             >
@@ -210,21 +210,21 @@ export default function Page() {
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
                 fontWeight: 700,
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 background: 'transparent',
-                border: '2px solid #1A1A1A',
+                border: '2px solid var(--color-text-primary)',
                 borderRadius: '8px',
                 padding: '12px 24px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#1A1A1A';
-                e.currentTarget.style.color = '#FFFFFF';
+                e.currentTarget.style.background = 'var(--color-bg-inverse)';
+                e.currentTarget.style.color = 'var(--color-text-inverse)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#1A1A1A';
+                e.currentTarget.style.color = 'var(--color-text-primary)';
               }}
             >
               Voltar para o início
@@ -237,7 +237,7 @@ export default function Page() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F0EFEB' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
       <nav
         style={{
           position: 'fixed',
@@ -271,8 +271,8 @@ export default function Page() {
       >
         <div
           style={{
-            background: 'var(--primitive-white)',
-            border: '1px solid #E8E7E3',
+            background: 'var(--color-bg-primary)',
+            border: '1px solid var(--color-border-subtle)',
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
             padding: '48px',
@@ -283,7 +283,7 @@ export default function Page() {
               fontFamily: 'var(--font-family-heading)',
               fontSize: '28px',
               fontWeight: 700,
-              color: '#1A1A1A',
+              color: 'var(--color-text-primary)',
               margin: '0 0 16px 0',
             }}
           >
@@ -294,7 +294,7 @@ export default function Page() {
             style={{
               fontFamily: 'var(--font-family-body)',
               fontSize: '14px',
-              color: '#666666',
+              color: 'var(--color-text-secondary)',
               lineHeight: 1.7,
               margin: '0 0 24px 0',
             }}
@@ -306,8 +306,8 @@ export default function Page() {
 
           <div
             style={{
-              background: '#F0EFEB',
-              borderLeft: '3px solid #FFD600',
+              background: 'var(--color-bg-secondary)',
+              borderLeft: '3px solid var(--color-border-accent)',
               padding: '16px',
               marginBottom: '32px',
             }}
@@ -316,7 +316,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '13px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.6,
                 margin: 0,
               }}
@@ -334,7 +334,7 @@ export default function Page() {
                   display: 'block',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '12px',
-                  color: '#888888',
+                  color: 'var(--color-text-tertiary)',
                   marginBottom: '8px',
                 }}
               >
@@ -353,9 +353,9 @@ export default function Page() {
                   width: '100%',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '14px',
-                  color: '#1A1A1A',
-                  background: 'var(--primitive-white)',
-                  border: errors.nome ? '2px solid #CC3333' : '2px solid #1A1A1A',
+                  color: 'var(--color-text-primary)',
+                  background: 'var(--color-bg-primary)',
+                  border: errors.nome ? '2px solid var(--color-status-error)' : '2px solid var(--color-text-primary)',
                   borderRadius: '8px',
                   padding: '12px 16px',
                   outline: 'none',
@@ -367,7 +367,7 @@ export default function Page() {
                   style={{
                     fontFamily: 'var(--font-family-body)',
                     fontSize: '12px',
-                    color: '#CC3333',
+                    color: 'var(--color-status-error)',
                     margin: '4px 0 0 0',
                   }}
                 >
@@ -383,7 +383,7 @@ export default function Page() {
                   display: 'block',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '12px',
-                  color: '#888888',
+                  color: 'var(--color-text-tertiary)',
                   marginBottom: '8px',
                 }}
               >
@@ -400,9 +400,9 @@ export default function Page() {
                   width: '100%',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '14px',
-                  color: '#1A1A1A',
-                  background: 'var(--primitive-white)',
-                  border: errors.cpf ? '2px solid #CC3333' : '2px solid #1A1A1A',
+                  color: 'var(--color-text-primary)',
+                  background: 'var(--color-bg-primary)',
+                  border: errors.cpf ? '2px solid var(--color-status-error)' : '2px solid var(--color-text-primary)',
                   borderRadius: '8px',
                   padding: '12px 16px',
                   outline: 'none',
@@ -414,7 +414,7 @@ export default function Page() {
                   style={{
                     fontFamily: 'var(--font-family-body)',
                     fontSize: '12px',
-                    color: '#CC3333',
+                    color: 'var(--color-status-error)',
                     margin: '4px 0 0 0',
                   }}
                 >
@@ -430,7 +430,7 @@ export default function Page() {
                   display: 'block',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '12px',
-                  color: '#888888',
+                  color: 'var(--color-text-tertiary)',
                   marginBottom: '8px',
                 }}
               >
@@ -449,9 +449,9 @@ export default function Page() {
                   width: '100%',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '14px',
-                  color: '#1A1A1A',
-                  background: 'var(--primitive-white)',
-                  border: errors.email ? '2px solid #CC3333' : '2px solid #1A1A1A',
+                  color: 'var(--color-text-primary)',
+                  background: 'var(--color-bg-primary)',
+                  border: errors.email ? '2px solid var(--color-status-error)' : '2px solid var(--color-text-primary)',
                   borderRadius: '8px',
                   padding: '12px 16px',
                   outline: 'none',
@@ -463,7 +463,7 @@ export default function Page() {
                   style={{
                     fontFamily: 'var(--font-family-body)',
                     fontSize: '12px',
-                    color: '#CC3333',
+                    color: 'var(--color-status-error)',
                     margin: '4px 0 0 0',
                   }}
                 >
@@ -478,7 +478,7 @@ export default function Page() {
                   display: 'block',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '12px',
-                  color: '#888888',
+                  color: 'var(--color-text-tertiary)',
                   marginBottom: '12px',
                 }}
               >
@@ -514,7 +514,7 @@ export default function Page() {
                         fontFamily: 'var(--font-family-body)',
                         fontSize: '14px',
                         fontWeight: 700,
-                        color: '#1A1A1A',
+                        color: 'var(--color-text-primary)',
                         marginBottom: '4px',
                       }}
                     >
@@ -524,7 +524,7 @@ export default function Page() {
                       style={{
                         fontFamily: 'var(--font-family-body)',
                         fontSize: '12px',
-                        color: '#888888',
+                        color: 'var(--color-text-tertiary)',
                       }}
                     >
                       Quero que removam todas as informações vinculadas ao meu CPF/CNPJ
@@ -562,7 +562,7 @@ export default function Page() {
                         fontFamily: 'var(--font-family-body)',
                         fontSize: '14px',
                         fontWeight: 700,
-                        color: '#1A1A1A',
+                        color: 'var(--color-text-primary)',
                         marginBottom: '4px',
                       }}
                     >
@@ -572,7 +572,7 @@ export default function Page() {
                       style={{
                         fontFamily: 'var(--font-family-body)',
                         fontSize: '12px',
-                        color: '#888888',
+                        color: 'var(--color-text-tertiary)',
                       }}
                     >
                       Há informações incorretas no relatório gerado sobre mim
@@ -610,7 +610,7 @@ export default function Page() {
                         fontFamily: 'var(--font-family-body)',
                         fontSize: '14px',
                         fontWeight: 700,
-                        color: '#1A1A1A',
+                        color: 'var(--color-text-primary)',
                         marginBottom: '4px',
                       }}
                     >
@@ -620,7 +620,7 @@ export default function Page() {
                       style={{
                         fontFamily: 'var(--font-family-body)',
                         fontSize: '12px',
-                        color: '#888888',
+                        color: 'var(--color-text-tertiary)',
                       }}
                     >
                       Os dados exibidos não são meus, são de outra pessoa com nome semelhante
@@ -634,7 +634,7 @@ export default function Page() {
                   style={{
                     fontFamily: 'var(--font-family-body)',
                     fontSize: '12px',
-                    color: '#CC3333',
+                    color: 'var(--color-status-error)',
                     margin: '4px 0 0 0',
                   }}
                 >
@@ -650,7 +650,7 @@ export default function Page() {
                   display: 'block',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '12px',
-                  color: '#888888',
+                  color: 'var(--color-text-tertiary)',
                   marginBottom: '8px',
                 }}
               >
@@ -669,9 +669,9 @@ export default function Page() {
                   width: '100%',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '14px',
-                  color: '#1A1A1A',
-                  background: 'var(--primitive-white)',
-                  border: errors.descricao ? '2px solid #CC3333' : '2px solid #1A1A1A',
+                  color: 'var(--color-text-primary)',
+                  background: 'var(--color-bg-primary)',
+                  border: errors.descricao ? '2px solid var(--color-status-error)' : '2px solid var(--color-text-primary)',
                   borderRadius: '8px',
                   padding: '12px 16px',
                   outline: 'none',
@@ -684,7 +684,7 @@ export default function Page() {
                   style={{
                     fontFamily: 'var(--font-family-body)',
                     fontSize: '12px',
-                    color: '#CC3333',
+                    color: 'var(--color-status-error)',
                     margin: '4px 0 0 0',
                   }}
                 >
@@ -700,8 +700,8 @@ export default function Page() {
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
                 fontWeight: 700,
-                color: '#1A1A1A',
-                background: '#FFD600',
+                color: 'var(--color-text-primary)',
+                background: 'var(--color-bg-accent)',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '14px 24px',
@@ -709,10 +709,10 @@ export default function Page() {
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#E6C000';
+                e.currentTarget.style.filter = 'brightness(0.9)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#FFD600';
+                e.currentTarget.style.filter = 'brightness(1)';
               }}
             >
               Enviar solicitação
@@ -722,7 +722,7 @@ export default function Page() {
           <div
             style={{
               paddingTop: '24px',
-              borderTop: '1px solid #E8E7E3',
+              borderTop: '1px solid var(--color-border-subtle)',
               marginTop: '32px',
             }}
           >
@@ -731,7 +731,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '12px',
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 textDecoration: 'underline',
               }}
             >

@@ -5,8 +5,8 @@ import { AlertTriangle } from 'lucide-react';
 export default function MaintenanceCallout() {
   return (
     <div style={{
-      background: '#FFF0F0',
-      borderLeft: '3px solid #CC3333',
+      background: 'var(--color-status-error-bg)',
+      borderLeft: '3px solid var(--color-status-error)',
       borderRadius: '0 6px 6px 0',
       padding: '16px',
       marginBottom: 'var(--primitive-space-6)',
@@ -15,11 +15,11 @@ export default function MaintenanceCallout() {
       gap: '12px',
       textAlign: 'left'
     }}>
-      <AlertTriangle size={20} color="#CC3333" style={{ flexShrink: 0, marginTop: '2px' }} />
+      <AlertTriangle size={20} style={{ color: 'var(--color-status-error)', flexShrink: 0, marginTop: '2px' }} />
       <p style={{
         fontFamily: 'var(--font-family-body)',
         fontSize: '14px',
-        color: '#CC3333',
+        color: 'var(--color-status-error)',
         margin: 0,
         lineHeight: 1.5
       }}>

@@ -646,42 +646,42 @@ export default function LandingPage() {
 
             <div style={{ position: 'relative' }}>
               <div className="grid-2" style={{ maxHeight: depoExpanded ? '2000px' : '340px', overflow: 'hidden', transition: 'max-height 0.6s ease' }}>
-                <div className="card">
+                <div className="card card--accent-top">
                   <span className="depo-emoji">💀</span>
                   <p className="body-sm mb-12px">&quot;Pesquisei depois do calote. Tava tudo lá. TUDO.&quot;</p>
                   <p className="caption text-muted">— Designer freelancer, SP</p>
                 </div>
-                <div className="card">
+                <div className="card card--accent-top">
                   <span className="depo-emoji">🎤</span>
                   <p className="body-sm mb-12px">&quot;Ele mandou áudio de 7 minutos explicando por que ia atrasar o pagamento. Eu devia ter consultado antes.&quot;</p>
                   <p className="caption text-muted">— Dev backend, RJ</p>
                 </div>
-                <div className="card">
+                <div className="card card--accent-top">
                   <span className="depo-emoji">🤡</span>
                   <p className="body-sm mb-12px">&quot;A empresa tinha 47 processos. QUARENTA E SETE. E eu aceitei cheque.&quot;</p>
                   <p className="caption text-muted">— Dono de agência, MG</p>
                 </div>
-                <div className="card">
+                <div className="card card--accent-top">
                   <span className="depo-emoji">🙏</span>
                   <p className="body-sm mb-12px">&quot;O cara me disse &apos;confia&apos;. Agora eu confio no E o Pix.&quot;</p>
                   <p className="caption text-muted">— Social media, PR</p>
                 </div>
-                <div className="card">
+                <div className="card card--accent-top">
                   <span className="depo-emoji">😴</span>
                   <p className="body-sm mb-12px">&quot;Minha mãe falou: pesquisa antes. Eu não ouvi. Agora pago R$ 29,90 por consulta e durmo em paz.&quot;</p>
                   <p className="caption text-muted">— Arquiteta, SC</p>
                 </div>
-                <div className="card">
+                <div className="card card--accent-top">
                   <span className="depo-emoji">📅</span>
                   <p className="body-sm mb-12px">&quot;Ele disse que pagava na sexta. Estamos em março. A sexta era de novembro.&quot;</p>
                   <p className="caption text-muted">— Fotógrafo, CE</p>
                 </div>
-                <div className="card">
+                <div className="card card--accent-top">
                   <span className="depo-emoji">📰</span>
                   <p className="body-sm mb-12px">&quot;Fui a consulta e apareceu até matéria no jornal. O Google que eu deveria ter feito.&quot;</p>
                   <p className="caption text-muted">— Consultora de RH, DF</p>
                 </div>
-                <div className="card">
+                <div className="card card--accent-top">
                   <span className="depo-emoji">⚖️</span>
                   <p className="body-sm mb-12px">&quot;Descobri que meu fornecedor tinha mais processo que cliente. Obrigada, E o Pix.&quot;</p>
                   <p className="caption text-muted">— Dona de e-commerce, BA</p>

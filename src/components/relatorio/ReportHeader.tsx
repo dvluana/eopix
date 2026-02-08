@@ -10,18 +10,18 @@ export default function ReportHeader({ cpf, dataConsulta, status }: ReportHeader
   const statusConfig = {
     concluido: {
       label: 'CONCLUÍDO',
-      bg: 'rgba(102, 204, 102, 0.15)',
-      color: '#339933',
+      bg: 'var(--color-status-success-bg)',
+      color: 'var(--color-status-success)',
     },
     processando: {
       label: 'PROCESSANDO',
-      bg: 'rgba(255, 214, 0, 0.15)',
-      color: '#B89600',
+      bg: 'var(--color-status-warning-bg)',
+      color: 'var(--color-status-warning)',
     },
     erro: {
       label: 'ERRO',
-      bg: 'rgba(204, 51, 51, 0.15)',
-      color: '#CC3333',
+      bg: 'var(--color-status-error-bg)',
+      color: 'var(--color-status-error)',
     },
   };
 
@@ -34,7 +34,7 @@ export default function ReportHeader({ cpf, dataConsulta, status }: ReportHeader
           fontFamily: 'var(--font-family-heading)',
           fontSize: '28px',
           fontWeight: 700,
-          color: '#1A1A1A',
+          color: 'var(--color-text-primary)',
           margin: '0 0 8px 0',
         }}
       >
@@ -46,7 +46,7 @@ export default function ReportHeader({ cpf, dataConsulta, status }: ReportHeader
           style={{
             fontFamily: 'var(--font-family-body)',
             fontSize: '12px',
-            color: '#888888',
+            color: 'var(--color-text-tertiary)',
           }}
         >
           Consultado em {dataConsulta}

@@ -94,8 +94,8 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
       case 'EXPIRED':
         return {
           label: '📅 EXPIRADO',
-          bg: '#E8E7E3',
-          color: '#888888',
+          bg: 'var(--color-border-subtle)',
+          color: 'var(--color-text-tertiary)',
         };
     }
   };
@@ -107,7 +107,7 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
     <div
       style={{
         background: 'var(--primitive-white)',
-        border: '1px solid #E8E7E3',
+        border: '1px solid var(--color-border-subtle)',
         borderRadius: '6px',
         padding: '20px 24px',
         display: 'flex',
@@ -152,7 +152,7 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
           style={{
             fontFamily: 'var(--font-family-body)',
             fontSize: '12px',
-            color: '#888888',
+            color: 'var(--color-text-tertiary)',
             marginTop: '4px',
           }}
         >
@@ -169,7 +169,7 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
             style={{
               background: 'var(--primitive-white)',
               color: 'var(--primitive-black)',
-              border: '1px solid #1A1A1A',
+              border: '1px solid var(--color-text-primary)',
               fontFamily: 'var(--font-family-body)',
               fontSize: '12px',
               fontWeight: 700,
@@ -187,7 +187,7 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
             style={{
               fontFamily: 'var(--font-family-body)',
               fontSize: '12px',
-              color: '#888888',
+              color: 'var(--color-text-tertiary)',
               fontStyle: 'italic',
             }}
           >
@@ -198,8 +198,8 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
         {purchase.status === 'FAILED' && (
           <div
             style={{
-              background: '#E8E7E3',
-              color: '#666666',
+              background: 'var(--color-border-subtle)',
+              color: 'var(--color-text-secondary)',
               fontFamily: 'var(--font-family-body)',
               fontSize: '10px',
               fontWeight: 700,
@@ -357,7 +357,7 @@ export default function Page() {
             width: '100%',
             margin: '0 var(--primitive-space-6)',
             background: 'var(--primitive-white)',
-            border: '1px solid #E8E7E3',
+            border: '1px solid var(--color-border-subtle)',
             borderRadius: 'var(--primitive-radius-md)',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
             padding: '40px'
@@ -382,7 +382,7 @@ export default function Page() {
                 <p style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '14px',
-                  color: '#666666',
+                  color: 'var(--color-text-secondary)',
                   textAlign: 'center',
                   margin: '0 0 24px 0'
                 }}>
@@ -449,7 +449,7 @@ export default function Page() {
                 <p style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '14px',
-                  color: '#666666',
+                  color: 'var(--color-text-secondary)',
                   textAlign: 'center',
                   margin: '0 0 24px 0'
                 }}>
@@ -524,7 +524,7 @@ export default function Page() {
                   <p style={{
                     fontFamily: 'var(--font-family-body)',
                     fontSize: '13px',
-                    color: '#666666',
+                    color: 'var(--color-text-secondary)',
                     margin: 0
                   }}>
                     Não recebeu o código? Verifique o spam.
@@ -541,7 +541,7 @@ export default function Page() {
                       border: 'none',
                       fontFamily: 'var(--font-family-body)',
                       fontSize: '12px',
-                      color: '#888888',
+                      color: 'var(--color-text-tertiary)',
                       textDecoration: 'underline',
                       cursor: 'pointer',
                       padding: 0
@@ -590,7 +590,7 @@ export default function Page() {
   // SE ESTIVER AUTENTICADO: MOSTRA LISTA DE CONSULTAS
   // ============================================
   return (
-    <div style={{ minHeight: '100vh', background: '#F0EFEB' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
       {/* ============================================ */}
       {/* NAV */}
       {/* ============================================ */}
@@ -627,7 +627,7 @@ export default function Page() {
             style={{
               fontFamily: 'var(--font-family-body)',
               fontSize: '12px',
-              color: '#888888',
+              color: 'var(--color-text-inverse-muted)',
             }}
           >
             {userEmail}
@@ -637,8 +637,8 @@ export default function Page() {
             onClick={handleLogout}
             style={{
               background: 'transparent',
-              border: '1px solid #888888',
-              color: '#888888',
+              border: '1px solid var(--color-text-inverse-muted)',
+              color: 'var(--color-text-inverse-muted)',
               fontFamily: 'var(--font-family-body)',
               fontSize: '12px',
               padding: '6px 12px',
@@ -680,7 +680,7 @@ export default function Page() {
                 fontFamily: 'var(--font-family-heading)',
                 fontSize: '28px',
                 fontWeight: 700,
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
                 margin: '0 0 4px 0',
               }}
             >
@@ -690,7 +690,7 @@ export default function Page() {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#666666',
+                color: 'var(--color-text-secondary)',
                 margin: 0,
               }}
             >

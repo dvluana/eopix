@@ -17,8 +17,8 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
     <div
       style={{
         marginTop: '24px',
-        background: 'var(--primitive-white)',
-        border: '1px solid #E8E7E3',
+        background: 'var(--color-bg-primary)',
+        border: '1px solid var(--color-border-subtle)',
         borderRadius: '6px',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
         overflow: 'hidden',
@@ -26,9 +26,9 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
     >
       <div
         style={{
-          background: '#FFF0F0',
+          background: 'var(--color-status-error-bg)',
           padding: '12px 20px',
-          borderBottom: '1px solid #E8E7E3',
+          borderBottom: '1px solid var(--color-border-subtle)',
         }}
       >
         <h3
@@ -36,7 +36,7 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
             fontFamily: 'var(--font-family-heading)',
             fontSize: '14px',
             fontWeight: 700,
-            color: '#CC3333',
+            color: 'var(--color-status-error)',
             margin: 0,
             display: 'flex',
             alignItems: 'center',
@@ -57,7 +57,7 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
         <thead>
           <tr
             style={{
-              background: '#F8F8F6',
+              background: 'var(--color-bg-secondary)',
             }}
           >
             <th
@@ -65,7 +65,7 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '10px',
                 fontWeight: 700,
-                color: '#888888',
+                color: 'var(--color-text-tertiary)',
                 textTransform: 'uppercase',
                 textAlign: 'left',
                 padding: '10px 20px',
@@ -78,7 +78,7 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '10px',
                 fontWeight: 700,
-                color: '#888888',
+                color: 'var(--color-text-tertiary)',
                 textTransform: 'uppercase',
                 textAlign: 'left',
                 padding: '10px 20px',
@@ -91,7 +91,7 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '10px',
                 fontWeight: 700,
-                color: '#888888',
+                color: 'var(--color-text-tertiary)',
                 textTransform: 'uppercase',
                 textAlign: 'left',
                 padding: '10px 20px',
@@ -106,14 +106,14 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
             <tr
               key={index}
               style={{
-                borderTop: '1px solid #E8E7E3',
+                borderTop: '1px solid var(--color-border-subtle)',
               }}
             >
               <td
                 style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '13px',
-                  color: '#1A1A1A',
+                  color: 'var(--color-text-primary)',
                   padding: '12px 20px',
                 }}
               >
@@ -123,7 +123,7 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
                 style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '13px',
-                  color: '#CC3333',
+                  color: 'var(--color-status-error)',
                   fontWeight: 600,
                   padding: '12px 20px',
                 }}
@@ -134,7 +134,7 @@ export default function FinancialCard({ protestos }: FinancialCardProps) {
                 style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '13px',
-                  color: '#666666',
+                  color: 'var(--color-text-secondary)',
                   padding: '12px 20px',
                 }}
               >
