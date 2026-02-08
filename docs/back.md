@@ -138,8 +138,7 @@ ASAAS_API_KEY=
 ASAAS_WEBHOOK_TOKEN=mock-token-local
 APIFULL_API_KEY=
 ESCAVADOR_API_KEY=
-GOOGLE_CSE_API_KEY=
-GOOGLE_CSE_CX=
+SERPER_API_KEY=
 OPENAI_API_KEY=
 RESEND_API_KEY=
 EMAIL_FROM=E O PIX? <noreply@eopix.com.br>
@@ -1378,33 +1377,16 @@ git push -u origin main
 
 ---
 
-### 10.7 — Google Custom Search (semi-paga, buscas web)
+### 10.7 — Serper (semi-paga, buscas web)
 
-**Custo:** 100 queries/dia grátis, depois $5/1000 queries. **Cartão:** Não inicialmente (sim se >100/dia).
+**Custo:** 2.500 queries/mês grátis, depois $50/mês (10k queries). **Cartão:** Não inicialmente.
 
 **📋 O que VOCÊ faz:**
 
-**Passo 1 — Criar motor de busca**
-
-1. Acessar [programmablesearchengine.google.com](https://programmablesearchengine.google.com)
-2. "New Search Engine"
-3. Search the entire web: SIM
-4. Nome: `E O PIX? Search`
-5. Criar → copiar o **Search Engine ID** (cx) → `GOOGLE_CSE_CX`
-
-**Passo 2 — Criar API Key**
-
-1. Acessar [console.cloud.google.com](https://console.cloud.google.com)
-2. Criar projeto (ou usar existente) → nome: `eopix`
-3. Pesquisar "Custom Search API" → Ativar
-4. Credentials → Create API Key → copiar → `GOOGLE_CSE_API_KEY`
-
-**Passo 3 (se ultrapassar 100 queries/dia)**
-
-- Google Cloud → Billing → ativar faturamento
-- Custo: $5 por 1.000 queries extras
-
-5. Adicionar ambas na Vercel → redesplegar
+1. Criar conta em [serper.dev](https://serper.dev)
+2. Sign up com email
+3. Dashboard → API Key → copiar → `SERPER_API_KEY`
+4. Adicionar na Vercel → redesplegar
 
 **🤖 Claude Code faz:** Testar queries reais. Verificar parsing.
 
@@ -1567,8 +1549,7 @@ ASAAS_WEBHOOK_TOKEN=mock-token-local
 # === APIs DE DADOS ===
 APIFULL_API_KEY=
 ESCAVADOR_API_KEY=
-GOOGLE_CSE_API_KEY=
-GOOGLE_CSE_CX=
+SERPER_API_KEY=
 
 # === IA ===
 OPENAI_API_KEY=
@@ -1606,14 +1587,12 @@ PRICE_CENTS=2990
 | `ASAAS_API_KEY`     | Asaas      | asaas.com                | Pay-per-use    | Sim     |
 | `APIFULL_API_KEY`   | APIFull    | apifull.com.br           | Pré-paga       | Sim     |
 | `ESCAVADOR_API_KEY` | Escavador  | escavador.com            | Pré-paga       | Sim     |
-| `GOOGLE_CSE_*`      | Google     | console.cloud.google.com | 100/dia grátis | Não\*   |
+| `SERPER_API_KEY`    | Serper     | serper.dev               | ✅ 2.5k/mês    | Não     |
 | `OPENAI_API_KEY`    | OpenAI     | platform.openai.com      | Pay-per-use    | Sim     |
 | `RESEND_API_KEY`    | Resend     | resend.com               | ✅ 3k/mês      | Não     |
 | `TURNSTILE_*`       | Cloudflare | dash.cloudflare.com      | ✅             | Não     |
 | `INNGEST_*`         | Inngest    | inngest.com              | ✅ 25k/mês     | Não     |
 | `SENTRY_DSN`        | Sentry     | sentry.io                | ✅ 5k/mês      | Não     |
-
-\*Google: cartão só se ultrapassar 100 queries/dia grátis.
 
 ---
 

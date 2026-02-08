@@ -25,21 +25,30 @@ function isChuvaScenario(document: string): boolean {
 }
 
 async function executeSearch(query: string): Promise<GoogleSearchResult[]> {
-  const apiKey = process.env.GOOGLE_CSE_API_KEY
-  const cx = process.env.GOOGLE_CSE_CX
+  const apiKey = process.env.SERPER_API_KEY
 
-  const res = await fetch(
-    `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(query)}&num=10`
-  )
+  if (!apiKey) {
+    console.error('Serper API key not configured')
+    return []
+  }
+
+  const res = await fetch('https://google.serper.dev/search', {
+    method: 'POST',
+    headers: {
+      'X-API-KEY': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ q: query, num: 10 }),
+  })
 
   if (!res.ok) {
-    console.error(`Google CSE error: ${res.status}`)
+    console.error(`Serper error: ${res.status}`)
     return []
   }
 
   const data = await res.json()
 
-  return (data.items || []).map((item: { title: string; link: string; snippet: string }) => ({
+  return (data.organic || []).map((item: { title: string; link: string; snippet: string }) => ({
     title: item.title,
     url: item.link,
     snippet: item.snippet,
@@ -52,7 +61,7 @@ export async function searchWeb(
   type: 'CPF' | 'CNPJ'
 ): Promise<GoogleSearchResponse> {
   if (isMockMode) {
-    console.log(`[MOCK] Google searchWeb: ${name} (${document})`)
+    console.log(`[MOCK] Serper searchWeb: ${name} (${document})`)
     await new Promise((r) => setTimeout(r, 700))
 
     if (type === 'CPF') {
@@ -61,7 +70,7 @@ export async function searchWeb(
     return isChuvaScenario(document) ? MOCK_GOOGLE_CHUVA : MOCK_GOOGLE_SOL
   }
 
-  // === CHAMADA REAL (Parte B) ===
+  // === CHAMADA REAL (Serper API) ===
   // Busca geral
   const general = await executeSearch(`"${name}"`)
 

@@ -152,9 +152,9 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 | ---                  | ---                           | ---                              | ---                  |
 | Processos Judiciais  | ✅ Lista detalhada            | ✅ Lista detalhada               | Escavador + Datajud  |
 | ---                  | ---                           | ---                              | ---                  |
-| Notícias e Web       | ✅ Resumo IA                  | ✅ Resumo IA                     | Google Custom Search |
+| Notícias e Web       | ✅ Resumo IA                  | ✅ Resumo IA                     | Serper |
 | ---                  | ---                           | ---                              | ---                  |
-| Reclame Aqui         | ✅ Resumo IA via Google       | Busca sempre, oculta se vazio    | Google Custom Search |
+| Reclame Aqui         | ✅ Resumo IA via Serper       | Busca sempre, oculta se vazio    | Serper |
 | ---                  | ---                           | ---                              | ---                  |
 | Resumo Geral (IA)    | ✅                            | ✅                               | GPT-4o-mini          |
 | ---                  | ---                           | ---                              | ---                  |
@@ -189,7 +189,7 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 
 ### 2.5.4 Card: Notícias e Web
 
-**Fonte:** Google Custom Search API.
+**Fonte:** Serper API.
 
 - **Busca dupla:** (1) Geral: "{Nome}" OR "{Razão Social}". (2) Focada: "{Nome}" + "golpe" OR "fraude" OR "processo".
 - **Nome vem da APIFull:** O nome é descoberto pela APIFull durante o processamento (pós-pagamento). É esse nome que alimenta as buscas no Google.
@@ -202,7 +202,7 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 
 ### 2.5.5 Card: Reclame Aqui
 
-**Fonte:** Google Custom Search com site:reclameaqui.com.br.
+**Fonte:** Serper com site:reclameaqui.com.br.
 
 - **Lógica:** Busca sempre (CPF e CNPJ). Se Google retornar resultados, IA resume. Se não retornar nada, card não é exibido (em vez de mostrar vazio). Se a empresa tiver nota alta, índice de resolução elevado ou selo RA1000, esses são dados positivos concretos que devem ser exibidos inclusive no cenário Sol (no bloco de menções positivas ou no resumo IA). Instrução técnica: o Google Custom Search retorna a página do Reclame Aqui, e o GPT-4o-mini extrai nota/índice do snippet.
 - **Resumo IA:** Ex: "12 reclamações no Reclame Aqui, 8 respondidas. Principais queixas: atraso na entrega."
@@ -261,7 +261,7 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 | ---                  | ---             | ---                                                                                              |
 | Datajud (CNJ)        | Gratuita        | Processos judiciais (complemento)                                                                |
 | ---                  | ---             | ---                                                                                              |
-| Google Custom Search | Paga            | Notícias, Reclame Aqui, web geral. CPF: 2 queries. CNPJ: 3 queries.                              |
+| Serper               | Paga            | Notícias, Reclame Aqui, web geral. CPF: 2 queries. CNPJ: 3 queries.                              |
 | ---                  | ---             | ---                                                                                              |
 | GPT-4o-mini          | Paga            | Resumo factual + filtragem de homônimos (~R\$ 0,03/consulta)                                     |
 | ---                  | ---             | ---                                                                                              |
@@ -270,7 +270,7 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 | Resend               | Free tier       | E-mail transacional: magic link + notificação de conclusão                                       |
 | ---                  | ---             | ---                                                                                              |
 
-**Google Custom Search:** Limite gratuito de 100 queries/dia. Com ~50 consultas/dia (CPF: 2q + CNPJ: 3q, média ~2.5q) = ~125 queries/dia, estoura no dia 1. Custo adicional: \$5/1000 queries. Incluir no custo operacional.
+**Serper:** 2.500 queries/mês grátis. Com ~50 consultas/dia (CPF: 2q + CNPJ: 3q, média ~2.5q) = ~75 queries/dia = ~2.250/mês, dentro do free tier. Após 2.500: $50/mês (10k queries). Incluir no custo operacional.
 
 **Asaas Sandbox:** Variável de ambiente ASAAS_ENV alterna entre sandbox (<https://sandbox.asaas.com/api/v3>) e produção (<https://api.asaas.com/v3>). Sprint 1-3: sandbox. Sprint 4 (go live): produção. Incluir no checklist de deploy.
 
@@ -670,7 +670,7 @@ Implementar com Plausible (cookieless, free tier, sem banner de cookie consent L
 | ---                                         | ---                     |
 | Escavador                                   | Conforme plano pré-pago |
 | ---                                         | ---                     |
-| Google Custom Search (2-3 queries)          | ~R\$ 0,05-0,08          |
+| Serper (2-3 queries)                        | ~R\$ 0,02-0,04          |
 | ---                                         | ---                     |
 | GPT-4o-mini                                 | ~R\$ 0,03               |
 | ---                                         | ---                     |
@@ -755,7 +755,7 @@ Riscos identificados para tratar em versões futuras.
 | ---                          | ---                                               | ---                                                   |
 | LIA não elaborado            | Legitimate Interest Assessment obrigatório        | Elaborar com assessoria jurídica pré-lançamento       |
 | ---                          | ---                                               | ---                                                   |
-| Google Custom Search limits  | 100 queries/dia grátis                            | Cache mais agressivo ou migrar para Bing Search API   |
+| Serper limits                | 2.500 queries/mês grátis                          | Cache mais agressivo ou upgrade de plano              |
 | ---                          | ---                                               | ---                                                   |
 | Uso indevido (stalking)      | CPF permite consultar qualquer PF                 | Limite de consultas por usuário + termos explícitos   |
 | ---                          | ---                                               | ---                                                   |
