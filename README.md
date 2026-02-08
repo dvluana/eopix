@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# E o Pix? 💰
 
-## Getting Started
+> Consulte informações públicas sobre empresas e pessoas antes de fechar negócio. Relatórios completos com análise de risco.
 
-First, run the development server:
+## 🚀 Stack Tecnológico
+
+- **Framework**: Next.js 14 (App Router)
+- **Linguagem**: TypeScript
+- **Estilização**: Tailwind CSS + Design System customizado
+- **Componentes**: Radix UI + Shadcn UI
+- **Banco de Dados**: PostgreSQL com Prisma ORM
+- **Autenticação**: Magic Link (código OTP de 6 dígitos)
+- **Pagamentos**: Asaas
+- **APIs**: APIFull, Escavador, Google Custom Search, BrasilAPI
+- **IA**: OpenAI GPT-4o-mini (resumos e filtro de homônimos)
+- **Email**: Resend
+- **Analytics**: Plausible
+- **Error Tracking**: Sentry
+- **Background Jobs**: Inngest
+
+## 📁 Estrutura do Projeto
+
+```
+eopix/
+├── src/
+│   ├── app/              # App Router (Next.js 14)
+│   │   ├── page.tsx      # Landing page
+│   │   ├── consulta/     # Teaser e resultados
+│   │   ├── compra/       # Checkout e confirmação
+│   │   ├── minhas-consultas/  # Dashboard do usuário
+│   │   ├── relatorio/    # Relatório completo
+│   │   ├── api/          # API Routes
+│   │   └── ...
+│   ├── components/       # Componentes React
+│   │   └── ui/           # Componentes UI (Radix/Shadcn)
+│   ├── lib/              # Utilities e helpers
+│   │   ├── validators.ts # Validação CPF/CNPJ
+│   │   ├── prisma.ts     # Cliente Prisma
+│   │   └── ...
+│   └── styles/           # Design System CSS
+│       ├── tokens.css    # Design tokens (v1.1)
+│       ├── components.css
+│       └── index.css
+├── prisma/
+│   └── schema.prisma     # Schema do banco de dados
+└── .env.local.example    # Variáveis de ambiente
+```
+
+## 🎨 Design System
+
+O projeto utiliza um Design System completo v1.1 com:
+
+- **Tokens CSS** em 3 camadas (Primitive → Semantic → Component)
+- **Cores principais**:
+  - Papel (#F0EFEB) - Background principal
+  - Amarelo (#FFD600) - Acento e CTAs
+  - Preto (#1A1A1A) - Texto principal
+- **Tipografia**: Zilla Slab (headings) + IBM Plex Mono (body)
+- **Sistema de Clima**: ☀️ Sol / ☁️ Nuvens / ⛈️ Trovoada
+
+## 🛠️ Configuração
+
+### 1. Instalar Dependências
+
+```bash
+npm install
+```
+
+### 2. Configurar Variáveis de Ambiente
+
+Copie `.env.local.example` para `.env.local` e preencha as variáveis:
+
+```bash
+cp .env.local.example .env.local
+```
+
+### 3. Configurar Banco de Dados
+
+```bash
+# Criar migração
+npx prisma migrate dev --name init
+
+# Gerar cliente Prisma
+npx prisma generate
+```
+
+### 4. Executar em Desenvolvimento
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📋 Scripts Disponíveis
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev          # Inicia servidor de desenvolvimento
+npm run build        # Build para produção
+npm run start        # Inicia servidor de produção
+npm run lint         # Executa ESLint
+```
 
-## Learn More
+## 🔐 Fluxo de Autenticação
 
-To learn more about Next.js, take a look at the following resources:
+1. Usuário digita email
+2. Sistema envia código de 6 dígitos via email (Resend)
+3. Usuário insere código
+4. Sistema valida e cria sessão JWT
+5. Sessão expira em 7 dias
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 💳 Fluxo de Compra
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Teaser**: Consulta gratuita com preview
+2. **Checkout**: Pagamento via Pix (Asaas)
+3. **Webhook**: Confirmação do pagamento
+4. **Background Job**: Geração do relatório completo
+5. **Entrega**: Email + Dashboard
 
-## Deploy on Vercel
+## 📊 Modelos de Dados
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **User**: Usuários (identificados por email)
+- **Session**: Sessões de autenticação
+- **Purchase**: Compras/Consultas
+- **Report**: Relatórios gerados
+- **Lead**: Leads capturados
+- **RateLimit**: Rate limiting
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔍 APIs Integradas
+
+- **APIFull**: Dados cadastrais e processos
+- **Escavador**: Dados jurídicos
+- **Google Custom Search**: Notícias e menções
+- **BrasilAPI**: CNPJ gratuito
+- **OpenAI**: Resumos e filtro de homônimos
+
+## 📝 Licença
+
+© 2026 E o Pix? - Todos os direitos reservados

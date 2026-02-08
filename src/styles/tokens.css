@@ -1,0 +1,606 @@
+/* ============================================================
+   E o Pix? — Design Tokens v1.1
+   ============================================================
+   Gerado a partir da auditoria dos materiais de marca.
+   Organização: Primitive → Semantic → Component
+   
+   CHANGELOG v1.1:
+   - Adicionados tokens de shadow hero/ring/glow
+   - Adicionados tokens de background translúcido
+   - Adicionados tokens de border translúcido
+   - Adicionado token de backdrop-filter
+   - Ajustados tokens da search bar para versão aprovada
+   ============================================================ */
+
+
+/* ============================================================
+   LAYER 1: PRIMITIVE TOKENS
+   Raw design values. Never use directly in components.
+   ============================================================ */
+
+:root {
+
+  /* --------------------------------------------------------
+     1.1 COLOR PRIMITIVES
+     -------------------------------------------------------- */
+
+  /* Black scale */
+  --primitive-black-900: #1A1A1A;
+  --primitive-black-800: #2A2A2A;
+  --primitive-black-700: #333333;
+
+  /* Gray scale */
+  --primitive-gray-900: #444444;
+  --primitive-gray-800: #555555;
+  --primitive-gray-700: #666666;
+  --primitive-gray-500: #888888;
+  --primitive-gray-400: #AAAAAA;
+  --primitive-gray-300: #BBBBBB;
+  --primitive-gray-200: #D5D4D0;
+  --primitive-gray-100: #E8E7E3;
+
+  /* Paper / Neutral */
+  --primitive-paper-100: #F0EFEB;
+  --primitive-paper-50: #FFFFFF;
+
+  /* Yellow (Alerta) */
+  --primitive-yellow-500: #FFD600;
+  --primitive-yellow-100: #FFFDE6;
+  --primitive-yellow-200: #F5EDB8;
+  --primitive-yellow-a30: rgba(255, 214, 0, 0.30);
+  --primitive-yellow-a25: rgba(255, 214, 0, 0.25);
+  --primitive-yellow-a12: rgba(255, 214, 0, 0.12);
+  /* NOVO — v1.1 */
+  --primitive-yellow-a08: rgba(255, 214, 0, 0.08);
+  --primitive-yellow-a06: rgba(255, 214, 0, 0.06);
+
+  /* Red (Error / Danger) */
+  --primitive-red-500: #CC3333;
+  --primitive-red-100: #FFF0F0;
+  --primitive-red-a15: rgba(204, 51, 51, 0.15);
+
+  /* Green (External — Success context) */
+  --primitive-green-500: #66CC66;
+
+  /* Black/Paper translucent — NOVO v1.1 */
+  --primitive-black-a97: rgba(26, 26, 26, 0.97);
+  --primitive-black-a15: rgba(26, 26, 26, 0.15);
+  --primitive-black-a10: rgba(26, 26, 26, 0.10);
+  --primitive-black-a06: rgba(26, 26, 26, 0.06);
+  --primitive-paper-a10: rgba(240, 239, 235, 0.10);
+  --primitive-paper-a08: rgba(240, 239, 235, 0.08);
+  --primitive-paper-a06: rgba(240, 239, 235, 0.06);
+
+  /* --------------------------------------------------------
+     1.2 TYPOGRAPHY PRIMITIVES
+     -------------------------------------------------------- */
+
+  /* Font families */
+  --primitive-font-heading: 'Zilla Slab', serif;
+  --primitive-font-body: 'IBM Plex Mono', monospace;
+
+  /* Font weights */
+  --primitive-weight-regular: 400;
+  --primitive-weight-medium: 500;
+  --primitive-weight-semibold: 600;
+  --primitive-weight-bold: 700;
+
+  /* Font sizes — consolidated scale (rem based, 1rem = 16px) */
+  --primitive-size-2xs: 0.5625rem;
+  --primitive-size-xs: 0.625rem;
+  --primitive-size-sm: 0.75rem;
+  --primitive-size-base: 0.875rem;
+  --primitive-size-md: 1rem;
+  --primitive-size-lg: 1.125rem;
+  --primitive-size-xl: 1.25rem;
+  --primitive-size-2xl: 1.5rem;
+  --primitive-size-3xl: 1.75rem;
+  --primitive-size-4xl: 2rem;
+  --primitive-size-5xl: 2.5rem;
+  --primitive-size-6xl: 3rem;
+  --primitive-size-7xl: 3.5rem;
+  --primitive-size-display-lg: 4.5rem;
+  --primitive-size-display-xl: 5rem;
+  --primitive-size-display-2xl: 6rem;
+
+  /* Line heights */
+  --primitive-leading-none: 1;
+  --primitive-leading-tight: 1.1;
+  --primitive-leading-snug: 1.3;
+  --primitive-leading-normal: 1.5;
+  --primitive-leading-relaxed: 1.7;
+  --primitive-leading-loose: 1.9;
+
+  /* Letter spacing */
+  --primitive-tracking-tight: -0.01em;
+  --primitive-tracking-normal: 0;
+  --primitive-tracking-wide: 0.03em;
+  --primitive-tracking-wider: 0.125em;
+  --primitive-tracking-widest: 0.19em;
+
+  /* --------------------------------------------------------
+     1.3 SPACING PRIMITIVES (base-4 scale)
+     -------------------------------------------------------- */
+  --primitive-space-0: 0;
+  --primitive-space-1: 4px;
+  --primitive-space-2: 8px;
+  --primitive-space-3: 12px;
+  --primitive-space-4: 16px;
+  --primitive-space-5: 20px;
+  --primitive-space-6: 24px;
+  --primitive-space-8: 32px;
+  --primitive-space-10: 40px;
+  --primitive-space-12: 48px;
+  --primitive-space-16: 64px;
+  --primitive-space-20: 80px;
+  /* NOVO — v1.1 */
+  --primitive-space-24: 96px;
+  --primitive-space-30: 120px;
+
+  /* --------------------------------------------------------
+     1.4 BORDER RADIUS PRIMITIVES
+     -------------------------------------------------------- */
+  --primitive-radius-none: 0;
+  --primitive-radius-xs: 2px;
+  --primitive-radius-sm: 4px;
+  --primitive-radius-md: 6px;
+  --primitive-radius-lg: 8px;
+  --primitive-radius-xl: 12px;
+  --primitive-radius-2xl: 16px;
+  --primitive-radius-full: 9999px;
+
+  /* --------------------------------------------------------
+     1.5 SHADOW PRIMITIVES
+     -------------------------------------------------------- */
+  --primitive-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.10);
+  --primitive-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.10);
+  --primitive-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --primitive-shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --primitive-shadow-sticker: 2px 3px 6px rgba(0, 0, 0, 0.12);
+  
+  /* NOVO — v1.1 — Landing page hero shadows */
+  --primitive-shadow-hero: 0 8px 40px rgba(0, 0, 0, 0.30);
+  --primitive-shadow-ring: 0 0 0 1px rgba(240, 239, 235, 0.10);
+  --primitive-shadow-ring-yellow: 0 0 0 1px rgba(255, 214, 0, 0.30);
+
+  /* --------------------------------------------------------
+     1.6 OPACITY PRIMITIVES
+     -------------------------------------------------------- */
+  --primitive-opacity-5: 0.05;
+  --primitive-opacity-8: 0.08;
+  --primitive-opacity-12: 0.12;
+  --primitive-opacity-25: 0.25;
+  --primitive-opacity-30: 0.30;
+  --primitive-opacity-50: 0.50;
+  --primitive-opacity-60: 0.60;
+  --primitive-opacity-80: 0.80;
+
+  /* --------------------------------------------------------
+     1.7 Z-INDEX PRIMITIVES
+     -------------------------------------------------------- */
+  --primitive-z-base: 0;
+  --primitive-z-above: 1;
+  --primitive-z-dropdown: 10;
+  --primitive-z-sticky: 20;
+  --primitive-z-overlay: 30;
+  --primitive-z-modal: 40;
+  --primitive-z-toast: 50;
+
+  /* --------------------------------------------------------
+     1.8 MOTION PRIMITIVES
+     -------------------------------------------------------- */
+  --primitive-duration-instant: 100ms;
+  --primitive-duration-fast: 200ms;
+  --primitive-duration-normal: 300ms;
+  --primitive-duration-slow: 500ms;
+  --primitive-duration-glacial: 1000ms;
+
+  --primitive-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --primitive-easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --primitive-easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --primitive-easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* NOVO — v1.1 — Hover lift/nudge values */
+  --primitive-motion-lift-sm: -3px;
+  --primitive-motion-lift-md: -4px;
+  --primitive-motion-nudge: 4px;
+
+  /* --------------------------------------------------------
+     1.9 BREAKPOINTS (reference only)
+     -------------------------------------------------------- */
+  /* --breakpoint-mobile: 360px;  */
+  /* --breakpoint-tablet: 768px;  */
+  /* --breakpoint-desktop: 1200px; */
+  /* --container-max: 1120px;     */
+
+  /* --------------------------------------------------------
+     1.10 BORDER WIDTHS
+     -------------------------------------------------------- */
+  --primitive-border-thin: 1px;
+  --primitive-border-medium: 2px;
+  --primitive-border-thick: 3px;
+  --primitive-border-heavy: 4px;
+
+  /* --------------------------------------------------------
+     1.11 BACKDROP FILTER — NOVO v1.1
+     -------------------------------------------------------- */
+  --primitive-backdrop-blur: blur(12px);
+}
+
+
+/* ============================================================
+   LAYER 2: SEMANTIC TOKENS
+   Contextual meaning. Use these in components.
+   ============================================================ */
+
+:root {
+
+  /* --------------------------------------------------------
+     2.1 COLOR — BACKGROUNDS
+     -------------------------------------------------------- */
+  --color-bg-primary: var(--primitive-paper-100);
+  --color-bg-secondary: var(--primitive-paper-50);
+  --color-bg-inverse: var(--primitive-black-900);
+  --color-bg-inverse-soft: var(--primitive-black-800);
+  --color-bg-accent: var(--primitive-yellow-500);
+  --color-bg-accent-light: var(--primitive-yellow-100);
+  --color-bg-accent-muted: var(--primitive-yellow-a12);
+  --color-bg-danger: var(--primitive-red-100);
+  
+  /* NOVO — v1.1 — Translucent backgrounds */
+  --color-bg-inverse-glass: var(--primitive-black-a97);
+  --color-bg-paper-overlay: var(--primitive-paper-a06);
+  --color-bg-paper-overlay-hover: var(--primitive-paper-a10);
+  --color-bg-yellow-overlay: var(--primitive-yellow-a06);
+  --color-bg-yellow-overlay-highlight: var(--primitive-yellow-a08);
+
+  /* --------------------------------------------------------
+     2.2 COLOR — TEXT
+     -------------------------------------------------------- */
+  --color-text-primary: var(--primitive-black-900);
+  --color-text-secondary: var(--primitive-gray-700);
+  --color-text-tertiary: var(--primitive-gray-500);
+  --color-text-muted: var(--primitive-gray-300);
+  --color-text-disabled: var(--primitive-gray-200);
+  --color-text-inverse: var(--primitive-paper-100);
+  --color-text-inverse-muted: var(--primitive-gray-500);
+  --color-text-inverse-subtle: var(--primitive-gray-800);
+  --color-text-accent: var(--primitive-yellow-500);
+  --color-text-danger: var(--primitive-red-500);
+  --color-text-on-accent: rgba(26, 26, 26, 0.50);
+
+  /* --------------------------------------------------------
+     2.3 COLOR — BORDERS
+     -------------------------------------------------------- */
+  --color-border-default: var(--primitive-gray-200);
+  --color-border-subtle: var(--primitive-gray-100);
+  --color-border-strong: var(--primitive-black-900);
+  --color-border-accent: var(--primitive-yellow-500);
+  --color-border-danger: var(--primitive-red-500);
+  --color-border-inverse: rgba(255, 255, 255, 0.04);
+  --color-border-inverse-subtle: var(--primitive-paper-a08);
+  
+  /* NOVO — v1.1 — Translucent borders */
+  --color-border-on-accent: var(--primitive-black-a15);
+  --color-border-accent-hover: var(--primitive-yellow-a30);
+  --color-border-inverse-muted: var(--primitive-paper-a06);
+
+  /* --------------------------------------------------------
+     2.4 COLOR — INTERACTIVE
+     -------------------------------------------------------- */
+  --color-interactive-primary: var(--primitive-yellow-500);
+  --color-interactive-primary-hover: #E6C000;
+  --color-interactive-primary-active: #CCB000;
+  --color-interactive-secondary: var(--primitive-black-900);
+  --color-interactive-secondary-hover: var(--primitive-black-800);
+  --color-interactive-ghost-hover: var(--primitive-black-a06);
+  --color-interactive-ghost-active: var(--primitive-black-a10);
+  --color-interactive-danger-hover: #B82D2D;
+
+  /* --------------------------------------------------------
+     2.5 COLOR — STATUS / WEATHER SYSTEM
+     -------------------------------------------------------- */
+  --color-status-sol-bg: var(--primitive-yellow-100);
+  --color-status-sol-border: var(--primitive-yellow-200);
+  --color-status-sol-icon: var(--primitive-yellow-500);
+  --color-status-sol-text: var(--primitive-black-900);
+
+  --color-status-nuvens-bg: var(--primitive-paper-100);
+  --color-status-nuvens-border: var(--primitive-gray-200);
+  --color-status-nuvens-icon: var(--primitive-gray-200);
+  --color-status-nuvens-text: var(--primitive-black-900);
+
+  --color-status-trovoada-bg: var(--primitive-black-900);
+  --color-status-trovoada-border: var(--primitive-black-800);
+  --color-status-trovoada-icon: var(--primitive-yellow-500);
+  --color-status-trovoada-text: var(--primitive-yellow-500);
+
+  --color-status-reprovado-bg: var(--primitive-paper-100);
+  --color-status-reprovado-border: var(--primitive-black-900);
+  --color-status-reprovado-icon: var(--primitive-red-500);
+  --color-status-reprovado-text: var(--primitive-red-500);
+
+  /* --------------------------------------------------------
+     2.6 TYPOGRAPHY — SEMANTIC
+     -------------------------------------------------------- */
+  --font-family-heading: var(--primitive-font-heading);
+  --font-family-body: var(--primitive-font-body);
+
+  /* Display */
+  --font-display-xl: var(--primitive-weight-bold) var(--primitive-size-display-2xl)/var(--primitive-leading-none) var(--font-family-heading);
+  --font-display-lg: var(--primitive-weight-bold) var(--primitive-size-display-lg)/var(--primitive-leading-none) var(--font-family-heading);
+  --font-display-md: var(--primitive-weight-bold) var(--primitive-size-7xl)/var(--primitive-leading-tight) var(--font-family-heading);
+
+  /* Headings */
+  --font-h1: var(--primitive-weight-bold) var(--primitive-size-5xl)/var(--primitive-leading-tight) var(--font-family-heading);
+  --font-h2: var(--primitive-weight-bold) var(--primitive-size-3xl)/var(--primitive-leading-tight) var(--font-family-heading);
+  --font-h3: var(--primitive-weight-bold) var(--primitive-size-lg)/var(--primitive-leading-snug) var(--font-family-heading);
+
+  /* Body */
+  --font-body-lg: var(--primitive-weight-regular) var(--primitive-size-md)/var(--primitive-leading-relaxed) var(--font-family-body);
+  --font-body: var(--primitive-weight-regular) var(--primitive-size-base)/var(--primitive-leading-relaxed) var(--font-family-body);
+  --font-body-sm: var(--primitive-weight-regular) var(--primitive-size-sm)/var(--primitive-leading-relaxed) var(--font-family-body);
+
+  /* UI elements */
+  --font-caption: var(--primitive-weight-regular) var(--primitive-size-sm)/var(--primitive-leading-normal) var(--font-family-body);
+  --font-micro: var(--primitive-weight-regular) var(--primitive-size-xs)/var(--primitive-leading-normal) var(--font-family-body);
+  --font-label: var(--primitive-weight-bold) var(--primitive-size-2xs)/var(--primitive-leading-none) var(--font-family-body);
+  --font-tag: var(--primitive-weight-bold) var(--primitive-size-2xs)/var(--primitive-leading-none) var(--font-family-body);
+
+  /* --------------------------------------------------------
+     2.7 SPACING — SEMANTIC
+     -------------------------------------------------------- */
+  --space-section: var(--primitive-space-12);
+  --space-section-lg: var(--primitive-space-16);
+  --space-block: var(--primitive-space-6);
+  --space-element: var(--primitive-space-4);
+  --space-inline: var(--primitive-space-2);
+  --space-tight: var(--primitive-space-1);
+
+  /* --------------------------------------------------------
+     2.8 SHADOWS — SEMANTIC
+     -------------------------------------------------------- */
+  --shadow-card: var(--primitive-shadow-md);
+  --shadow-page: var(--primitive-shadow-lg);
+  --shadow-overlay: var(--primitive-shadow-xl);
+  --shadow-sticker: var(--primitive-shadow-sticker);
+  --shadow-badge: var(--primitive-shadow-sm);
+  /* NOVO — v1.1 */
+  --shadow-hero: var(--primitive-shadow-hero);
+  --shadow-ring: var(--primitive-shadow-ring);
+  --shadow-ring-focus: var(--primitive-shadow-ring-yellow);
+
+  /* --------------------------------------------------------
+     2.9 BORDER RADIUS — SEMANTIC
+     -------------------------------------------------------- */
+  --radius-card: var(--primitive-radius-md);
+  --radius-button: var(--primitive-radius-lg);
+  --radius-badge: var(--primitive-radius-xs);
+  --radius-input: var(--primitive-radius-lg);
+  --radius-pill: var(--primitive-radius-full);
+  --radius-icon: var(--primitive-radius-2xl);
+
+  /* --------------------------------------------------------
+     2.10 TRANSITIONS — SEMANTIC
+     -------------------------------------------------------- */
+  --transition-fast: var(--primitive-duration-fast) var(--primitive-easing-default);
+  --transition-normal: var(--primitive-duration-normal) var(--primitive-easing-default);
+  --transition-slow: var(--primitive-duration-slow) var(--primitive-easing-default);
+}
+
+
+/* ============================================================
+   LAYER 3: COMPONENT TOKENS
+   Specific to UI components. Reference semantic tokens.
+   ============================================================ */
+
+:root {
+
+  /* --------------------------------------------------------
+     3.1 BUTTON
+     -------------------------------------------------------- */
+  --btn-font: var(--primitive-weight-bold) var(--primitive-size-base)/1 var(--font-family-body);
+  --btn-padding-x: var(--primitive-space-6);
+  --btn-padding-y: var(--primitive-space-3);
+  --btn-radius: var(--radius-button);
+  --btn-transition: background var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast);
+
+  /* Primary (amarelo com hover preto — inversão total) */
+  --btn-primary-bg: var(--color-interactive-primary);
+  --btn-primary-text: var(--color-text-primary);
+  --btn-primary-bg-hover: var(--primitive-black-900);
+  --btn-primary-text-hover: var(--primitive-yellow-500);
+  --btn-primary-bg-active: var(--color-interactive-primary-active);
+  --btn-primary-shadow: none;
+  --btn-primary-shadow-hover: var(--primitive-shadow-sm);
+
+  /* Secondary */
+  --btn-secondary-bg: var(--color-interactive-secondary);
+  --btn-secondary-text: var(--color-text-inverse);
+  --btn-secondary-bg-hover: var(--color-interactive-secondary-hover);
+
+  /* Ghost */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-text: var(--color-text-primary);
+  --btn-ghost-border: var(--primitive-border-medium) solid var(--color-border-strong);
+  --btn-ghost-bg-hover: var(--color-interactive-ghost-hover);
+  --btn-ghost-text-hover: var(--color-text-primary);
+
+  /* --------------------------------------------------------
+     3.2 CARD
+     -------------------------------------------------------- */
+  --card-bg: var(--color-bg-secondary);
+  --card-bg-muted: var(--color-bg-primary);
+  --card-bg-inverse: var(--color-bg-inverse);
+  --card-border: var(--primitive-border-thin) solid var(--color-border-subtle);
+  --card-padding: var(--primitive-space-6);
+  --card-radius: var(--radius-card);
+  --card-shadow: var(--shadow-card);
+
+  /* --------------------------------------------------------
+     3.3 BADGE / TAG
+     -------------------------------------------------------- */
+  --badge-font: var(--font-tag);
+  --badge-padding-x: var(--primitive-space-2);
+  --badge-padding-y: var(--primitive-space-1);
+  --badge-radius: var(--radius-badge);
+  --badge-letter-spacing: var(--primitive-tracking-wider);
+  --badge-text-transform: uppercase;
+
+  --badge-default-bg: var(--primitive-yellow-500);
+  --badge-default-text: var(--primitive-black-900);
+  --badge-danger-bg: var(--primitive-red-500);
+  --badge-danger-text: var(--primitive-paper-50);
+  --badge-neutral-bg: var(--primitive-gray-100);
+  --badge-neutral-text: var(--primitive-gray-700);
+
+  /* --------------------------------------------------------
+     3.4 INPUT
+     -------------------------------------------------------- */
+  --input-bg: var(--color-bg-secondary);
+  --input-border: var(--primitive-border-medium) solid var(--color-border-strong);
+  --input-border-focus: var(--primitive-border-medium) solid var(--primitive-yellow-500);
+  --input-radius: var(--radius-input);
+  --input-padding-x: var(--primitive-space-4);
+  --input-padding-y: var(--primitive-space-3);
+  --input-font: var(--font-body);
+  --input-text: var(--color-text-primary);
+  --input-placeholder: var(--color-text-muted);
+  --input-shadow-focus: 0 0 0 3px var(--primitive-yellow-a25);
+
+  /* --------------------------------------------------------
+     3.5 SEARCH BAR — ATUALIZADO v1.1
+     Versão visual aprovada da landing page
+     -------------------------------------------------------- */
+  --search-bg: var(--color-bg-secondary);
+  --search-border: var(--primitive-border-thick) solid var(--primitive-paper-100);
+  --search-border-focus: var(--primitive-border-thick) solid var(--primitive-yellow-500);
+  --search-radius: var(--primitive-radius-xl);
+  --search-padding: var(--primitive-space-1) var(--primitive-space-1) var(--primitive-space-1) var(--primitive-space-6);
+  --search-shadow: var(--shadow-hero), var(--shadow-ring);
+  --search-shadow-focus: var(--shadow-hero), var(--shadow-ring-focus);
+  --search-input-font: var(--primitive-weight-regular) var(--primitive-size-md)/1 var(--font-family-body);
+  --search-placeholder-size: var(--primitive-size-sm);
+  --search-btn-bg: var(--primitive-yellow-500);
+  --search-btn-bg-hover: var(--primitive-black-900);
+  --search-btn-text: var(--color-text-primary);
+  --search-btn-text-hover: var(--primitive-yellow-500);
+  --search-btn-radius: var(--primitive-radius-lg);
+  --search-btn-padding: var(--primitive-space-4) var(--primitive-space-6);
+
+  /* --------------------------------------------------------
+     3.6 ALERT / CALLOUT
+     -------------------------------------------------------- */
+  --callout-padding: var(--primitive-space-4) var(--primitive-space-5);
+  --callout-radius: var(--radius-card);
+
+  --callout-info-bg: var(--color-bg-primary);
+  --callout-info-border-left: var(--primitive-border-thick) solid var(--primitive-yellow-500);
+
+  --callout-dark-bg: var(--color-bg-inverse);
+  --callout-dark-text: var(--color-text-inverse);
+  --callout-dark-text-muted: var(--color-text-inverse-muted);
+
+  --callout-danger-bg: var(--primitive-red-100);
+  --callout-danger-border-left: var(--primitive-border-thick) solid var(--primitive-red-500);
+
+  /* --------------------------------------------------------
+     3.7 SECTION HEADER
+     -------------------------------------------------------- */
+  --section-num-font: var(--font-label);
+  --section-num-tracking: var(--primitive-tracking-widest);
+  --section-num-color: var(--color-text-muted);
+  --section-title-font: var(--font-h2);
+  --section-title-color: var(--color-text-primary);
+  --section-underline-height: 3px;
+  --section-underline-color: var(--primitive-yellow-500);
+  --section-underline-radius: 2px;
+
+  /* --------------------------------------------------------
+     3.8 WEATHER CARD (componente do produto)
+     -------------------------------------------------------- */
+  --weather-radius: var(--radius-card);
+  --weather-padding: var(--primitive-space-5);
+  --weather-label-font: var(--primitive-weight-bold) var(--primitive-size-sm)/1 var(--font-family-heading);
+
+  /* --------------------------------------------------------
+     3.9 SEAL / SELO
+     -------------------------------------------------------- */
+  --seal-border-width: 3px;
+  --seal-dash-pattern: 4px 3px;
+  --seal-sticker-border: 8px;
+  --seal-shadow: var(--shadow-badge);
+  --seal-label-font: var(--primitive-weight-bold) var(--primitive-size-2xs)/1 var(--font-family-body);
+  --seal-label-tracking: var(--primitive-tracking-wider);
+
+  /* --------------------------------------------------------
+     3.10 YELLOW UNDERLINE (marca registrada visual)
+     -------------------------------------------------------- */
+  --underline-height: 3px;
+  --underline-height-thick: 4px;
+  --underline-color: var(--primitive-yellow-500);
+  --underline-radius: 2px;
+
+  /* --------------------------------------------------------
+     3.11 NAVIGATION — ATUALIZADO v1.1
+     -------------------------------------------------------- */
+  --nav-height: 64px;
+  --nav-bg: var(--color-bg-inverse-glass);
+  --nav-backdrop-filter: var(--primitive-backdrop-blur);
+  --nav-border-bottom: var(--primitive-border-thin) solid var(--color-border-inverse-subtle);
+  --nav-padding-x: var(--primitive-space-6);
+
+  /* --------------------------------------------------------
+     3.12 MODAL
+     -------------------------------------------------------- */
+  --modal-bg: var(--color-bg-secondary);
+  --modal-radius: var(--primitive-radius-lg);
+  --modal-padding: var(--primitive-space-8);
+  --modal-shadow: var(--shadow-overlay);
+  --modal-overlay-bg: rgba(26, 26, 26, 0.60);
+  --modal-max-width: 560px;
+
+  /* --------------------------------------------------------
+     3.13 IMPACT STRIP — NOVO v1.1
+     -------------------------------------------------------- */
+  --impact-bg: var(--primitive-yellow-500);
+  --impact-padding: var(--primitive-space-12);
+  --impact-item-padding: var(--primitive-space-6) var(--primitive-space-8);
+  --impact-divider: var(--primitive-border-thin) solid var(--color-border-on-accent);
+  --impact-num-font: var(--primitive-weight-bold) var(--primitive-size-5xl)/1 var(--font-family-heading);
+  --impact-text-font: var(--primitive-weight-regular) var(--primitive-size-sm)/var(--primitive-leading-relaxed) var(--font-family-body);
+  --impact-text-color: var(--color-text-on-accent);
+
+  /* --------------------------------------------------------
+     3.14 PRICING CARD — NOVO v1.1
+     -------------------------------------------------------- */
+  --price-card-bg: var(--color-bg-secondary);
+  --price-card-border: var(--primitive-border-thin) solid var(--color-border-subtle);
+  --price-card-featured-border: var(--primitive-border-medium) solid var(--primitive-yellow-500);
+  --price-card-padding: var(--primitive-space-8) var(--primitive-space-6);
+  --price-card-radius: var(--radius-card);
+  --price-card-shadow: var(--shadow-card);
+  --price-card-ribbon-bg: var(--primitive-yellow-500);
+  --price-card-ribbon-text: var(--color-text-primary);
+  --price-card-ribbon-font: var(--primitive-weight-bold) var(--primitive-size-2xs)/1 var(--font-family-body);
+
+  /* --------------------------------------------------------
+     3.15 FAQ ACCORDION — NOVO v1.1
+     -------------------------------------------------------- */
+  --faq-question-padding: var(--primitive-space-6) var(--primitive-space-10) var(--primitive-space-6) 0;
+  --faq-question-font: var(--primitive-weight-semibold) var(--primitive-size-base)/var(--primitive-leading-normal) var(--font-family-body);
+  --faq-answer-font: var(--primitive-weight-regular) var(--primitive-size-sm)/var(--primitive-leading-relaxed) var(--font-family-body);
+  --faq-answer-padding: 0 0 var(--primitive-space-6);
+  --faq-border: var(--primitive-border-thin) solid var(--color-border-subtle);
+  --faq-icon-size: var(--primitive-size-2xl);
+  --faq-icon-color: var(--color-text-muted);
+
+  /* --------------------------------------------------------
+     3.16 FOOTER
+     -------------------------------------------------------- */
+  --footer-bg: var(--color-bg-inverse);
+  --footer-border-top: var(--primitive-border-thin) solid var(--color-border-inverse-subtle);
+  --footer-padding: var(--primitive-space-12);
+  --footer-text: var(--color-text-inverse-muted);
+  --footer-text-muted: var(--color-text-inverse-subtle);
+}

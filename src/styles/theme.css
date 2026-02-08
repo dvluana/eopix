@@ -1,0 +1,136 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  
+  /* ============================================
+     PRIMITIVOS — Valores base (E o Pix? DS)
+     ============================================ */
+
+  /* Colors */
+  --primitive-black: #1A1A1A;
+  --primitive-yellow: #FFD600;
+  --primitive-paper: #F0EFEB;
+  --primitive-gray: #666666;
+  --primitive-light-gray: #BBBBBB;
+  --primitive-very-light: #E8E7E3;
+  --primitive-white: #FFFFFF;
+  --primitive-mid-gray: #888888;
+  --primitive-red: #CC3333;
+
+  /* Spacing Scale (valores do HTML original) */
+  --primitive-space-1: 4px;
+  --primitive-space-2: 6px;
+  --primitive-space-3: 12px;
+  --primitive-space-4: 16px;
+  --primitive-space-5: 20px;
+  --primitive-space-6: 24px;
+  --primitive-space-7: 28px;
+  --primitive-space-8: 32px;
+  --primitive-space-9: 40px;
+  --primitive-space-10: 48px;
+  --primitive-space-11: 56px;
+  --primitive-space-12: 64px;
+  --primitive-space-14: 80px;
+  --primitive-space-16: 100px;
+  --primitive-space-20: 120px;
+
+  /* Typography Scale (valores do HTML original) */
+  --primitive-size-micro: 11px;
+  --primitive-size-caption: 12px;
+  --primitive-size-label: 13px;
+  --primitive-size-sm: 14px;
+  --primitive-size-body: 15px;
+  --primitive-size-lg: 18px;
+  --primitive-size-xl: 20px;
+  --primitive-size-display-sm: 28px;
+  --primitive-size-display-md: 38px;
+  --primitive-size-display-lg: 44px;
+  --primitive-size-display-xl: 48px;
+
+  /* Font Weights */
+  --primitive-weight-regular: 400;
+  --primitive-weight-medium: 500;
+  --primitive-weight-semibold: 600;
+  --primitive-weight-bold: 700;
+
+  /* Font Families */
+  --font-family-heading: 'Zilla Slab', serif;
+  --font-family-body: 'IBM Plex Mono', monospace;
+
+  /* Border */
+  --primitive-border-thin: 1px;
+  --primitive-border-medium: 2px;
+  --primitive-border-thick: 3px;
+
+  /* Radius */
+  --primitive-radius-sm: 4px;
+  --primitive-radius-md: 8px;
+  --primitive-radius-lg: 12px;
+
+  /* ============================================
+     SEMÂNTICOS — Tokens de uso (E o Pix? DS)
+     ============================================ */
+
+  /* Colors */
+  --color-bg-primary: var(--primitive-white);
+  --color-bg-secondary: var(--primitive-paper);
+  --color-bg-subtle: var(--primitive-paper);
+  --color-bg-inverse: var(--primitive-black);
+  --color-bg-accent: var(--primitive-yellow);
+
+  --color-text-primary: var(--primitive-black);
+  --color-text-secondary: var(--primitive-gray);
+  --color-text-tertiary: var(--primitive-mid-gray);
+  --color-text-muted: var(--primitive-mid-gray);
+  --color-text-placeholder: var(--primitive-gray);
+  --color-text-inverse: var(--primitive-paper);
+  --color-text-inverse-muted: var(--primitive-light-gray);
+  --color-text-inverse-subtle: var(--primitive-mid-gray);
+  --color-text-accent: var(--primitive-yellow);
+  --color-text-danger: var(--primitive-red);
+
+  --color-border-default: var(--primitive-very-light);
+  --color-border-subtle: var(--primitive-very-light);
+  --color-border-accent: var(--primitive-yellow);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+
+  /* Shadows */
+  --shadow-low: 0 1px 2px rgba(26,26,26,0.04);
+  --shadow-medium: 0 4px 16px rgba(26,26,26,0.08);
+  --shadow-high: 0 8px 32px rgba(26,26,26,0.12);
+
+  /* Layout */
+  --layout-max-width-narrow: 600px;
+  --layout-max-width-medium: 800px;
+  --layout-max-width-wide: 1200px;
+  --layout-hero-short: 70vh;
+  --layout-depo-collapsed: 340px;
+  --layout-max-width-680: 680px;
+  --layout-max-width-840: 840px;
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: var(--font-size);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-bg-secondary);
+    font-family: var(--font-family-body);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+}
