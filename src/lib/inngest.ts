@@ -1,7 +1,7 @@
 import { Inngest } from 'inngest'
 import { Prisma } from '@prisma/client'
 import { prisma } from './prisma'
-import { consultCpf, consultCnpj as consultCnpjApiFull } from './apifull'
+import { consultCpf, consultCpfCadastral, consultCnpj as consultCnpjApiFull, ApiFullCpfCadastralResponse } from './apifull'
 import { consultCnpj as consultCnpjBrasilApi } from './brasilapi'
 import { searchProcesses as searchEscavador } from './escavador'
 import { searchDatajud } from './datajud'
@@ -56,6 +56,7 @@ export const processSearch = inngest.createFunction(
 
     // Fetch data from APIs
     let apiFullData: Awaited<ReturnType<typeof consultCpf>> | Awaited<ReturnType<typeof consultCnpjApiFull>> | null = null
+    let cadastralCpfData: ApiFullCpfCadastralResponse | null = null
     let brasilApiData: Awaited<ReturnType<typeof consultCnpjBrasilApi>> | null = null
     let escavadorData: Awaited<ReturnType<typeof searchEscavador>> | null = null
     let datajudData: Awaited<ReturnType<typeof searchDatajud>> | null = null
@@ -66,11 +67,20 @@ export const processSearch = inngest.createFunction(
     try {
       // Step 1: Get primary data from APIFull
       if (type === 'CPF') {
-        apiFullData = await step.run('fetch-apifull-cpf', async () => {
-          return consultCpf(term)
-        })
-        name = (apiFullData as Awaited<ReturnType<typeof consultCpf>>).name
-        region = (apiFullData as Awaited<ReturnType<typeof consultCpf>>).region
+        // Buscar dados cadastrais e financeiros em paralelo
+        const [cadastralData, financialData] = await Promise.all([
+          step.run('fetch-apifull-cpf-cadastral', async () => {
+            return consultCpfCadastral(term)
+          }),
+          step.run('fetch-apifull-cpf-financial', async () => {
+            return consultCpf(term)
+          }),
+        ])
+
+        apiFullData = financialData
+        cadastralCpfData = cadastralData
+        name = cadastralData.nome || financialData.name
+        region = cadastralData.enderecos?.[0]?.uf || financialData.region
       } else {
         // CNPJ: Start with BrasilAPI (free), then APIFull
         brasilApiData = await step.run('fetch-brasilapi', async () => {
@@ -140,6 +150,7 @@ export const processSearch = inngest.createFunction(
       // Step 4: Generate summary with GPT
       const combinedData = {
         apiFull: apiFullData,
+        cadastral: cadastralCpfData,
         brasilApi: brasilApiData,
         processes: uniqueProcesses,
         google: googleData,
@@ -165,6 +176,7 @@ export const processSearch = inngest.createFunction(
         // Convert to plain JSON to satisfy Prisma's Json type
         const jsonData = JSON.parse(JSON.stringify({
           apiFull: apiFullData,
+          cadastral: cadastralCpfData,
           brasilApi: brasilApiData,
           processes: uniqueProcesses,
           google: googleData,

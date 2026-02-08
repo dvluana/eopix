@@ -4,6 +4,11 @@ import { createPixCharge } from '@/lib/asaas'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument } from '@/lib/validators'
+import { inngest } from '@/lib/inngest'
+
+// TEST_MODE: Bypass do Asaas - cria purchase já paga e dispara processamento
+// TODO: Remover TEST_MODE=true quando Asaas estiver configurado em produção
+const TEST_MODE = process.env.TEST_MODE === 'true'
 
 interface CreatePurchaseRequest {
   term: string
@@ -51,13 +56,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check rate limit
-    const rateLimit = await checkRateLimit(email, 'purchase')
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: 'Limite de compras excedido. Tente novamente mais tarde.' },
-        { status: 429 }
-      )
+    // Check rate limit (bypass in TEST_MODE)
+    if (!TEST_MODE) {
+      const rateLimit = await checkRateLimit(email, 'purchase')
+      if (!rateLimit.allowed) {
+        return NextResponse.json(
+          { error: 'Limite de compras excedido. Tente novamente mais tarde.' },
+          { status: 429 }
+        )
+      }
     }
 
     // Check blocklist
@@ -98,7 +105,58 @@ export async function POST(request: NextRequest) {
     // Get price from env
     const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
 
-    // Create purchase
+    // TEST_MODE: Bypass Asaas - cria purchase já paga
+    // Nota: Em TEST_MODE sem Inngest configurado, o processamento é feito via endpoint separado
+    if (TEST_MODE) {
+      console.log(`🧪 [TEST_MODE] Bypass Asaas - criando purchase PAID para: ${cleanedTerm}`)
+
+      // Cria purchase já com status PAID (mas ainda PROCESSING para indicar que precisa processar)
+      const purchase = await prisma.purchase.create({
+        data: {
+          userId: user.id,
+          code,
+          term: cleanedTerm,
+          amount: priceCents,
+          status: 'PAID',
+          paidAt: new Date(),
+          termsAcceptedAt: new Date(),
+        },
+      })
+
+      // Tenta disparar Inngest se configurado, senão apenas loga
+      const hasInngestKey = !!process.env.INNGEST_EVENT_KEY
+      if (hasInngestKey) {
+        try {
+          await inngest.send({
+            name: 'search/process',
+            data: {
+              purchaseId: purchase.id,
+              purchaseCode: purchase.code,
+              term: cleanedTerm,
+              type: isCpf ? 'CPF' : 'CNPJ',
+              email: email.toLowerCase(),
+            },
+          })
+          console.log(`🧪 [TEST_MODE] Inngest job disparado para purchase: ${purchase.code}`)
+        } catch {
+          console.log(`🧪 [TEST_MODE] Inngest não disponível, purchase criada: ${purchase.code}`)
+          console.log(`🧪 [TEST_MODE] Para processar manualmente, use: POST /api/process-search/${purchase.id}`)
+        }
+      } else {
+        console.log(`🧪 [TEST_MODE] Inngest não configurado, purchase criada: ${purchase.code}`)
+        console.log(`🧪 [TEST_MODE] Para processar, configure INNGEST_EVENT_KEY ou use processamento manual`)
+      }
+
+      // Retorna URL de confirmação direto (sem checkout Asaas)
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      return NextResponse.json({
+        code: purchase.code,
+        checkoutUrl: `${appUrl}/compra/confirmacao?code=${purchase.code}`,
+        _testMode: true,
+      })
+    }
+
+    // Fluxo normal: cria purchase PENDING e checkout Asaas
     const purchase = await prisma.purchase.create({
       data: {
         userId: user.id,
