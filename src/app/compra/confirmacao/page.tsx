@@ -9,11 +9,36 @@ import LogoFundoPreto from '@/components/LogoFundoPreto';
 function ConfirmacaoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = React.useState('joao.silva@gmial.com'); // Typo proposital
-  const purchaseCode = searchParams.get('code') || 'A7K2M9';
+  const purchaseCode = searchParams.get('code') || '';
+  const [email, setEmail] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(true);
   const [isEditingEmail, setIsEditingEmail] = React.useState(false);
   const [newEmail, setNewEmail] = React.useState('');
   const [emailError, setEmailError] = React.useState('');
+  const [isSavingEmail, setIsSavingEmail] = React.useState(false);
+  // Buscar dados da compra ao carregar
+  React.useEffect(() => {
+    const fetchPurchase = async () => {
+      if (!purchaseCode) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/purchases/${purchaseCode}`);
+        if (res.ok) {
+          const data = await res.json();
+          setEmail(data.email || '');
+        }
+      } catch (err) {
+        console.error('Erro ao buscar compra:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPurchase();
+  }, [purchaseCode]);
 
   const handleCorrectEmailClick = () => {
     setIsEditingEmail(true);
@@ -32,7 +57,7 @@ function ConfirmacaoContent() {
     return emailRegex.test(email);
   };
 
-  const handleSaveEmail = () => {
+  const handleSaveEmail = async () => {
     if (!newEmail) {
       setEmailError('E-mail não pode estar vazio');
       return;
@@ -43,18 +68,68 @@ function ConfirmacaoContent() {
       return;
     }
 
-    // PATCH /api/purchase/{code}/email
-    console.log('PATCH /api/purchase/' + purchaseCode + '/email', { newEmail });
-
-    setEmail(newEmail);
-    setIsEditingEmail(false);
-    setNewEmail('');
+    setIsSavingEmail(true);
     setEmailError('');
+
+    try {
+      const res = await fetch(`/api/purchases/${purchaseCode}/email`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newEmail }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setEmailError(data.error || 'Erro ao atualizar e-mail');
+        return;
+      }
+
+      setEmail(data.email || newEmail);
+      setIsEditingEmail(false);
+      setNewEmail('');
+    } catch {
+      setEmailError('Erro ao atualizar e-mail. Tente novamente.');
+    } finally {
+      setIsSavingEmail(false);
+    }
   };
 
   const handleGoToConsultas = () => {
     router.push('/minhas-consultas');
   };
+
+  // Se não tiver código, mostrar erro
+  if (!purchaseCode) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <h1 style={{ fontFamily: 'var(--font-family-heading)', fontSize: '24px', marginBottom: '16px' }}>
+            Código de compra não encontrado
+          </h1>
+          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '24px' }}>
+            Verifique o link ou acesse suas consultas.
+          </p>
+          <Link href="/minhas-consultas" className="btn btn--primary">
+            Ir para Minhas Consultas
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--font-family-body)', fontSize: '16px', color: 'var(--color-text-secondary)' }}>
+            Carregando...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
@@ -228,6 +303,7 @@ function ConfirmacaoContent() {
                       {/* Botão Salvar dentro do input */}
                       <button
                         onClick={handleSaveEmail}
+                        disabled={isSavingEmail}
                         style={{
                           position: 'absolute',
                           right: '4px',
@@ -241,13 +317,14 @@ function ConfirmacaoContent() {
                           fontSize: '12px',
                           fontWeight: 'var(--primitive-weight-bold)',
                           color: 'var(--primitive-black)',
-                          cursor: 'pointer',
+                          cursor: isSavingEmail ? 'not-allowed' : 'pointer',
+                          opacity: isSavingEmail ? 0.7 : 1,
                           transition: 'var(--transition-fast)'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                        onMouseEnter={(e) => !isSavingEmail && (e.currentTarget.style.opacity = '0.9')}
+                        onMouseLeave={(e) => !isSavingEmail && (e.currentTarget.style.opacity = '1')}
                       >
-                        Salvar
+                        {isSavingEmail ? 'Salvando...' : 'Salvar'}
                       </button>
                     </div>
 

@@ -113,10 +113,6 @@ export async function refundPayment(paymentId: string): Promise<RefundResponse> 
 }
 
 export function validateWebhookToken(token: string | null): boolean {
-  if (isMockMode) {
-    // Em mock mode, aceita o token mock
-    return token === 'mock-token-local' || token === process.env.ASAAS_WEBHOOK_TOKEN
-  }
-
+  // NUNCA aceitar token mock - sempre validar com env var
   return token === process.env.ASAAS_WEBHOOK_TOKEN
 }

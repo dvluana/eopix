@@ -252,11 +252,6 @@ export default function Page({ params }: PageProps) {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onClick={() => {
-                  if (!email) {
-                    setEmail('exemplo@email.com');
-                  }
-                }}
                 placeholder="seu@email.com"
                 style={{
                   width: '100%',

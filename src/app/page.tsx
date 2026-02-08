@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Turnstile } from '@marsidev/react-turnstile'
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import Footer from '@/components/Footer';
 
@@ -13,6 +14,9 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [placeholderText, setPlaceholderText] = React.useState('');
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [turnstileToken, setTurnstileToken] = React.useState('');
+  const [isValidating, setIsValidating] = React.useState(false);
+  const [searchError, setSearchError] = React.useState('');
 
   const fullPlaceholder = 'Digite o CPF ou CNPJ';
 
@@ -63,9 +67,48 @@ export default function LandingPage() {
     setMobileMenuOpen(false);
   };
 
-  const handleSearch = () => {
-    if (searchTerm) {
-      router.push(`/consulta/${searchTerm}`);
+  const handleSearch = async () => {
+    if (!searchTerm) {
+      setSearchError('Digite um CPF ou CNPJ para consultar');
+      return;
+    }
+
+    if (!turnstileToken) {
+      setSearchError('Aguarde a verificação de segurança');
+      return;
+    }
+
+    setSearchError('');
+    setIsValidating(true);
+
+    try {
+      const response = await fetch('/api/search/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          document: searchTerm,
+          turnstileToken,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 403 && data.blocked) {
+        setSearchError('Dados indisponíveis para este documento');
+        return;
+      }
+
+      if (!response.ok) {
+        setSearchError(data.error || 'Documento inválido');
+        return;
+      }
+
+      // Sucesso: redireciona para a página de consulta com o termo limpo
+      router.push(`/consulta/${data.term}`);
+    } catch {
+      setSearchError('Erro ao validar documento. Tente novamente.');
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -181,15 +224,46 @@ export default function LandingPage() {
                 placeholder={placeholderText}
                 aria-label="Consultar CNPJ ou nome da empresa"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onClick={() => {
-                  if (!searchTerm) {
-                    setSearchTerm('12345678901');
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setSearchError('');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch();
                   }
                 }}
               />
-              <button className="search-bar__button" type="submit" onClick={handleSearch}>E o Pix? Consultar</button>
+              <button
+                className="search-bar__button"
+                type="submit"
+                onClick={handleSearch}
+                disabled={isValidating}
+              >
+                {isValidating ? 'Validando...' : 'E o Pix? Consultar'}
+              </button>
             </div>
+
+            {/* Turnstile CAPTCHA */}
+            <div style={{ marginTop: 'var(--primitive-space-4)', display: 'flex', justifyContent: 'center' }}>
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+                onSuccess={(token) => setTurnstileToken(token)}
+                onError={() => setSearchError('Erro na verificação de segurança')}
+                options={{
+                  theme: 'dark',
+                  size: 'normal',
+                }}
+              />
+            </div>
+
+            {/* Erro de busca */}
+            {searchError && (
+              <p className="caption text-danger mt-3" style={{ textAlign: 'center' }}>
+                {searchError}
+              </p>
+            )}
 
             <p className="caption text-inverse-subtle mt-4 italic">
               O que o Google não te mostra, a gente cruza, resume e entrega.
@@ -848,15 +922,33 @@ export default function LandingPage() {
                 placeholder={placeholderText}
                 aria-label="Consultar CNPJ ou nome da empresa"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onClick={() => {
-                  if (!searchTerm) {
-                    setSearchTerm('12345678901');
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setSearchError('');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch();
                   }
                 }}
               />
-              <button className="search-bar__button" type="submit" onClick={handleSearch}>E o Pix? Consultar</button>
+              <button
+                className="search-bar__button"
+                type="submit"
+                onClick={handleSearch}
+                disabled={isValidating}
+              >
+                {isValidating ? 'Validando...' : 'E o Pix? Consultar'}
+              </button>
             </div>
+
+            {/* Erro de busca no CTA final */}
+            {searchError && (
+              <p className="caption text-danger mt-3" style={{ textAlign: 'center' }}>
+                {searchError}
+              </p>
+            )}
 
             <p className="caption text-accent mt-5" style={{ fontStyle: 'italic' }}>
               &quot;Não é fofoca. É fonte.&quot;

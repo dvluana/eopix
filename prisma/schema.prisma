@@ -92,3 +92,14 @@ model RateLimit {
   @@unique([identifier, action])
   @@index([identifier, action, windowStart])
 }
+
+model WebhookLog {
+  id        String   @id @default(cuid())
+  eventKey  String   @unique // formato: "EVENT:payment_id"
+  event     String
+  paymentId String
+  processed Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

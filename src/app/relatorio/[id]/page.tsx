@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import Footer from '@/components/Footer';
 import {
@@ -16,10 +16,6 @@ import {
   ReportFooter,
   ReportError,
 } from '@/components/relatorio';
-
-interface PageProps {
-  params: Promise<{ id: string }>
-}
 
 interface ApiFullData {
   name?: string
@@ -113,8 +109,9 @@ function formatCurrency(amount: number): string {
   }).format(amount / 100) // assuming amount is in cents
 }
 
-export default function Page({ params }: PageProps) {
-  const { id: reportId } = use(params);
+export default function Page() {
+  const params = useParams();
+  const reportId = params.id as string;
   const router = useRouter();
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
