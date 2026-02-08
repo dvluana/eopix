@@ -1,108 +1,94 @@
 // Prisma Schema para E o Pix?
-// Database: PostgreSQL (Supabase)
+// Database: PostgreSQL (Neon)
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// Modelo de usuário (identificado apenas por email)
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id        String     @id @default(cuid())
+  email     String     @unique
+  createdAt DateTime   @default(now())
   purchases Purchase[]
-  sessions  Session[]
 
   @@index([email])
 }
 
-// Sessões de autenticação (magic link / código OTP)
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  code      String? // Código de 6 dígitos
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
+model SearchResult {
+  id        String     @id @default(cuid())
+  term      String     // CPF ou CNPJ limpo
+  type      String     // "CPF" | "CNPJ"
+  name      String?    // Nome descoberto pela APIFull
+  data      Json       // Resposta bruta das APIs
+  summary   String?    // Resumo do GPT-4o-mini
+  expiresAt DateTime   // createdAt + 7 dias
+  createdAt DateTime   @default(now())
+  purchases Purchase[]
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([token])
-  @@index([userId])
+  @@index([term, type, createdAt])
 }
 
-// Compras/Consultas
 model Purchase {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   userId          String
-  asaasPaymentId  String?  @unique // ID do pagamento no Asaas
-  status          String   @default("pending") // pending, confirmed, completed, expired, failed
-  searchTerm      String   // CPF ou CNPJ pesquisado
-  searchType      String   // "cpf" ou "cnpj"
-  packageType     String   // "single", "pack5", "pack10"
-  amount          Float    // Valor em reais
+  code            String    @unique // Codigo alfanumerico 6 chars
+  term            String    // CPF ou CNPJ consultado
+  amount          Int       // Valor em centavos (2990)
+  status          String    @default("PENDING") // PENDING | PAID | PROCESSING | COMPLETED | FAILED | REFUNDED | REFUND_FAILED
+  asaasPaymentId  String?   @unique
+  buyerName       String?   // Nome do comprador (via webhook Asaas)
+  buyerCpfCnpj    String?   // CPF/CNPJ do comprador (via webhook Asaas)
+  termsAcceptedAt DateTime  // Timestamp aceite dos Termos
   paidAt          DateTime?
-  expiresAt       DateTime // Data de expiração do relatório
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  searchResultId  String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  report Report?
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  searchResult SearchResult? @relation(fields: [searchResultId], references: [id])
 
   @@index([userId])
-  @@index([searchTerm])
+  @@index([term])
   @@index([status])
 }
 
-// Relatórios gerados
-model Report {
-  id               String   @id @default(cuid())
-  purchaseId       String   @unique
-  searchTerm       String
-  searchType       String
-  rawData          Json     // Dados brutos das APIs (APIFull, Escavador, Google)
-  processedData    Json     // Dados processados e resumidos
-  weatherStatus    String   // "sol", "nuvens", "trovoada"
-  riskScore        Float    // 0-100
-  summary          String?  // Resumo gerado por IA
-  generatedAt      DateTime @default(now())
-
-  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-
-  @@index([searchTerm])
-  @@index([weatherStatus])
-}
-
-// Leads capturados (consultas sem pagamento)
-model Lead {
+model Blocklist {
   id             String   @id @default(cuid())
-  email          String?
-  searchTerm     String
-  searchType     String
-  source         String?  // "landing", "teaser", "checkout"
-  conversionPath String[] // Caminho de conversão
+  term           String   @unique // CPF ou CNPJ bloqueado
+  associatedName String?  // Nome associado (bloqueia buscas Google tambem)
+  reason         String   // "SOLICITACAO_TITULAR" | "JUDICIAL" | "HOMONIMO"
   createdAt      DateTime @default(now())
-
-  @@index([searchTerm])
-  @@index([createdAt])
 }
 
-// Rate limiting (simples, sem Redis no MVP)
+model LeadCapture {
+  id        String   @id @default(cuid())
+  email     String
+  term      String?  // CPF/CNPJ que tentou consultar
+  reason    String   // "API_DOWN" | "MAINTENANCE"
+  createdAt DateTime @default(now())
+}
+
+model MagicCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String   // 6 digitos
+  expiresAt DateTime // createdAt + 10 minutos
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
 model RateLimit {
-  id         String   @id @default(cuid())
-  identifier String   // IP ou user ID
-  action     String   // "search", "login", "api"
-  count      Int      @default(1)
+  id          String   @id @default(cuid())
+  identifier  String   // IP ou user ID
+  action      String   // "search", "login", "api"
+  count       Int      @default(1)
   windowStart DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  updatedAt   DateTime @updatedAt
 
   @@unique([identifier, action])
   @@index([identifier, action, windowStart])
