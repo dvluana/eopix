@@ -40,6 +40,13 @@ export async function createPixCharge(
   // === CHAMADA REAL ===
   const baseUrl = getAsaasBaseUrl()
 
+  console.log('[Asaas] Creating paymentLink:', {
+    url: `${baseUrl}/paymentLinks`,
+    hasApiKey: !!process.env.ASAAS_API_KEY,
+    apiKeyPrefix: process.env.ASAAS_API_KEY?.substring(0, 15),
+    apiKeyLength: process.env.ASAAS_API_KEY?.length,
+  })
+
   // Usar paymentLinks ao invés de payments
   // Isso permite que o Asaas colete CPF/CNPJ do comprador no checkout
   // (criar payment direto exige CPF/CNPJ no momento da criação)
@@ -63,8 +70,15 @@ export async function createPixCharge(
 
   const data = await response.json()
 
+  console.log('[Asaas] Response:', {
+    status: response.status,
+    ok: response.ok,
+    hasUrl: !!data.url,
+    data: JSON.stringify(data).substring(0, 500),
+  })
+
   if (!response.ok || !data.url) {
-    console.error('Asaas paymentLink error:', data)
+    console.error('[Asaas] PaymentLink error:', data)
     throw new Error(`Asaas error: ${JSON.stringify(data)}`)
   }
 

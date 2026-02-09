@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/prisma'
 import { createPixCharge } from '@/lib/asaas'
 import { getSession } from '@/lib/auth'
@@ -161,7 +162,11 @@ export async function POST(request: NextRequest) {
         checkoutUrl,
       })
     } catch (asaasError) {
-      console.error('Asaas error:', asaasError)
+      Sentry.captureException(asaasError, {
+        tags: { service: 'asaas', operation: 'createPixCharge' },
+        extra: { code, term: cleanedTerm, email },
+      })
+      console.error('[Asaas] Error:', asaasError)
       // Deletar purchase órfã (sem pagamento associado)
       await prisma.purchase.delete({ where: { id: purchase.id } })
       return NextResponse.json(
