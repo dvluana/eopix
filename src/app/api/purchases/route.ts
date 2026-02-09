@@ -141,24 +141,34 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create Asaas checkout
-    const { paymentId, checkoutUrl } = await createPixCharge({
-      amount: priceCents,
-      email,
-      externalRef: code,
-      description: `Consulta E o Pix - ${isCpf ? 'CPF' : 'CNPJ'}`,
-    })
+    // Create Asaas checkout (usando paymentLinks)
+    try {
+      const { paymentId, checkoutUrl } = await createPixCharge({
+        amount: priceCents,
+        email,
+        externalRef: code,
+        description: `Consulta E o Pix - ${isCpf ? 'CPF' : 'CNPJ'}`,
+      })
 
-    // Update purchase with Asaas payment ID
-    await prisma.purchase.update({
-      where: { id: purchase.id },
-      data: { asaasPaymentId: paymentId },
-    })
+      // Update purchase with Asaas payment ID
+      await prisma.purchase.update({
+        where: { id: purchase.id },
+        data: { asaasPaymentId: paymentId },
+      })
 
-    return NextResponse.json({
-      code: purchase.code,
-      checkoutUrl,
-    })
+      return NextResponse.json({
+        code: purchase.code,
+        checkoutUrl,
+      })
+    } catch (asaasError) {
+      console.error('Asaas error:', asaasError)
+      // Deletar purchase órfã (sem pagamento associado)
+      await prisma.purchase.delete({ where: { id: purchase.id } })
+      return NextResponse.json(
+        { error: 'Erro ao criar pagamento. Tente novamente.' },
+        { status: 500 }
+      )
+    }
   } catch (error) {
     console.error('Create purchase error:', error)
     return NextResponse.json(

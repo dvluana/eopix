@@ -37,46 +37,40 @@ export async function createPixCharge(
     }
   }
 
-  // === CHAMADA REAL (Parte B) ===
+  // === CHAMADA REAL ===
   const baseUrl = getAsaasBaseUrl()
 
-  // Primeiro, buscar ou criar customer
-  const customerRes = await fetch(`${baseUrl}/customers`, {
+  // Usar paymentLinks ao invés de payments
+  // Isso permite que o Asaas colete CPF/CNPJ do comprador no checkout
+  // (criar payment direto exige CPF/CNPJ no momento da criação)
+  const response = await fetch(`${baseUrl}/paymentLinks`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       access_token: process.env.ASAAS_API_KEY!,
     },
     body: JSON.stringify({
-      email: params.email,
-      name: params.email.split('@')[0], // placeholder, Asaas coleta nome no checkout
-    }),
-  })
-
-  const customer = await customerRes.json()
-
-  // Criar cobranca Pix
-  const paymentRes = await fetch(`${baseUrl}/payments`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      access_token: process.env.ASAAS_API_KEY!,
-    },
-    body: JSON.stringify({
-      customer: customer.id,
+      name: params.description,
       billingType: 'PIX',
+      chargeType: 'DETACHED', // cobrança avulsa
       value: params.amount / 100, // Asaas usa reais
       description: params.description,
       externalReference: params.externalRef,
-      dueDate: new Date(Date.now() + 30 * 60 * 1000).toISOString().split('T')[0], // 30 min
+      dueDateLimitDays: 1, // expira em 1 dia
+      notificationEnabled: true,
     }),
   })
 
-  const payment = await paymentRes.json()
+  const data = await response.json()
+
+  if (!response.ok || !data.url) {
+    console.error('Asaas paymentLink error:', data)
+    throw new Error(`Asaas error: ${JSON.stringify(data)}`)
+  }
 
   return {
-    paymentId: payment.id,
-    checkoutUrl: payment.invoiceUrl,
+    paymentId: data.id,
+    checkoutUrl: data.url,
   }
 }
 
