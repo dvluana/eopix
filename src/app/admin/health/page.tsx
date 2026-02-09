@@ -160,6 +160,39 @@ export default function HealthPage() {
         </Button>
       </div>
 
+      {/* Banner de Mock Mode */}
+      {health?.mode === 'mock' && (
+        <div style={{
+          marginBottom: '24px',
+          padding: '16px 20px',
+          background: 'linear-gradient(90deg, rgba(255,214,0,0.15), rgba(255,214,0,0.05))',
+          border: '1px solid var(--color-border-accent)',
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+        }}>
+          <AlertCircle size={20} style={{ color: 'var(--color-text-accent)' }} />
+          <div>
+            <p style={{
+              fontSize: '14px',
+              fontWeight: 600,
+              color: 'var(--color-text-primary)',
+              margin: 0
+            }}>
+              Modo de Teste Ativo
+            </p>
+            <p style={{
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+              margin: 0
+            }}>
+              Os dados exibidos sao simulados. Ative MOCK_MODE=false para dados reais.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Overall Status */}
       <Card style={{ marginBottom: '24px' }}>
         <CardContent style={{ paddingTop: '24px' }}>

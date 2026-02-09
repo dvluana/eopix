@@ -105,8 +105,6 @@ Todos os fluxos do frontend foram testados via MCP Chrome DevTools com `MOCK_MOD
 **Chaves faltantes (usuária deve configurar):**
 ```env
 RESEND_API_KEY=""
-NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
-TURNSTILE_SECRET_KEY=""
 NEXT_PUBLIC_SENTRY_DSN=""
 SENTRY_AUTH_TOKEN=""
 SENTRY_ORG=""
@@ -234,7 +232,7 @@ O form agora chama `/api/leads` corretamente.
 
 **Para produção:**
 1. Gerar chave API de produção no painel Asaas
-2. Configurar webhook de produção: `https://eopix.com.br/api/webhooks/asaas`
+2. Configurar webhook de produção: `https://www.somoseopix.com.br/api/webhooks/asaas`
 3. Atualizar variáveis:
    - `ASAAS_ENV=production`
    - `ASAAS_API_KEY=<chave_producao>`
@@ -274,30 +272,19 @@ Substituiu Google Custom Search por Serper API (mais barato e sem limite de 100 
 
 **Passos:**
 1. Criar conta em resend.com
-2. Adicionar domínio `eopix.com.br`
+2. Adicionar domínio `somoseopix.com.br`
 3. Configurar DNS (SPF/DKIM/DMARC)
 4. Gerar API key → `RESEND_API_KEY`
 
 ---
 
-### 4.8 [ALTO] Cloudflare Turnstile (CAPTCHA) ❌
-
-**Status:** Não configurado
-
-**Passos:**
-1. Acessar dash.cloudflare.com → Turnstile
-2. Criar widget para `eopix.com.br`
-3. Copiar → `NEXT_PUBLIC_TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET_KEY`
-
----
-
-### 4.9 [ALTO] Inngest (Background Jobs) ❌
+### 4.8 [ALTO] Inngest (Background Jobs) ❌
 
 **Status:** Não configurado para produção
 
 **Passos:**
 1. Criar conta em inngest.com
-2. Criar app com endpoint: `https://eopix.com.br/api/inngest`
+2. Criar app com endpoint: `https://www.somoseopix.com.br/api/inngest`
 3. Copiar → `INNGEST_EVENT_KEY` e `INNGEST_SIGNING_KEY`
 
 ---
@@ -375,7 +362,6 @@ NEXT_PUBLIC_APP_URL=https://seu-app.vercel.app
 RESEND_API_KEY=          # bypass
 ASAAS_API_KEY=           # bypass
 INNGEST_EVENT_KEY=       # local run
-TURNSTILE_SECRET_KEY=    # desabilitado
 SENTRY_DSN=              # opcional
 ```
 
@@ -388,10 +374,6 @@ MOCK_MODE=false
 
 # Email (Resend)
 RESEND_API_KEY=
-
-# CAPTCHA (Turnstile)
-NEXT_PUBLIC_TURNSTILE_SITE_KEY=
-TURNSTILE_SECRET_KEY=
 
 # Monitoramento (Sentry)
 NEXT_PUBLIC_SENTRY_DSN=
@@ -419,7 +401,6 @@ ASAAS_WEBHOOK_TOKEN=<token_producao>
 - [ ] DNS configurado para o domínio
 - [ ] SSL/HTTPS funcionando
 - [ ] SPF/DKIM do Resend verificado
-- [ ] Domínios do Turnstile configurados
 - [ ] Webhook do Asaas apontando para produção
 - [ ] Inngest endpoint configurado
 

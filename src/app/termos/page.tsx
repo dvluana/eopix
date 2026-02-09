@@ -130,7 +130,7 @@ export default function Page() {
                 margin: '12px 0 0 0',
               }}
             >
-              E-mail de contato: contato@somoseopix.com
+              E-mail de contato: plataforma@somoseopix.com.br
             </p>
           </section>
 
@@ -664,13 +664,13 @@ export default function Page() {
             >
               Para dúvidas, reclamações ou solicitações relacionadas ao serviço:<br />
               <a
-                href="mailto:contato@somoseopix.com"
+                href="mailto:plataforma@somoseopix.com.br"
                 style={{
                   color: 'var(--color-text-primary)',
                   textDecoration: 'underline',
                 }}
               >
-                contato@somoseopix.com
+                plataforma@somoseopix.com.br
               </a>
             </p>
             <p
@@ -684,13 +684,13 @@ export default function Page() {
             >
               Para questões relacionadas a dados pessoais e privacidade:<br />
               <a
-                href="mailto:privacidade@somoseopix.com"
+                href="mailto:plataforma@somoseopix.com.br"
                 style={{
                   color: 'var(--color-text-primary)',
                   textDecoration: 'underline',
                 }}
               >
-                privacidade@somoseopix.com
+                plataforma@somoseopix.com.br
               </a>
             </p>
           </section>

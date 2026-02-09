@@ -1198,7 +1198,7 @@ ANOTAÇÕES DEV (x:1460):
 
 **Layout:** Sidebar esquerda 240px (#1A1A1A) + Área conteúdo (#F0EFEB).
 
-**Sidebar:** Logo "E O PIX?" + Badge "ADMIN" + Menu (📊 Dashboard ativo, 🚫 Blocklist, 💚 Health Check, 💰 Compras, 📩 Leads) + "Admin: admin@eopix.com.br" + "Sair".
+**Sidebar:** Logo "E O PIX?" + Badge "ADMIN" + Menu (📊 Dashboard ativo, 🚫 Blocklist, 💚 Health Check, 💰 Compras, 📩 Leads) + "Admin: admin@somoseopix.com.br" + "Sair".
 
 **Conteúdo:**
 
@@ -1343,7 +1343,7 @@ SEÇÕES:
 5. Retenção de Dados — Tabela: SearchResult 7d, Purchase indefinido, LeadCapture 90d, MagicCode 10min, Blocklist indefinido
 6. Cookies e Rastreamento — "Não utilizamos cookies. Plausible cookieless."
 7. Seus Direitos — Acesso, correção, exclusão, portabilidade, revogação → Link para /privacidade/titular
-8. Contato — privacidade@eopix.com.br
+8. Contato — privacidade@somoseopix.com.br
 
 Rodapé: "← Termos de Uso" | "Direitos do Titular →"
 

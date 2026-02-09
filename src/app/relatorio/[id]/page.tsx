@@ -147,7 +147,7 @@ export default function Page() {
   const handleRelatarErro = () => {
     const subject = encodeURIComponent(`Erro no relatório ${reportId}`);
     const body = encodeURIComponent(`Olá,\n\nEncontrei um erro no relatório ${reportId}.\n\nDescrição do problema:\n\n`);
-    window.open(`mailto:suporte@eopix.com.br?subject=${subject}&body=${body}`);
+    window.open(`mailto:plataforma@somoseopix.com.br?subject=${subject}&body=${body}`);
   };
 
   const handleVoltarConsultas = () => {

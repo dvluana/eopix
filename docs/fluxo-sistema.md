@@ -25,18 +25,9 @@ Documentação visual do fluxo completo do sistema, desde o input até a visuali
 │  └────────┬────────┘                                                │
 │           │                                                         │
 │           ▼                                                         │
-│  ┌─────────────────┐                                                │
-│  │ Turnstile       │ ◄── Cloudflare (CAPTCHA gratuito)              │
-│  │ [  CAPTCHA   ]  │                                                │
-│  └────────┬────────┘                                                │
-│           │                                                         │
-│           ▼                                                         │
 │  [ Consultar ]                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
-
-**APIs utilizadas:**
-- Cloudflare Turnstile (CAPTCHA)
 
 ---
 
@@ -569,7 +560,7 @@ Documentação visual do fluxo completo do sistema, desde o input até a visuali
 
 | Etapa | APIs Utilizadas |
 |-------|-----------------|
-| **1. Input** | Cloudflare Turnstile (CAPTCHA) |
+| **1. Input** | - |
 | **2. Validações** | - |
 | **3. Health Check** | APIFull (ping) |
 | **4. Criação Compra** | Asaas (POST /payments) |

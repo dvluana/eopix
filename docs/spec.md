@@ -36,7 +36,7 @@ Fluxo assíncrono: o usuário paga e sai. O processamento roda em background. O 
 
 | **Etapa**           | **Ação**                               | **Detalhes**                                                                                                                                                          |
 | ------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1\. Input           | Usuário digita CPF ou CNPJ             | Campo único com máscara automática. Não aceita nome. CAPTCHA (Turnstile) obrigatório.                                                                                 |
+| 1\. Input           | Usuário digita CPF ou CNPJ             | Campo único com máscara automática. Não aceita nome. Rate limiting por IP.                                                                                 |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
 | 2\. Validação       | Sistema valida formato                 | Valida dígitos verificadores. Se inválido, erro inline instantâneo.                                                                                                   |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
@@ -237,8 +237,6 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 | IA                  | GPT-4o-mini (OpenAI)                    | ~R\$ 0,03/consulta    |
 | ---                 | ---                                     | ---                   |
 | E-mail Transacional | Resend (SPF/DKIM configurado)           | Free Tier (3.000/mês) |
-| ---                 | ---                                     | ---                   |
-| CAPTCHA             | Cloudflare Turnstile                    | Free                  |
 | ---                 | ---                                     | ---                   |
 | Monitoramento       | Sentry                                  | Free Tier             |
 | ---                 | ---                                     | ---                   |
@@ -504,8 +502,9 @@ createdAt DateTime @default(now())
 
 ## 5.1 Proteção Contra Bots
 
-- **CAPTCHA:** Cloudflare Turnstile (gratuito) obrigatório no input de CPF/CNPJ.
-- **Rate Limiting (middleware):** Máx 10 validações de CPF/CNPJ por IP por hora. Máx 3 compras por IP por hora. Máx 3 magic codes por e-mail por hora. Máx 20 envios de magic link por IP por hora. Via middleware Vercel Edge ou Postgres.
+- **Rate Limiting:** Proteção em duas camadas (Edge + Application). Dispensa CAPTCHA.
+  - Edge (middleware): 10 req/min para /api/search/*, 5 req/min para /api/auth/*
+  - Application (database): 10 buscas/IP/hora, 3 compras/IP/hora, 3 magic codes/email/hora
 - **Proteção CSRF:** Next.js Server Actions validam nativamente. Documentado como mecanismo de proteção.
 
 ## 5.2 Webhook Seguro
@@ -577,7 +576,7 @@ Descrição funcional de cada tela do produto, na ordem do fluxo do usuário.
 
 | **Tela**            | **Rota**                            | **Descrição funcional**                                                                                                                                                                                                              |
 | ------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Home (Input)        | /                                   | Headline + campo CPF/CNPJ com máscara + CAPTCHA Turnstile + botão Consultar. Erros inline. Blocklist e Health Check verificados antes de prosseguir.                                                                                 |
+| Home (Input)        | /                                   | Headline + campo CPF/CNPJ com máscara + botão Consultar. Rate limiting por IP. Erros inline. Blocklist e Health Check verificados antes de prosseguir.                                                                                 |
 | ---                 | ---                                 | ---                                                                                                                                                                                                                                  |
 | Teaser              | /consulta/{term}                    | CPF/CNPJ parcialmente mascarado no topo. Cards borrados (blur) com placeholder. Formulário: e-mail + checkbox termos + botão 'Desbloquear R\$ 29,90'. Botão desabilitado se Health Check falhar.                                     |
 | ---                 | ---                                 | ---                                                                                                                                                                                                                                  |
@@ -658,8 +657,6 @@ Implementar com Plausible (cookieless, free tier, sem banner de cookie consent L
 | ---                                 | ---                         |
 | Resend Free Tier (3.000 emails/mês) | R\$ 0                       |
 | ---                                 | ---                         |
-| Cloudflare Turnstile                | R\$ 0                       |
-| ---                                 | ---                         |
 | Sentry Free Tier                    | R\$ 0                       |
 | ---                                 | ---                         |
 | Plausible Free Tier (cookieless)    | R\$ 0                       |
@@ -693,8 +690,7 @@ Implementar com Plausible (cookieless, free tier, sem banner de cookie consent L
 - Setup Next.js 14 + Neon (Postgres) + Prisma.
 - Modelo de dados completo (User, SearchResult, Purchase com buyer/termsAcceptedAt, Blocklist, LeadCapture, MagicCode).
 - Input CPF/CNPJ com máscara + validação de dígitos.
-- Cloudflare Turnstile (CAPTCHA) no input.
-- Rate limiting (middleware: validações, compras, magic link).
+- Rate limiting em duas camadas (Edge + Application).
 - Check da Blocklist no fluxo.
 - Tela de Teaser (blur + placeholder + CPF/CNPJ em destaque).
 - Formulário: campo e-mail + checkbox termos (links /termos e /privacidade).

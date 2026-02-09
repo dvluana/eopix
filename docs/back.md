@@ -141,9 +141,7 @@ ESCAVADOR_API_KEY=
 SERPER_API_KEY=
 OPENAI_API_KEY=
 RESEND_API_KEY=
-EMAIL_FROM=E O PIX? <noreply@eopix.com.br>
-TURNSTILE_SITE_KEY=
-TURNSTILE_SECRET_KEY=
+EMAIL_FROM=E O PIX? <noreply@somoseopix.com.br>
 INNGEST_SIGNING_KEY=
 INNGEST_EVENT_KEY=
 SENTRY_DSN=
@@ -207,7 +205,6 @@ eopix/
 │   │   ├── resend.ts               ← Mock = console.log
 │   │   ├── auth.ts
 │   │   ├── rate-limit.ts
-│   │   ├── turnstile.ts            ← Mock = bypass
 │   │   ├── validators.ts
 │   │   └── inngest.ts
 │   ├── lib/mocks/                   ← Dados mock realistas
@@ -335,25 +332,7 @@ Rode a migration.
 
 Usar Zod schemas para validação de request bodies.
 
-### Passo 1.4 — Cloudflare Turnstile (bypass no dev)
-
-**Arquivo:** `src/lib/turnstile.ts`
-
-```typescript
-import { isMockMode } from './mock-mode'
-
-export async function verifyTurnstile(token: string): Promise<boolean> {
-  if (isMockMode) {
-    console.log('[MOCK] Turnstile bypass')
-    return true
-  }
-  // Chamada real (Parte B)
-  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { ... })
-  return data.success === true
-}
-```
-
-### Passo 1.5 — Rate Limiting
+### Passo 1.4 — Rate Limiting
 
 **Arquivo:** `src/lib/rate-limit.ts`
 
@@ -366,9 +345,9 @@ export async function verifyTurnstile(token: string): Promise<boolean> {
 
 **Arquivo:** `middleware.ts` — rate limit + auth guard + admin guard.
 
-### Passo 1.6 — Conectar T.1 Home ao Backend
+### Passo 1.5 — Conectar T.1 Home ao Backend
 
-Submit → Server Action: limpa input → valida CPF/CNPJ → Turnstile (bypass mock) → rate limit → blocklist → redirect `/consulta/${term}`.
+Submit → Server Action: limpa input → valida CPF/CNPJ → rate limit → blocklist → redirect `/consulta/${term}`.
 
 **Blocklist check detalhado:**
 
@@ -376,7 +355,7 @@ Submit → Server Action: limpa input → valida CPF/CNPJ → Turnstile (bypass 
 2. Se bloqueado → "Dados indisponíveis por solicitação do titular."
 3. Se `associatedName` preenchido → esse nome também é bloqueado nas buscas Google durante o processamento (Fase 3). O job Inngest verifica a blocklist antes de fazer queries Google.
 
-### Passo 1.7 — Script de seed
+### Passo 1.6 — Script de seed
 
 **Arquivo:** `scripts/seed.ts` — cria user, purchases variados, blocklist, leads, SearchResult mock.
 
@@ -1222,7 +1201,7 @@ git push -u origin main
 
 **Passo 6 (quando tiver domínio) — Configurar domínio**
 
-- Settings → Domains → Adicionar `eopix.com.br`
+- Settings → Domains → Adicionar `somoseopix.com.br`
 - Configurar DNS conforme instruções da Vercel (registro CNAME ou A)
 
 **Passo 7 — Confirmar:** "Deploy feito, URL é https://eopix-xxx.vercel.app"
@@ -1272,30 +1251,7 @@ git push -u origin main
 
 ---
 
-### 10.2 — Cloudflare Turnstile (grátis, CAPTCHA)
-
-**Custo:** Grátis. **Cartão:** Não.
-
-**📋 O que VOCÊ faz:**
-
-1. Criar conta na Cloudflare (se não tiver) — [dash.cloudflare.com](https://dash.cloudflare.com)
-2. Menu lateral → Turnstile → "Add Widget"
-3. Nome: `E O PIX?`
-4. Domains: adicionar `eopix.com.br` E `eopix-xxx.vercel.app` (a URL do Passo 2)
-5. Widget type: "Managed"
-6. Clicar "Create"
-7. Copiar `Site Key` → `TURNSTILE_SITE_KEY`
-8. Copiar `Secret Key` → `TURNSTILE_SECRET_KEY`
-9. Adicionar ambas na Vercel
-10. Redesplegar
-
-**🤖 Claude Code faz:** Garantir que o widget renderiza no frontend quando `MOCK_MODE=false`. Remover bypass.
-
-**✅ Validação:** Widget Turnstile aparece na Home na URL pública.
-
----
-
-### 10.3 — Resend (grátis, email transacional)
+### 10.2 — Resend (grátis, email transacional)
 
 **Custo:** Grátis até 3.000 emails/mês. **Cartão:** Não.
 
@@ -1303,14 +1259,14 @@ git push -u origin main
 
 1. Criar conta em [resend.com](https://resend.com)
 2. **API Keys** → Create API Key → copiar → `RESEND_API_KEY`
-3. **Domains** → Add Domain → digitar `eopix.com.br`
+3. **Domains** → Add Domain → digitar `somoseopix.com.br`
 4. **Resend mostra 3 registros DNS que você precisa adicionar:**
 
    | Tipo  | Nome                             | Valor                  |
    | ----- | -------------------------------- | ---------------------- |
-   | MX    | `eopix.com.br`                   | (valor do Resend)      |
-   | TXT   | `eopix.com.br`                   | (valor SPF do Resend)  |
-   | CNAME | `resend._domainkey.eopix.com.br` | (valor DKIM do Resend) |
+   | MX    | `somoseopix.com.br`                   | (valor do Resend)      |
+   | TXT   | `somoseopix.com.br`                   | (valor SPF do Resend)  |
+   | CNAME | `resend._domainkey.somoseopix.com.br` | (valor DKIM do Resend) |
 
 5. **Adicionar esses registros no DNS** do seu provedor de domínio (Registro.br, Cloudflare, etc.)
 6. Voltar no Resend → clicar "Verify" → aguardar (geralmente minutos)
@@ -1323,7 +1279,7 @@ git push -u origin main
 
 ---
 
-### 10.4 — Asaas (pago, pagamento Pix)
+### 10.3 — Asaas (pago, pagamento Pix)
 
 **Custo:** ~R$ 0,99 + 1,99% por transação. **Cartão:** Sim (para saque, não para criar conta).
 
@@ -1349,7 +1305,7 @@ git push -u origin main
 1. No Asaas → gerar **Chave de API de Produção**
 2. Trocar `ASAAS_ENV=production`
 3. Trocar `ASAAS_API_KEY` pela chave de produção
-4. Configurar **novo webhook de produção** com a URL final (`https://eopix.com.br/api/webhooks/asaas`)
+4. Configurar **novo webhook de produção** com a URL final (`https://www.somoseopix.com.br/api/webhooks/asaas`)
 5. Trocar `ASAAS_WEBHOOK_TOKEN` pelo token do webhook de produção
 6. Configurar NFS-e automática no painel (código de serviço definir com contador)
 7. Atualizar na Vercel
@@ -1361,7 +1317,7 @@ git push -u origin main
 
 ---
 
-### 10.5 — APIFull (paga, dados financeiros)
+### 10.4 — APIFull (paga, dados financeiros)
 
 **Custo:** Pré-paga (créditos). **Cartão:** Sim.
 
@@ -1379,7 +1335,7 @@ git push -u origin main
 
 ---
 
-### 10.6 — Serper (semi-paga, buscas web)
+### 10.5 — Serper (semi-paga, buscas web)
 
 **Custo:** 2.500 queries/mês grátis, depois $50/mês (10k queries). **Cartão:** Não inicialmente.
 
@@ -1396,7 +1352,7 @@ git push -u origin main
 
 ---
 
-### 10.7 — OpenAI (paga, resumo IA)
+### 10.6 — OpenAI (paga, resumo IA)
 
 **Custo:** ~R$ 0,03/consulta. **Cartão:** Sim.
 
@@ -1413,7 +1369,7 @@ git push -u origin main
 
 ---
 
-### 10.8 — Sentry (grátis, monitoramento de erros)
+### 10.7 — Sentry (grátis, monitoramento de erros)
 
 **Custo:** Grátis até 5k errors/mês. **Cartão:** Não.
 
@@ -1436,14 +1392,14 @@ Configurar alertas: taxa de erro > 10% em 1h → email. `REFUND_FAILED` → emai
 
 ---
 
-### 10.10 — Plausible (grátis, analytics)
+### 10.8 — Plausible (grátis, analytics)
 
 **Custo:** Grátis (self-hosted ou Community Edition). **Cartão:** Não.
 
 **📋 O que VOCÊ faz:**
 
 1. Criar conta em [plausible.io](https://plausible.io) (ou self-host)
-2. Add Site → `eopix.com.br`
+2. Add Site → `somoseopix.com.br`
 3. Copiar o script tag que o Plausible mostra
 
 **🤖 Claude Code faz:** Adicionar script no `layout.tsx`. Configurar eventos customizados:
@@ -1466,7 +1422,7 @@ Configurar alertas: taxa de erro > 10% em 1h → email. `REFUND_FAILED` → emai
 
 ---
 
-### 10.11 — Desligar MOCK_MODE (último passo!)
+### 10.9 — Desligar MOCK_MODE (último passo!)
 
 Depois que TODAS as APIs estão configuradas e validadas:
 
@@ -1493,7 +1449,7 @@ Depois que TODAS as APIs estão configuradas e validadas:
 
 | Método | Rota                          | Descrição                                | Fase |
 | ------ | ----------------------------- | ---------------------------------------- | ---- |
-| POST   | `/api/search/validate`        | Validar CPF/CNPJ + Turnstile + blocklist | 1    |
+| POST   | `/api/search/validate`        | Validar CPF/CNPJ + blocklist             | 1    |
 | GET    | `/api/health`                 | Ping APIs                                | 2    |
 | POST   | `/api/purchases`              | Criar Purchase + Asaas checkout          | 2    |
 | GET    | `/api/purchases/{code}`       | Buscar Purchase (confirmação)            | 2    |
@@ -1558,15 +1514,11 @@ OPENAI_API_KEY=
 
 # === EMAIL ===
 RESEND_API_KEY=
-EMAIL_FROM=E O PIX? <noreply@eopix.com.br>
+EMAIL_FROM=E O PIX? <noreply@somoseopix.com.br>
 
 # === AUTH ===
 JWT_SECRET=dev-secret-trocar-em-producao
 ADMIN_EMAILS=admin@test.com
-
-# === CAPTCHA ===
-TURNSTILE_SITE_KEY=
-TURNSTILE_SECRET_KEY=
 
 # === INNGEST ===
 INNGEST_SIGNING_KEY=
@@ -1591,7 +1543,6 @@ PRICE_CENTS=2990
 | `SERPER_API_KEY`    | Serper     | serper.dev               | ✅ 2.5k/mês    | Não     |
 | `OPENAI_API_KEY`    | OpenAI     | platform.openai.com      | Pay-per-use    | Sim     |
 | `RESEND_API_KEY`    | Resend     | resend.com               | ✅ 3k/mês      | Não     |
-| `TURNSTILE_*`       | Cloudflare | dash.cloudflare.com      | ✅             | Não     |
 | `INNGEST_*`         | Inngest    | inngest.com              | ✅ 25k/mês     | Não     |
 | `SENTRY_DSN`        | Sentry     | sentry.io                | ✅ 5k/mês      | Não     |
 
@@ -1675,7 +1626,6 @@ npx tsx scripts/test-flow.ts           # Teste E2E completo
 - [ ] Asaas NFS-e configurada
 - [ ] Resend SPF/DKIM/DMARC verificado
 - [ ] Inngest → URL de produção
-- [ ] Turnstile → domínio de produção
 - [ ] Sentry → projeto ativo
 - [ ] Plausible → site ativo
 
@@ -1704,7 +1654,6 @@ npx tsx scripts/test-flow.ts           # Teste E2E completo
 - [ ] Nenhuma chave hardcoded
 - [ ] Webhook valida token Asaas
 - [ ] Rate limits aplicados
-- [ ] Turnstile ativo
 - [ ] Admin guard protege `/admin/*`
 
 ---
@@ -1722,7 +1671,6 @@ npx tsx scripts/test-flow.ts           # Teste E2E completo
 | Relatório "Dados limitados"                   | CPF sem registros         | Comportamento normal                         |
 | 429 Too Many Requests                         | Rate limit                | Aguardar 1 hora                              |
 | "E-mail não encontrado"                       | Nunca comprou             | Correto — sem compra, sem conta              |
-| Turnstile falha                               | Chave errada para domínio | Verificar domínio no Cloudflare              |
 | Prisma "prepared statement"                   | Hot reload Next.js        | Usar singleton `lib/prisma.ts`               |
 | Google "quota exceeded"                       | >100/dia grátis           | Ativar billing Google Cloud                  |
 | Build falha Vercel                            | Tipo/import errado        | `npm run build` local primeiro               |

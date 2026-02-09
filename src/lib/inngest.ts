@@ -95,7 +95,7 @@ export const processSearch = inngest.createFunction(
       })
 
       // Enviar email de notificacao com resultado cacheado
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eopix.com.br'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.somoseopix.com.br'
       const maskedTerm = type === 'CPF'
         ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
         : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')
@@ -316,7 +316,7 @@ export const processSearch = inngest.createFunction(
       })
 
       // Step 8: Enviar email de notificacao
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eopix.com.br'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.somoseopix.com.br'
       const maskedTerm = type === 'CPF'
         ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
         : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')

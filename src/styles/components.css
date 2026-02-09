@@ -1590,3 +1590,55 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== ADMIN SIDEBAR ===== */
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  font-family: var(--font-family-body);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin-nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--primitive-white);
+}
+
+.admin-nav-link--active {
+  font-weight: 600;
+  color: var(--primitive-white);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-nav-link--active:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.admin-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  width: 100%;
+  font-family: var(--font-family-body);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--primitive-white);
+}

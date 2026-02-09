@@ -1074,7 +1074,7 @@ export default function Page() {
               }}
             >
               Se preferir, você também pode exercer seus direitos pelo e-mail:{' '}
-              <strong>privacidade@somoseopix.com</strong>
+              <strong>plataforma@somoseopix.com.br</strong>
             </p>
           </div>
 

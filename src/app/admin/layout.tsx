@@ -89,21 +89,7 @@ export default function AdminLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px 16px',
-                  borderRadius: '8px',
-                  marginBottom: '4px',
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '14px',
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive ? 'var(--primitive-white)' : 'rgba(255, 255, 255, 0.7)',
-                  background: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-                  textDecoration: 'none',
-                  transition: 'background 0.2s',
-                }}
+                className={`admin-nav-link ${isActive ? 'admin-nav-link--active' : ''}`}
               >
                 <Icon size={18} />
                 {item.label}
@@ -114,24 +100,7 @@ export default function AdminLayout({
 
         {/* Logout */}
         <div style={{ padding: '16px 12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-          <button
-            onClick={handleLogout}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              borderRadius: '8px',
-              width: '100%',
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '14px',
-              color: 'rgba(255, 255, 255, 0.7)',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'background 0.2s',
-            }}
-          >
+          <button onClick={handleLogout} className="admin-logout-btn">
             <LogOut size={18} />
             Sair
           </button>

@@ -175,14 +175,14 @@ export default function Page() {
               }}
             >
               <a
-                href="mailto:privacidade@somoseopix.com"
+                href="mailto:plataforma@somoseopix.com.br"
                 style={{
                   color: 'var(--color-text-primary)',
                   textDecoration: 'underline',
                   fontWeight: 600,
                 }}
               >
-                privacidade@somoseopix.com
+                plataforma@somoseopix.com.br
               </a>
             </p>
             <p
@@ -606,11 +606,6 @@ export default function Page() {
                     <td style={tableStyles.td}>Analytics anônimo e cookieless</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}><strong>Cloudflare</strong></td>
-                    <td style={tableStyles.td}>Endereço IP (via Turnstile)</td>
-                    <td style={tableStyles.td}>Proteção contra bots</td>
-                  </tr>
-                  <tr>
                     <td style={tableStyles.td}><strong>Sentry</strong></td>
                     <td style={tableStyles.td}>Dados técnicos de erro</td>
                     <td style={tableStyles.td}>Monitoramento de erros</td>
@@ -844,13 +839,13 @@ export default function Page() {
               </a>{' '}
               ou entre em contato pelo e-mail{' '}
               <a
-                href="mailto:privacidade@somoseopix.com"
+                href="mailto:plataforma@somoseopix.com.br"
                 style={{
                   color: 'var(--color-text-primary)',
                   textDecoration: 'underline',
                 }}
               >
-                privacidade@somoseopix.com
+                plataforma@somoseopix.com.br
               </a>
               .
             </p>
@@ -948,14 +943,14 @@ export default function Page() {
             >
               Para questões relacionadas a dados pessoais e privacidade:<br />
               <a
-                href="mailto:privacidade@somoseopix.com"
+                href="mailto:plataforma@somoseopix.com.br"
                 style={{
                   color: 'var(--color-text-primary)',
                   textDecoration: 'underline',
                   fontWeight: 600,
                 }}
               >
-                privacidade@somoseopix.com
+                plataforma@somoseopix.com.br
               </a>
             </p>
             <p
@@ -969,14 +964,14 @@ export default function Page() {
             >
               Para dúvidas gerais sobre o serviço:<br />
               <a
-                href="mailto:contato@somoseopix.com"
+                href="mailto:plataforma@somoseopix.com.br"
                 style={{
                   color: 'var(--color-text-primary)',
                   textDecoration: 'underline',
                   fontWeight: 600,
                 }}
               >
-                contato@somoseopix.com
+                plataforma@somoseopix.com.br
               </a>
             </p>
           </section>

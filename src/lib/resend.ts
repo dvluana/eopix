@@ -86,7 +86,7 @@ export async function sendReportReady(
           Voce tambem pode acessar em <a href="${process.env.NEXT_PUBLIC_APP_URL}/minhas-consultas">Minhas Consultas</a>.
         </p>
         <p style="color: #9ca3af; font-size: 12px; margin-top: 24px;">
-          Se este email foi para o spam, adicione noreply@eopix.com.br aos seus contatos.
+          Se este email foi para o spam, adicione plataforma@somoseopix.com.br aos seus contatos.
         </p>
       </div>
     `,
