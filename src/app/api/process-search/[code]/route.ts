@@ -11,7 +11,6 @@ import {
 import { searchWeb } from '@/lib/google-search'
 import { analyzeProcessos, analyzeMentionsAndSummary } from '@/lib/openai'
 import { calculateCpfFinancialSummary, calculateCnpjFinancialSummary } from '@/lib/financial-summary'
-import { sendReportReady } from '@/lib/resend'
 import { isBypassMode } from '@/lib/mock-mode'
 import type {
   CpfCadastralResponse,
@@ -64,7 +63,6 @@ export async function POST(
 
     const term = purchase.term
     const type = term.length === 11 ? 'CPF' : 'CNPJ'
-    const email = purchase.user.email
 
     // Update to PROCESSING
     await prisma.purchase.update({
@@ -232,17 +230,7 @@ export async function POST(
 
     console.log(`🧪 [BYPASS] Purchase completada! SearchResult ID: ${searchResult.id}`)
 
-    // Send email notification
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const maskedTerm = type === 'CPF'
-      ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-      : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')
-
-    await sendReportReady(
-      email,
-      maskedTerm,
-      `${appUrl}/relatorio/${searchResult.id}`
-    )
 
     return NextResponse.json({
       success: true,

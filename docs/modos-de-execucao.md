@@ -235,27 +235,39 @@ ASAAS_ENV=production
 
 Antes de testar com APIs reais, valide todos os fluxos:
 
+**Frontend (navegador):**
 - [ ] Fluxo completo CPF Sol (CPF terminando em 5-9)
 - [ ] Fluxo completo CPF Chuva (CPF terminando em 0-4)
 - [ ] Fluxo completo CNPJ Sol
 - [ ] Fluxo completo CNPJ Chuva
-- [ ] Login com magic code (email logado no console)
-- [ ] Admin: marcar como pago + processar
 - [ ] Visualização do relatório completo
+- [ ] Responsividade em mobile
+
+**Backend (admin + console):**
+- [ ] Login com magic code (verificar email no console)
+- [ ] Admin: marcar como pago
+- [ ] Admin: processar consulta
+- [ ] Verificar logs de processamento no terminal
 
 ### Teste Único em TEST_MODE (Antes do Go-Live)
 
+**Backend (APIs reais, consome créditos):**
 - [ ] Configurar `MOCK_MODE=false` e `TEST_MODE=true`
 - [ ] Fazer 1 consulta real com seu CPF
 - [ ] Verificar que dados reais da APIFull retornam corretamente
 - [ ] Verificar que resumo da IA é gerado
+- [ ] Conferir relatório final com dados reais
 
 ### Configuração de Email (Resend)
 
+**Infraestrutura (DNS + Resend Dashboard):**
 - [ ] DNS SPF configurado no provedor de domínio
 - [ ] DNS DKIM configurado no provedor de domínio
 - [ ] Domínio verificado no Resend Dashboard
-- [ ] Enviar email teste real para seu email pessoal
+
+**Teste de envio (produção):**
+- [ ] Enviar código de login real para seu email pessoal
+- [ ] Verificar entrega na caixa de entrada (não spam)
 
 ### Antes de ir para Produção (Vercel)
 
@@ -273,11 +285,13 @@ Antes de testar com APIs reais, valide todos os fluxos:
 
 ## Configuração do Resend (Email)
 
+O sistema usa email **apenas para envio de código de login** (magic code).
+
 ### Variáveis de Ambiente
 
 ```bash
 RESEND_API_KEY=re_xxxxxxxx           # API key do Resend Dashboard
-EMAIL_FROM=E O PIX <noreply@somoseopix.com.br>  # Formato: Nome <email>
+EMAIL_FROM=E O PIX <plataforma@somoseopix.com.br>  # Formato: Nome <email>
 ```
 
 ### Configuração de DNS (Obrigatório para Produção)
@@ -289,25 +303,20 @@ No Resend Dashboard > Domains, adicione `somoseopix.com.br` e configure no seu p
 
 O Resend fornece os valores exatos. A verificação pode levar até 48h.
 
-### Templates de Email
+### Template de Email
 
-Os templates estão em `src/lib/resend.ts`:
+O template está em `src/lib/resend.ts`:
 
 | Função | Propósito |
 |--------|-----------|
 | `sendMagicCode()` | Código de 6 dígitos para login |
-| `sendReportReady()` | Notificação quando relatório está pronto |
 
 ### Monitoramento
 
-- **Resend Dashboard**: Taxa de entrega, bounces, spam reports
+- **Resend Dashboard**: Taxa de entrega, bounces, spam reports (checar 1x/semana)
+- **Admin Health**: `/admin/health` mostra status do Resend
 - **Sentry**: Captura erros quando `res.ok === false`
 - **Console (bypass mode)**: Emails logados localmente
-
-### Futuro (Opcional)
-
-- React Email para templates mais sofisticados
-- Webhook Resend para eventos (bounce, spam)
 
 ---
 

@@ -11,7 +11,6 @@ import {
 import { searchWeb } from './google-search'
 import { analyzeProcessos, analyzeMentionsAndSummary } from './openai'
 import { calculateCpfFinancialSummary, calculateCnpjFinancialSummary } from './financial-summary'
-import { sendReportReady } from './resend'
 import { refundPayment } from './asaas'
 import type {
   CpfCadastralResponse,
@@ -66,7 +65,7 @@ export const processSearch = inngest.createFunction(
   },
   { event: 'search/process' },
   async ({ event, step }) => {
-    const { purchaseId, term, type, email } = event.data
+    const { purchaseId, term, type } = event.data
 
     // ========== CACHE: Verificar se ja existe SearchResult valido (24h) ==========
     const existingResult = await step.run('check-cache', async () => {
@@ -92,20 +91,6 @@ export const processSearch = inngest.createFunction(
             processingStep: 0,
           },
         })
-      })
-
-      // Enviar email de notificacao com resultado cacheado
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.somoseopix.com.br'
-      const maskedTerm = type === 'CPF'
-        ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-        : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')
-
-      await step.run('send-email-cached', async () => {
-        await sendReportReady(
-          email,
-          maskedTerm,
-          `${appUrl}/relatorio/${existingResult.id}`
-        )
       })
 
       return { success: true, cached: true, searchResultId: existingResult.id }
@@ -313,20 +298,6 @@ export const processSearch = inngest.createFunction(
             processingStep: 0, // Reset step on completion
           },
         })
-      })
-
-      // Step 8: Enviar email de notificacao
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.somoseopix.com.br'
-      const maskedTerm = type === 'CPF'
-        ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-        : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')
-
-      await step.run('send-email', async () => {
-        await sendReportReady(
-          email,
-          maskedTerm,
-          `${appUrl}/relatorio/${searchResult.id}`
-        )
       })
 
       return { success: true, searchResultId: searchResult.id }

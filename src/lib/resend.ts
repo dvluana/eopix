@@ -66,28 +66,3 @@ export async function sendMagicCode(email: string, code: string): Promise<SendEm
   })
 }
 
-export async function sendReportReady(
-  email: string,
-  maskedTerm: string,
-  reportUrl: string
-): Promise<SendEmailResponse> {
-  return sendEmail({
-    to: email,
-    subject: `Sua consulta sobre ${maskedTerm} esta pronta`,
-    html: `
-      <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto;">
-        <h2>E O PIX?</h2>
-        <p>Sua consulta sobre <strong>${maskedTerm}</strong> foi finalizada.</p>
-        <a href="${reportUrl}" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin: 16px 0;">
-          Ver Relatorio
-        </a>
-        <p style="color: #6b7280; font-size: 14px;">
-          Voce tambem pode acessar em <a href="${process.env.NEXT_PUBLIC_APP_URL}/minhas-consultas">Minhas Consultas</a>.
-        </p>
-        <p style="color: #9ca3af; font-size: 12px; margin-top: 24px;">
-          Se este email foi para o spam, adicione noreply@somoseopix.com.br aos seus contatos.
-        </p>
-      </div>
-    `,
-  })
-}

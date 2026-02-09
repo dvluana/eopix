@@ -60,7 +60,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     })
 
     // Trigger Inngest job with fallback for TEST_MODE
-    let inngestDispatched = false
     try {
       await inngest.send({
         name: 'search/process',
@@ -73,7 +72,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         },
       })
       console.log(`Inngest job triggered for purchase ${purchase.code} (manual process)`)
-      inngestDispatched = true
     } catch (err) {
       console.error('Failed to trigger Inngest job:', err)
 
@@ -84,7 +82,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         fetch(`${appUrl}/api/process-search/${purchase.code}`, { method: 'POST' })
           .then(() => console.log(`🧪 [BYPASS] Processamento síncrono concluído: ${purchase.code}`))
           .catch(fallbackErr => console.error(`🧪 [BYPASS] Fallback falhou:`, fallbackErr))
-        inngestDispatched = true // Consider it dispatched (via fallback)
       } else {
         // Rollback status if Inngest fails in production
         await prisma.purchase.update({
