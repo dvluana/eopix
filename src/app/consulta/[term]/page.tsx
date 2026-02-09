@@ -103,43 +103,49 @@ export default function Page({ params }: PageProps) {
     }
   };
 
-  // Cards com blur
-  const blurredCards: Array<{ title: string; content: string; icon: string; risk: 'high' | 'medium' | 'low' | null }> = [
+  // Cards com blur - todos têm blur para criar efeito de "conteúdo bloqueado"
+  const blurredCards: Array<{ title: string; content: string; icon: string; risk: 'high' | 'medium' | 'low' | null; blurred: boolean }> = [
     {
       title: 'Cadastro Empresarial',
       content: 'Situação: ████ | Abertura: ██/██/████ | Sócios: █ encontrados',
       icon: '🏢',
-      risk: null // Primeiro card SEM blur
+      risk: null,
+      blurred: true
     },
     {
       title: 'Situação Financeira',
       content: 'Protestos: ██ | Valor: R$ █.███,██ | Dívidas: ██',
       icon: '💰',
-      risk: 'high' // 🔴 Alto risco
+      risk: 'high',
+      blurred: true
     },
     {
       title: 'Processos Judiciais',
       content: '██ processos encontrados | Tribunais: ██ | Polo réu: ██',
       icon: '⚖️',
-      risk: 'high' // 🔴 Alto risco
+      risk: 'high',
+      blurred: true
     },
     {
       title: 'Notícias e Web',
       content: '██ menções encontradas | Última: ██/██/███',
       icon: '📰',
-      risk: 'medium' // 🟡 Médio risco
+      risk: 'medium',
+      blurred: true
     },
     {
       title: 'Reclame Aqui',
       content: '██ reclamações | ██ respondidas | Nota: █,█',
       icon: '⭐',
-      risk: 'medium' // 🟡 Médio risco
+      risk: 'medium',
+      blurred: true
     },
     {
       title: 'Resumo por IA',
       content: 'Com base nos dados coletados, identificamos que ████████████████',
       icon: '🤖',
-      risk: null // Resumo não tem risco
+      risk: null,
+      blurred: true
     }
   ];
 
@@ -393,80 +399,103 @@ export default function Page({ params }: PageProps) {
             Veja o que <span className="section-header__highlight">encontramos</span>
           </h2>
 
-          {/* Faixa amarela centralizada */}
+          {/* Faixa de aviso centralizada - destacada */}
           <div style={{
             position: 'absolute',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            background: 'rgba(26, 26, 26, 0.85)',
+            background: 'rgba(26, 26, 26, 0.95)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             color: 'var(--color-text-accent)',
-            padding: '6px 16px',
-            borderRadius: 'var(--primitive-radius-sm)',
+            padding: '10px 20px',
+            borderRadius: 'var(--primitive-radius-md)',
+            border: '1px solid var(--color-border-accent)',
             zIndex: 10,
             fontFamily: 'var(--font-family-body)',
-            fontSize: '11px',
+            fontSize: '12px',
             fontWeight: 700,
             whiteSpace: 'nowrap',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)'
           }}>
-            Exemplo de dados que serão desbloqueados
+            🔒 Exemplo de dados que serão desbloqueados
           </div>
 
           {/* Grid 2x3 de cards com blur */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '16px'
+            gap: '12px'
           }}>
             {blurredCards.map((card, index) => (
               <div
                 key={index}
                 style={{
-                  background: 'var(--color-bg-primary)',
+                  background: 'var(--color-bg-subtle)',
                   border: '1px solid var(--color-border-subtle)',
-                  borderRadius: '6px',
-                  padding: '20px'
+                  borderRadius: '8px',
+                  padding: '16px',
+                  transition: 'transform 0.2s ease, border-color 0.2s ease',
+                  cursor: 'default'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.borderColor = 'var(--color-border-default)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
                 }}
               >
-                {/* Título legível (sem blur) */}
-                <h3 style={{
-                  fontFamily: 'var(--font-family-heading)',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-primary)',
-                  marginBottom: '12px'
+                {/* Header: ícone + título + cadeado */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '10px'
                 }}>
-                  {card.title}
-                </h3>
+                  <span style={{ fontSize: '18px' }}>{card.icon}</span>
+                  <h3 style={{
+                    fontFamily: 'var(--font-family-heading)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: 'var(--color-text-primary)',
+                    margin: 0,
+                    flex: 1
+                  }}>
+                    {card.title}
+                  </h3>
+                  <span style={{
+                    fontSize: '12px',
+                    opacity: 0.5
+                  }}>🔒</span>
+                </div>
 
-                {/* Conteúdo placeholder com blur pesado */}
+                {/* Conteúdo placeholder com blur */}
                 <p style={{
                   fontFamily: 'var(--font-family-body)',
-                  fontSize: '12px',
+                  fontSize: '11px',
                   color: 'var(--color-text-tertiary)',
                   margin: 0,
-                  filter: card.risk ? 'blur(8px)' : 'none',
+                  filter: card.blurred ? 'blur(6px)' : 'none',
                   userSelect: 'none',
-                  lineHeight: 1.6
+                  lineHeight: 1.5
                 }}>
                   {card.content}
                 </p>
 
-                {/* Ícone e badge de risco */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginTop: '8px'
-                }}>
-                  <span style={{
-                    fontSize: '16px',
-                    marginRight: '4px'
+                {/* Badge de risco (se houver) */}
+                {card.risk && (
+                  <div style={{
+                    marginTop: '10px',
+                    paddingTop: '8px',
+                    borderTop: '1px solid var(--color-border-subtle)'
                   }}>
-                    {card.icon}
-                  </span>
-                  {getRiskBadge(card.risk)}
-                </div>
+                    {getRiskBadge(card.risk)}
+                  </div>
+                )}
               </div>
             ))}
           </div>
