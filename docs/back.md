@@ -200,12 +200,10 @@ eopix/
 │   │   ├── prisma.ts               ← Singleton
 │   │   ├── mock-mode.ts            ← Flag global + helpers
 │   │   ├── asaas.ts                ← Real + mock integrados
-│   │   ├── apifull.ts
-│   │   ├── escavador.ts
-│   │   ├── datajud.ts              ← Datajud/CNJ (grátis)
-│   │   ├── brasilapi.ts
-│   │   ├── google-search.ts
-│   │   ├── openai.ts
+│   │   ├── apifull.ts              ← CPF: r-cpf-completo, r-acoes-e-processos, srs-premium. CNPJ: ic-dossie-juridico, srs-premium
+│   │   ├── google-search.ts        ← Serper: byDocument, byName, reclameAqui (3 queries)
+│   │   ├── openai.ts               ← 2 chamadas: analyzeProcessos + analyzeMentionsAndSummary
+│   │   ├── financial-summary.ts    ← Resumo financeiro sem IA
 │   │   ├── resend.ts               ← Mock = console.log
 │   │   ├── auth.ts
 │   │   ├── rate-limit.ts
@@ -213,12 +211,9 @@ eopix/
 │   │   ├── validators.ts
 │   │   └── inngest.ts
 │   ├── lib/mocks/                   ← Dados mock realistas
-│   │   ├── apifull-data.ts
-│   │   ├── escavador-data.ts
-│   │   ├── datajud-data.ts
-│   │   ├── brasilapi-data.ts
-│   │   ├── google-data.ts
-│   │   └── openai-data.ts
+│   │   ├── apifull-data.ts         ← Mocks para todos endpoints APIFull
+│   │   ├── google-data.ts          ← byDocument, byName, reclameAqui
+│   │   └── openai-data.ts          ← Processos + Summary mocks
 │   └── components/                  ← UI importadas
 ├── scripts/
 │   ├── test-flow.ts
@@ -529,81 +524,116 @@ export const MOCK_APIFULL_CPF_SOL = {
 };
 ```
 
-#### `mocks/escavador-data.ts`
+#### `mocks/apifull-data.ts`
 
 ```typescript
-export const MOCK_ESCAVADOR_CHUVA = {
-  totalCount: 51,
-  processes: [
-    {
-      tribunal: "TRT-4",
-      date: "2024-03-12",
-      classe: "Ação Trabalhista",
-      polo: "Réu",
-    },
-    {
-      tribunal: "TJRS",
-      date: "2024-09-18",
-      classe: "Execução Título",
-      polo: "Réu",
-    },
-    { tribunal: "TJRS", date: "2025-11-14", classe: "Cobrança", polo: "Réu" },
-  ],
+// CPF Cadastral (r-cpf-completo)
+export const MOCK_APIFULL_CPF_CADASTRAL_CHUVA = {
+  nome: 'Joao Carlos da Silva',
+  cpf: '12345678901',
+  dataNascimento: '1985-03-15',
+  idade: 40,
+  nomeMae: 'Maria da Silva',
+  sexo: 'Masculino',
+  signo: 'Peixes',
+  situacaoRF: 'REGULAR',
+  enderecos: [{ logradouro: 'Rua das Flores', numero: '123', bairro: 'Centro', cidade: 'Porto Alegre', uf: 'RS', cep: '90000-000' }],
+  telefones: [{ ddd: '51', numero: '999887766', tipo: 'Celular' }],
+  emails: ['joao.silva@email.com'],
+  empresasVinculadas: [{ cnpj: '12345678000190', razaoSocial: 'JC SILVA COMERCIO LTDA', participacao: 'Socio-Administrador' }],
 };
 
-export const MOCK_ESCAVADOR_SOL = { totalCount: 0, processes: [] };
-```
+export const MOCK_APIFULL_CPF_CADASTRAL_SOL = {
+  nome: 'Maria Aparecida Santos',
+  cpf: '98765432109',
+  // ...dados limpos
+};
 
-#### `mocks/brasilapi-data.ts`
+// CPF Processos (r-acoes-e-processos-judiciais)
+export const MOCK_APIFULL_CPF_PROCESSOS_CHUVA = {
+  processos: [
+    { numeroProcessoUnico: '5001234-56.2024.8.21.0001', tribunal: 'TJRS', dataAutuacao: '2024-03-12', classeProcessual: { nome: 'Execucao de Titulo Extrajudicial' }, statusPj: { ramoDireito: 'Civel', statusProcesso: 'Em andamento' }, partes: [{ nome: 'Joao Carlos da Silva', polo: 'PASSIVO' }], valorCausa: { valor: 45000 } },
+    // ...mais processos
+  ],
+  totalProcessos: 3,
+};
 
-```typescript
-export const MOCK_BRASILAPI_CNPJ = {
-  razaoSocial: "TECH SOLUTIONS SERVICOS DE TI LTDA",
-  situacao: "ATIVA",
-  abertura: "2018-03-15",
-  cnaePrincipal: {
-    codigo: "6201-5/01",
-    descricao: "Desenvolvimento de programas de computador sob encomenda",
-  },
-  cnaeSecundarios: [
-    {
-      codigo: "6202-3/00",
-      descricao: "Consultoria em tecnologia da informação",
-    },
-    { codigo: "6311-9/00", descricao: "Tratamento de dados" },
-  ],
-  socios: [
-    { nome: "CARLOS EDUARDO PEREIRA", qualificacao: "Sócio-Administrador" },
-  ],
+export const MOCK_APIFULL_CPF_PROCESSOS_SOL = { processos: [], totalProcessos: 0 };
+
+// CPF Financeiro (srs-premium)
+export const MOCK_APIFULL_CPF_FINANCIAL_CHUVA = {
+  nome: 'Joao Carlos da Silva',
+  protestos: [{ data: '2025-08-15', valor: 4200, cartorio: '2o Cartorio de Protestos', cidade: 'Porto Alegre', uf: 'RS' }],
+  pendenciasFinanceiras: [{ tipo: 'ATRASO_CARTAO', valor: 3200, origem: 'Banco ABC', dataOcorrencia: '2025-09-10' }],
+  chequesSemFundo: 0,
+  totalProtestos: 3,
+  valorTotalProtestos: 12450,
+  totalPendencias: 1,
+  valorTotalPendencias: 3200,
+  _scoreInterno: 320, // Buscado mas NAO exibido
+};
+
+export const MOCK_APIFULL_CPF_FINANCIAL_SOL = {
+  nome: 'Maria Aparecida Santos',
+  protestos: [],
+  pendenciasFinanceiras: [],
+  chequesSemFundo: 0,
+  totalProtestos: 0,
+  valorTotalProtestos: 0,
+  totalPendencias: 0,
+  valorTotalPendencias: 0,
+  _scoreInterno: 850,
+};
+
+// CNPJ Dossie (ic-dossie-juridico) - cadastral + processos em 1 chamada
+export const MOCK_APIFULL_CNPJ_DOSSIE_CHUVA = {
+  razaoSocial: 'EMPRESA PROBLEMATICA LTDA',
+  cnpj: '12345678000190',
+  situacao: 'EM RECUPERACAO JUDICIAL',
+  dataAbertura: '2015-06-20',
+  naturezaJuridica: 'Sociedade Empresaria Limitada',
   capitalSocial: 100000,
-  endereco: { municipio: "Florianópolis", uf: "SC" },
-};
-```
-
-#### `mocks/datajud-data.ts`
-
-```typescript
-// Processos complementares ao Escavador (pode ter sobreposição, job faz dedup)
-export const MOCK_DATAJUD_CHUVA = {
-  processes: [
-    {
-      tribunal: "TJRS",
-      number: "5001234-56.2024.8.21.0001",
-      date: "2024-05-20",
-      classe: "Execução Fiscal",
-      polo: "Réu",
-    },
-    {
-      tribunal: "TJRS",
-      number: "5009876-12.2025.8.21.0010",
-      date: "2025-03-10",
-      classe: "Busca e Apreensão",
-      polo: "Réu",
-    },
-  ],
+  endereco: { logradouro: 'Av. Paulista', numero: '1000', bairro: 'Bela Vista', cidade: 'Sao Paulo', uf: 'SP', cep: '01310-100' },
+  socios: [{ nome: 'CARLOS ROBERTO PROBLEMATICO', qualificacao: 'Socio-Administrador', documento: '123.456.789-00' }],
+  cnaePrincipal: { codigo: '4712-1/00', descricao: 'Comercio varejista de mercadorias em geral' },
+  acoesAtivas: { quantidade: 5, valorTotal: 450000, ocorrencias: [/*...*/] },
+  acoesArquivadas: { quantidade: 2, ocorrencias: [] },
+  alertas: { quantidade: 3, ocorrencias: [{ descricao: 'Empresa em Recuperacao Judicial', dataDistribuicao: '2024-01-15' }] },
 };
 
-export const MOCK_DATAJUD_SOL = { processes: [] };
+export const MOCK_APIFULL_CNPJ_DOSSIE_SOL = {
+  razaoSocial: 'TECH SOLUTIONS SERVICOS DE TI LTDA',
+  cnpj: '98765432000155',
+  situacao: 'ATIVA',
+  // ...dados limpos, acoesAtivas.quantidade: 0
+};
+
+// CNPJ Financeiro (srs-premium)
+export const MOCK_APIFULL_CNPJ_FINANCIAL_CHUVA = {
+  razaoSocial: 'EMPRESA PROBLEMATICA LTDA',
+  cnpj: '12345678000190',
+  protestos: [{ data: '2025-06-10', valor: 15000, cartorio: '1o Cartorio de Protestos', cidade: 'Sao Paulo', uf: 'SP' }],
+  pendenciasFinanceiras: [{ tipo: 'DIVIDA_ATIVA', valor: 45000, origem: 'Receita Federal', dataOcorrencia: '2024-12-01' }],
+  chequesSemFundo: 5,
+  totalProtestos: 3,
+  valorTotalProtestos: 55800,
+  totalPendencias: 2,
+  valorTotalPendencias: 68000,
+  _scoreInterno: 280,
+};
+
+export const MOCK_APIFULL_CNPJ_FINANCIAL_SOL = {
+  razaoSocial: 'TECH SOLUTIONS SERVICOS DE TI LTDA',
+  cnpj: '98765432000155',
+  protestos: [],
+  pendenciasFinanceiras: [],
+  chequesSemFundo: 0,
+  totalProtestos: 0,
+  valorTotalProtestos: 0,
+  totalPendencias: 0,
+  valorTotalPendencias: 0,
+  _scoreInterno: 900,
+};
 ```
 
 #### `mocks/google-data.ts` + `mocks/openai-data.ts`
@@ -711,25 +741,11 @@ export async function consultCpf(cpf: string) {
 
 > **Truque:** CPFs terminados em 0-4 → Chuva. 5-9 → Sol. Testa ambos cenários sem configurar nada.
 
-5 wrappers: `apifull.ts`, `escavador.ts`, `brasilapi.ts`, `google-search.ts`, `openai.ts`.
-
-### Passo 3.2b — Datajud/CNJ (API gratuita, processos judiciais)
-
-**Arquivo:** `src/lib/datajud.ts`
-
-API gratuita do CNJ que complementa o Escavador. Retorna processos judiciais públicos.
-
-```typescript
-export async function searchDatajud(name: string, document: string) {
-  if (isMockMode) {
-    return MOCK_DATAJUD; // processos complementares fictícios
-  }
-  // Real: consulta API pública do Datajud/CNJ
-  // Endpoint: https://api-publica.datajud.cnj.jus.br/...
-}
-```
-
-> **Importante:** Datajud é GRATUITA e complementa o Escavador. Sempre chamar as duas em paralelo. Dados do Datajud podem ter processos que o Escavador não tem e vice-versa. O job Inngest faz merge + dedup.
+**Arquivos de API:**
+- `apifull.ts` - 5 funções: `consultCpfCadastral`, `consultCpfProcessos`, `consultCpfFinancial`, `consultCnpjDossie`, `consultCnpjFinancial`
+- `google-search.ts` - `searchWeb` com 3 queries paralelas: byDocument, byName, reclameAqui
+- `openai.ts` - 2 funções: `analyzeProcessos`, `analyzeMentionsAndSummary`
+- `financial-summary.ts` - Resumo financeiro sem IA
 
 ### Passo 3.3 — Resend (mock = console.log)
 
@@ -753,39 +769,43 @@ npx inngest-cli dev  # Dashboard local em localhost:8288, sem conta
 
 **Job `process-search`:**
 
-**Fluxo CPF:**
+**Fluxo CPF (3 chamadas APIFull + 3 Serper + 2 IA = 8 total):**
 
 ```
-1. [SÉRIE] APIFull(cpf) → descobre nome + financeiro → falha: retry 1x → reembolso
-   ⚠️ Score retornado pela APIFull é DESCARTADO (nunca exibido).
+1. [SÉRIE] APIFull r-cpf-completo → dados cadastrais + nome
+   ⚠️ Falha: retry 1x → reembolso
 2. [PARALELO] Com o nome:
-   ├── Escavador(nome, cpf) → processos detalhados
-   ├── Datajud/CNJ(nome, cpf) → processos complementares (GRÁTIS)
-   ├── Google geral("{Nome}") → menções web
-   └── Google focada("{Nome}" + "golpe" OR "fraude" OR "processo") → menções negativas
-3. [SÉRIE] Merge + dedup processos (Escavador + Datajud)
-4. [SÉRIE] GPT-4o-mini(todos os dados, região do CPF) → resumo factual + filtragem homônimos + classificação de menções
-5. [SÉRIE] Salvar:
-   - Criar/atualizar SearchResult (term, type, name, data JSON, summary)
+   ├── APIFull srs-premium → financeiro (Score DESCARTADO)
+   ├── APIFull r-acoes-e-processos-judiciais → processos judiciais
+   └── Serper (3 queries paralelas):
+       ├── byDocument: "{CPF formatado}"
+       ├── byName: "{Nome}" golpe OR fraude OR processo OR reclamacao
+       └── reclameAqui: "{Nome}" site:reclameaqui.com.br
+3. [SÉRIE] Calcular resumo financeiro (sem IA)
+4. [SÉRIE] IA 1: GPT-4o-mini → análise de processos (se houver)
+5. [SÉRIE] IA 2: GPT-4o-mini → classificação menções + resumo final + Reclame Aqui
+6. [SÉRIE] Salvar:
+   - Criar SearchResult (term, type, name, data JSON, summary)
    - Vincular Purchase.searchResultId → SearchResult.id
    - Purchase.status → COMPLETED
    - Enviar email via Resend
 ```
 
-**Fluxo CNPJ:**
+**Fluxo CNPJ (2 chamadas APIFull + 3 Serper + 2 IA = 7 total):**
 
 ```
-1. [SÉRIE] BrasilAPI → razão social (GRÁTIS). Fallback: APIFull
-2. [PARALELO] Com o nome/razão social:
-   ├── APIFull(cnpj) → financeiro (Score DESCARTADO)
-   ├── Escavador(razaoSocial, cnpj) → processos
-   ├── Datajud/CNJ(razaoSocial, cnpj) → processos complementares (GRÁTIS)
-   ├── Google geral("{Razão Social}")
-   ├── Google focada("{Razão Social}" + "golpe" OR "fraude" OR "processo")
-   └── Google Reclame Aqui("{Razão Social}" site:reclameaqui.com.br)
-3. [SÉRIE] Merge + dedup processos
-4. [SÉRIE] GPT-4o-mini → resumo + classificação de menções (positive/neutral/negative) + filtragem homônimos
-5. [SÉRIE] Salvar + vincular + notificar (mesmo do CPF)
+1. [SÉRIE] APIFull ic-dossie-juridico → cadastral + processos em 1 chamada
+   ⚠️ Falha: retry 1x → reembolso
+2. [PARALELO] Com a razão social:
+   ├── APIFull srs-premium → financeiro (Score DESCARTADO)
+   └── Serper (3 queries paralelas):
+       ├── byDocument: "{CNPJ formatado}"
+       ├── byName: "{Razão Social}" golpe OR fraude OR processo OR reclamacao
+       └── reclameAqui: "{Razão Social}" site:reclameaqui.com.br
+3. [SÉRIE] Calcular resumo financeiro (sem IA)
+4. [SÉRIE] IA 1: GPT-4o-mini → análise de processos do dossiê (se houver)
+5. [SÉRIE] IA 2: GPT-4o-mini → classificação menções + resumo final + Reclame Aqui
+6. [SÉRIE] Salvar + vincular + notificar (mesmo do CPF)
 ```
 
 **Cache 24h (compartilhado):** Antes de chamar APIs, verificar `SELECT * FROM SearchResult WHERE term = {term} AND type = {type} AND createdAt > NOW() - 24h`. Se existe, pular TODAS as APIs — apenas vincular o Purchase existente ao SearchResult encontrado (Purchase.searchResultId = SearchResult.id). Usuário B paga R$ 29,90 mas custo de API = zero.
@@ -800,15 +820,16 @@ npx inngest-cli dev  # Dashboard local em localhost:8288, sem conta
 
 ### Passo 3.5 — Lógica de falha e reembolso
 
-| Situação                            | Ação                                           |
-| ----------------------------------- | ---------------------------------------------- |
-| API crítica (APIFull/Escavador) 5xx | Retry 1x → reembolso (mock: console.log)       |
-| Timeout 120s                        | Reembolso                                      |
-| Datajud falha                       | NÃO reembolsa, usa só dados do Escavador       |
-| Google falha                        | NÃO reembolsa, card vazio                      |
-| GPT falha                           | NÃO reembolsa, sem resumo                      |
-| CPF sem dados na APIFull            | NÃO reembolsa, relatório com "Dados limitados" |
-| Reembolso falha                     | Retry 3x → `REFUND_FAILED` + log               |
+| Situação                                      | Ação                                           |
+| --------------------------------------------- | ---------------------------------------------- |
+| APIFull cadastral (r-cpf-completo ou dossiê) falha | Retry 1x → reembolso (mock: console.log)   |
+| Timeout 120s                                  | Reembolso                                      |
+| APIFull processos falha                       | NÃO reembolsa, continua sem processos          |
+| APIFull financeiro falha                      | NÃO reembolsa, continua sem dados financeiros  |
+| Serper falha                                  | NÃO reembolsa, card menções vazio              |
+| GPT falha                                     | NÃO reembolsa, sem resumo                      |
+| CPF sem dados na APIFull                      | NÃO reembolsa, relatório com "Dados limitados" |
+| Reembolso falha                               | Retry 3x → `REFUND_FAILED` + log               |
 
 ### Passo 3.6 — Conectar T.6/T.7 Relatório
 
@@ -890,7 +911,7 @@ O CPF/CNPJ é da região {region}. Ignore notícias de outros estados para evita
 | ----------------------- | ------------------------------ | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | Cadastro Empresarial    | ❌ Não exibe                   | ✅ SEMPRE exibe (Sol: bloco positivo, Chuva: card normal) | "Dados cadastrais não encontrados para este CNPJ."                                                                                                                                                 | Receita Federal         |
 | Situação Financeira     | ✅                             | ✅                                                        | **Sol:** "Nome limpo há X anos. 0 protestos nos últimos 5 anos. 0 dívidas. 0 cheques devolvidos." **Se sem recorte temporal:** "Nome limpo — 0 protestos, 0 dívidas ativas, 0 cheques devolvidos." | Serasa/SPC              |
-| Processos Judiciais     | ✅ Lista (Escavador + Datajud) | ✅ Idem                                                   | "Nenhum processo judicial encontrado. ☀️"                                                                                                                                                          | Tribunal de origem      |
+| Processos Judiciais     | ✅ Lista (APIFull)              | ✅ Idem (via dossiê)                                      | "Nenhum processo judicial encontrado. ☀️"                                                                                                                                                          | Tribunal de origem      |
 | Notícias e Web          | ✅ (classificadas)             | ✅ (classificadas)                                        | "Nenhuma menção relevante encontrada na web." **Sol com menções:** "Encontramos X menções, todas neutras ou positivas" + links                                                                     | Link de cada notícia    |
 | Reclame Aqui            | Busca, oculta se vazio         | ✅ Query dedicada                                         | **NÃO exibe card** se sem dados. **Sol positivo:** exibe nota/resolução/selo se dados positivos encontrados                                                                                        | "Ver no Reclame Aqui →" |
 | Resumo Geral (IA)       | ✅ (com destaques positivos)   | ✅ (com destaques positivos)                              | —                                                                                                                                                                                                  | —                       |
@@ -902,7 +923,7 @@ O CPF/CNPJ é da região {region}. Ignore notícias de outros estados para evita
 - **CNPJ Baixada/Suspensa:** Card Cadastro Empresarial com borda vermelha.
 - **Score:** APIFull retorna Score — é **DESCARTADO**. Nunca exibido.
 - **Processos judiciais:** Separar Trabalhista (Empresa Ré) de Cível/outros.
-- **BrasilAPI fallback:** Se BrasilAPI falhar para dados cadastrais CNPJ, usar APIFull como fallback.
+- **Cadastral CNPJ:** Dados vêm do APIFull via `ic-dossie-juridico` (cadastral + processos em 1 chamada).
 
 **Botão "Relatar erro":** Presente em CADA card do relatório. Abre formulário pré-preenchido (Tally) com o tipo de card e dados da consulta.
 
@@ -924,7 +945,7 @@ O CPF/CNPJ é da região {region}. Ignore notícias de outros estados para evita
 - [ ] Botão "Relatar erro" em cada card
 - [ ] Cache 24h: segunda consulta mesmo CPF → pula APIs, vincula SearchResult existente
 - [ ] Inngest dashboard local mostra jobs
-- [ ] Datajud mockado retorna processos complementares
+- [ ] APIFull processos mockado retorna lista de processos
 
 ---
 
@@ -1232,8 +1253,6 @@ git push -u origin main
 
 ### 10.1 — Inngest (grátis, jobs assíncronos)
 
-> **Nota sobre Datajud/CNJ:** A API do Datajud é **pública e gratuita**, sem necessidade de conta, chave ou cadastro. O wrapper `datajud.ts` já funciona sem vinculação. Nenhuma ação necessária aqui.
-
 **Custo:** Grátis até 25k events/mês. **Cartão:** Não.
 
 **📋 O que VOCÊ faz:**
@@ -1360,24 +1379,7 @@ git push -u origin main
 
 ---
 
-### 10.6 — Escavador (paga, processos judiciais)
-
-**Custo:** Pré-paga (créditos). **Cartão:** Sim.
-
-**📋 O que VOCÊ faz:**
-
-1. Criar conta em [escavador.com](https://www.escavador.com)
-2. Plano API → comprar créditos
-3. Painel → API Key → copiar → `ESCAVADOR_API_KEY`
-4. Adicionar na Vercel → redesplegar
-
-**🤖 Claude Code faz:** Testar chamada real. Verificar parsing.
-
-**✅ Validação:** Processos reais retornados para um CPF/nome.
-
----
-
-### 10.7 — Serper (semi-paga, buscas web)
+### 10.6 — Serper (semi-paga, buscas web)
 
 **Custo:** 2.500 queries/mês grátis, depois $50/mês (10k queries). **Cartão:** Não inicialmente.
 
@@ -1394,7 +1396,7 @@ git push -u origin main
 
 ---
 
-### 10.8 — OpenAI (paga, resumo IA)
+### 10.7 — OpenAI (paga, resumo IA)
 
 **Custo:** ~R$ 0,03/consulta. **Cartão:** Sim.
 
@@ -1411,7 +1413,7 @@ git push -u origin main
 
 ---
 
-### 10.9 — Sentry (grátis, monitoramento de erros)
+### 10.8 — Sentry (grátis, monitoramento de erros)
 
 **Custo:** Grátis até 5k errors/mês. **Cartão:** Não.
 
@@ -1586,7 +1588,6 @@ PRICE_CENTS=2990
 | `DATABASE_URL`      | Neon       | neon.tech                | ✅             | Não     |
 | `ASAAS_API_KEY`     | Asaas      | asaas.com                | Pay-per-use    | Sim     |
 | `APIFULL_API_KEY`   | APIFull    | apifull.com.br           | Pré-paga       | Sim     |
-| `ESCAVADOR_API_KEY` | Escavador  | escavador.com            | Pré-paga       | Sim     |
 | `SERPER_API_KEY`    | Serper     | serper.dev               | ✅ 2.5k/mês    | Não     |
 | `OPENAI_API_KEY`    | OpenAI     | platform.openai.com      | Pay-per-use    | Sim     |
 | `RESEND_API_KEY`    | Resend     | resend.com               | ✅ 3k/mês      | Não     |
@@ -1640,7 +1641,7 @@ npx tsx scripts/test-flow.ts           # Teste E2E completo
 | 26  | Reclame Aqui positivo (nota alta) exibido no Sol                           | 🟢 Medium   |
 | 27  | CNPJ Baixada/Suspensa → card com borda vermelha                            | 🟢 Medium   |
 | 28  | Botão "Relatar erro" em cada card → abre Tally                             | 🟢 Medium   |
-| 29  | Datajud retorna processos complementares ao Escavador                      | 🟢 Medium   |
+| 29  | APIFull processos retorna lista de processos judiciais                     | 🟢 Medium   |
 | 30  | Admin com dados reais                                                      | 🟢 Medium   |
 | 31  | Blocklist com associatedName bloqueia buscas Google                        | 🟢 Medium   |
 | 32  | Reembolso manual funciona                                                  | 🟢 Medium   |

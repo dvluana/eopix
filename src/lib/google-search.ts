@@ -5,19 +5,7 @@ import {
   MOCK_GOOGLE_CPF_SOL,
   MOCK_GOOGLE_CPF_CHUVA,
 } from './mocks/google-data'
-
-export interface GoogleSearchResult {
-  title: string
-  url: string
-  snippet: string
-  classification?: 'positive' | 'neutral' | 'negative'
-}
-
-export interface GoogleSearchResponse {
-  general: GoogleSearchResult[]
-  focused: GoogleSearchResult[]
-  reclameAqui: GoogleSearchResult[]
-}
+import type { GoogleSearchResult, GoogleSearchResponse } from '@/types/report'
 
 function isChuvaScenario(document: string): boolean {
   const lastDigit = parseInt(document.slice(-1))
@@ -55,6 +43,14 @@ async function executeSearch(query: string): Promise<GoogleSearchResult[]> {
   }))
 }
 
+/**
+ * Busca na web usando Serper API
+ *
+ * 3 queries para CPF e CNPJ:
+ * 1. byDocument: busca pelo CPF/CNPJ formatado
+ * 2. byName: busca pelo nome + termos negativos (golpe, fraude, processo, reclamacao)
+ * 3. reclameAqui: busca no Reclame Aqui (CPF e CNPJ - pessoa pode ter empresa)
+ */
 export async function searchWeb(
   name: string,
   document: string,
@@ -71,17 +67,25 @@ export async function searchWeb(
   }
 
   // === CHAMADA REAL (Serper API) ===
-  // Busca geral
-  const general = await executeSearch(`"${name}"`)
 
-  // Busca focada (termos negativos)
-  const focused = await executeSearch(`"${name}" golpe OR fraude OR processo`)
+  // Formatar documento para busca
+  const formattedDoc = type === 'CPF'
+    ? document.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+    : document.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
 
-  // Busca Reclame Aqui (apenas CNPJ)
-  let reclameAqui: GoogleSearchResult[] = []
-  if (type === 'CNPJ') {
-    reclameAqui = await executeSearch(`"${name}" site:reclameaqui.com.br`)
-  }
+  // Executar 3 buscas em paralelo
+  const [byDocument, byName, reclameAqui] = await Promise.all([
+    // Busca 1: Por documento formatado
+    executeSearch(`"${formattedDoc}"`),
 
-  return { general, focused, reclameAqui }
+    // Busca 2: Por nome + termos negativos
+    executeSearch(`"${name}" golpe OR fraude OR processo OR reclamacao`),
+
+    // Busca 3: Reclame Aqui (CPF e CNPJ - pessoa pode ter empresa)
+    executeSearch(`"${name}" site:reclameaqui.com.br`),
+  ])
+
+  console.log(`🔍 Serper: byDocument=${byDocument.length}, byName=${byName.length}, reclameAqui=${reclameAqui.length}`)
+
+  return { byDocument, byName, reclameAqui }
 }

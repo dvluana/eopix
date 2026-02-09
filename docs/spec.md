@@ -8,7 +8,7 @@ Data: Fevereiro 2026
 
 Status: Pronto para Desenvolvimento
 
-_Fluxo assíncrono (modelo Olho no Carro), APIs corrigidas (APIFull + Escavador), Asaas Checkout hospedado, autenticação por e-mail, área Minhas Consultas, layout adaptativo por clima com dados positivos e selo de verificação, fluxo Nova Consulta para usuários logados, proteção contra bots, compliance LGPD reforçado._
+_Fluxo assíncrono (modelo Olho no Carro), APIs consolidadas (APIFull para cadastral, processos e financeiro + Serper para web), Asaas Checkout hospedado, autenticação por e-mail, área Minhas Consultas, layout adaptativo por clima com dados positivos e selo de verificação, fluxo Nova Consulta para usuários logados, proteção contra bots, compliance LGPD reforçado._
 
 # 1\. VISÃO GERAL E PRODUTO
 
@@ -42,7 +42,7 @@ Fluxo assíncrono: o usuário paga e sai. O processamento roda em background. O 
 | ---                 | ---                                    | ---                                                                                                                                                                   |
 | 3\. Blocklist       | Sistema verifica Blocklist             | Se o CPF/CNPJ está bloqueado: exibe 'Dados indisponíveis por solicitação do titular.' Fluxo encerra.                                                                  |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
-| 4\. Health Check    | Sistema verifica APIs                  | Pinga APIFull + Escavador. Se DOWN: bloqueia compra, exibe manutenção + captura e-mail (LeadCapture).                                                                 |
+| 4\. Health Check    | Sistema verifica APIs                  | Pinga APIFull. Se DOWN: bloqueia compra, exibe manutenção + captura e-mail (LeadCapture).                                                                 |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
 | 5\. Teaser          | Tela de prévia                         | Estrutura do relatório borrada com dados placeholder. Legenda: 'Exemplo de dados que serão desbloqueados'. SEM dados reais. SEM nome real.                            |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
@@ -54,7 +54,7 @@ Fluxo assíncrono: o usuário paga e sai. O processamento roda em background. O 
 | ---                 | ---                                    | ---                                                                                                                                                                   |
 | 9\. Webhook         | Asaas confirma pagamento               | Endpoint /api/webhooks/asaas. Idempotente. Extrai buyerName/buyerCpfCnpj do payload. Atualiza Purchase para PROCESSING. Dispara job Inngest.                          |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
-| 10\. Processamento  | Backend busca dados (assíncrono)       | Job Inngest. CPF: APIFull primeiro (descobre nome) → paralelo. CNPJ: BrasilAPI primeiro (descobre nome grátis, fallback APIFull) → paralelo. GPT-4o-mini gera resumo. |
+| 10\. Processamento  | Backend busca dados (assíncrono)       | Job Inngest. CPF: 3 chamadas APIFull (cadastral + processos + financeiro) + Serper. CNPJ: 2 chamadas APIFull (dossiê + financeiro) + Serper. GPT-4o-mini gera resumo (2 chamadas: processos + menções/resumo). |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
 | 11\. Notificação    | E-mail de conclusão                    | Resend envia: 'Sua consulta sobre CPF \*\*\*XXX\*\*\* foi finalizada. Acesse aqui.' Aviso: verifique o spam.                                                          |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
@@ -136,7 +136,7 @@ O layout do relatório muda conforme o resultado. Nunca exibir cards vazios indi
 
 - **☀️ Cenário Sol - CNPJ (o que o usuário vê):** (1) Checklist com recorte temporal: "✅ Situação financeira: Nome limpo há X anos - 0 protestos, 0 dívidas ativas, 0 cheques devolvidos" / "✅ Processos judiciais: Nenhum encontrado nos tribunais consultados" / "✅ Menções na web: Nenhuma ocorrência negativa" (ou "3 menções encontradas, todas neutras ou positivas"). (2) Bloco de Cadastro Empresarial com dados reais: razão social, situação cadastral, data de abertura formatada como "Empresa ativa há X anos", CNAE principal e secundários, quadro societário, capital social. (3) Menções positivas na web (se houver): resumo em texto + links para as fontes. (4) Reclame Aqui positivo (se aplicável): nota da empresa, índice de resolução, selo RA1000. (5) Resumo IA: texto de 2-3 frases. Exemplo: "Empresa ativa há 8 anos, sem ocorrências financeiras ou judiciais. 2 menções positivas encontradas na web." (6) Selo de verificação: data da consulta, lista genérica de fontes ("Fontes consultadas: cartórios de protesto, tribunais de justiça, Receita Federal, Reclame Aqui, notícias e registros públicos"), validade de 7 dias. (7) Texto de fechamento: "Pelo que encontramos, o céu está limpo. Boa parceria!" Sem links "Consultar Receita Federal" / "Consultar Serasa" (não existem na spec, remover do Figma).
 - **☀️ Cenário Sol - CPF (o que o usuário vê):** (1) Checklist com recorte temporal: mesma lógica do CNPJ, sem bloco de cadastro empresarial. (2) Indicador de atividade comercial (se disponível): "X empresas consultaram este CPF recentemente". (3) Menções positivas na web (se houver). (4) Resumo IA elaborado. (5) Selo de verificação. (6) Texto de fechamento.
-- **Instrução técnica (para o dev):** O recorte temporal ("há X anos") é calculado a partir dos campos retornados pela APIFull. A quantidade de consultas recentes vem da APIFull. Os dados cadastrais vêm da BrasilAPI. Se a APIFull não retornar tempo de nome limpo, o checklist mostra apenas "Nome limpo - 0 protestos, 0 dívidas ativas" sem o recorte temporal.
+- **Instrução técnica (para o dev):** O recorte temporal ("há X anos") é calculado a partir dos campos retornados pela APIFull. A quantidade de consultas recentes vem da APIFull. Os dados cadastrais vêm da APIFull (`ic-dossie-juridico` para CNPJ). Se a APIFull não retornar tempo de nome limpo, o checklist mostra apenas "Nome limpo - 0 protestos, 0 dívidas ativas" sem o recorte temporal.
 - **🌧️ Cenário Chuva (tem ocorrências):** Checklist resumido no topo (o que está ok) + cards expandidos APENAS para categorias com dados. Texto de fechamento: "Encontramos alguns pontos de atenção. Avalie com cuidado."
 - **Regra absoluta:** Nunca mostrar card vazio individual. Cards expandidos de ocorrências negativas são exclusivos do Chuva. Dados positivos e cadastrais sempre aparecem (em qualquer cenário).
 
@@ -144,24 +144,24 @@ O layout do relatório muda conforme o resultado. Nunca exibir cards vazios indi
 
 Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty state e links externos para as fontes originais.
 
-| **Card**             | **CNPJ**                      | **CPF**                          | **Fonte**            |
-| -------------------- | ----------------------------- | -------------------------------- | -------------------- |
-| Cadastro Empresarial | ✅ Situação, sócios, abertura | ❌ Não aplicável                 | BrasilAPI (grátis)   |
-| ---                  | ---                           | ---                              | ---                  |
-| Situação Financeira  | ✅ Protestos, dívidas         | ✅ Nome sujo, protestos, dívidas | APIFull (paga)       |
-| ---                  | ---                           | ---                              | ---                  |
-| Processos Judiciais  | ✅ Lista detalhada            | ✅ Lista detalhada               | Escavador + Datajud  |
-| ---                  | ---                           | ---                              | ---                  |
-| Notícias e Web       | ✅ Resumo IA                  | ✅ Resumo IA                     | Serper |
-| ---                  | ---                           | ---                              | ---                  |
-| Reclame Aqui         | ✅ Resumo IA via Serper       | Busca sempre, oculta se vazio    | Serper |
-| ---                  | ---                           | ---                              | ---                  |
-| Resumo Geral (IA)    | ✅                            | ✅                               | GPT-4o-mini          |
-| ---                  | ---                           | ---                              | ---                  |
+| **Card**             | **CNPJ**                      | **CPF**                          | **Fonte**                       |
+| -------------------- | ----------------------------- | -------------------------------- | ------------------------------- |
+| Cadastro Empresarial | ✅ Situação, sócios, abertura | ❌ Não aplicável                 | APIFull (ic-dossie-juridico)    |
+| ---                  | ---                           | ---                              | ---                             |
+| Situação Financeira  | ✅ Protestos, dívidas         | ✅ Nome sujo, protestos, dívidas | APIFull (srs-premium)           |
+| ---                  | ---                           | ---                              | ---                             |
+| Processos Judiciais  | ✅ Lista detalhada            | ✅ Lista detalhada               | APIFull (CPF: r-acoes-e-processos-judiciais, CNPJ: ic-dossie-juridico) |
+| ---                  | ---                           | ---                              | ---                             |
+| Notícias e Web       | ✅ Resumo IA                  | ✅ Resumo IA                     | Serper                          |
+| ---                  | ---                           | ---                              | ---                             |
+| Reclame Aqui         | ✅ Resumo IA via Serper       | ✅ Busca sempre, oculta se vazio | Serper                          |
+| ---                  | ---                           | ---                              | ---                             |
+| Resumo Geral (IA)    | ✅                            | ✅                               | GPT-4o-mini (2 chamadas)        |
+| ---                  | ---                           | ---                              | ---                             |
 
 ### 2.5.1 Card: Cadastro Empresarial (CNPJ)
 
-**Fonte:** Fonte (instrução técnica): BrasilAPI (gratuita). Fallback: APIFull se BrasilAPI falhar.
+**Fonte:** APIFull via endpoint `ic-dossie-juridico` (retorna cadastral + processos em uma única chamada).
 
 - **Regra de exibição:** Este card é SEMPRE exibido para CNPJ, em qualquer cenário (Sol ou Chuva). No Sol, aparece como bloco informativo abaixo do checklist, com tom positivo ("Empresa ativa há X anos"). No Chuva, aparece como card normal (com borda vermelha se situação irregular).
 - Dados exibidos (o que o usuário vê): razão social, situação cadastral ("Ativa"), data de abertura formatada como "Ativa desde 2018" ou "Empresa ativa há 8 anos", CNAE principal e secundários, quadro societário completo, capital social.
@@ -180,7 +180,7 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 
 ### 2.5.3 Card: Processos Judiciais
 
-**Fontes:** Escavador (paga, detalhamento) + Datajud/CNJ (gratuita, complemento).
+**Fontes:** APIFull - CPF via `r-acoes-e-processos-judiciais`, CNPJ via `ic-dossie-juridico` (já inclui processos).
 
 - Dados: Tribunal, Data, Classe (ex: Execução de Título Extrajudicial), Polo (Autor/Réu).
 - **Separação visual:** Trabalhista (Empresa Ré) separado de Cível e outros.
@@ -253,21 +253,15 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 
 | **API**              | **Tipo**        | **Dados**                                                                                        |
 | -------------------- | --------------- | ------------------------------------------------------------------------------------------------ |
-| APIFull              | Paga (pré-paga) | Nome (descoberta), Protestos, Dívidas, Processos, Dados Cadastrais, Score (interno, não exibido) |
+| APIFull              | Paga (pré-paga) | CPF: `r-cpf-completo` (cadastral), `r-acoes-e-processos-judiciais` (processos), `srs-premium` (financeiro). CNPJ: `ic-dossie-juridico` (cadastral + processos), `srs-premium` (financeiro). Score buscado mas NÃO exibido. |
 | ---                  | ---             | ---                                                                                              |
-| Escavador            | Paga (pré-paga) | Detalhamento de processos, cruzamento de dados                                                   |
+| Serper               | Paga (2.500/mês grátis) | Buscas web: byDocument (CPF/CNPJ formatado), byName (nome + termos negativos), reclameAqui. 3 queries por consulta (CPF e CNPJ). |
 | ---                  | ---             | ---                                                                                              |
-| BrasilAPI            | Gratuita        | Dados de CNPJ (situação, sócios, etc.)                                                           |
-| ---                  | ---             | ---                                                                                              |
-| Datajud (CNJ)        | Gratuita        | Processos judiciais (complemento)                                                                |
-| ---                  | ---             | ---                                                                                              |
-| Serper               | Paga            | Notícias, Reclame Aqui, web geral. CPF: 2 queries. CNPJ: 3 queries.                              |
-| ---                  | ---             | ---                                                                                              |
-| GPT-4o-mini          | Paga            | Resumo factual + filtragem de homônimos (~R\$ 0,03/consulta)                                     |
+| GPT-4o-mini          | Paga            | 2 chamadas por consulta: (1) análise de processos, (2) menções + resumo final. ~R\$ 0,02/consulta |
 | ---                  | ---             | ---                                                                                              |
 | Asaas                | Taxa            | Checkout hospedado + Pix + Webhook + API de estorno + NFS-e                                      |
 | ---                  | ---             | ---                                                                                              |
-| Resend               | Free tier       | E-mail transacional: magic link + notificação de conclusão                                       |
+| Resend               | Free tier       | E-mail transacional: magic link (login de 6 dígitos) + notificação de conclusão. **NÃO usado para marketing.** |
 | ---                  | ---             | ---                                                                                              |
 
 **Serper:** 2.500 queries/mês grátis. Com ~50 consultas/dia (CPF: 2q + CNPJ: 3q, média ~2.5q) = ~75 queries/dia = ~2.250/mês, dentro do free tier. Após 2.500: $50/mês (10k queries). Incluir no custo operacional.
@@ -280,7 +274,7 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 
 Trava financeira que impede cobrar quando não é possível entregar o relatório.
 
-- **Frequência:** Backend pinga APIFull e Escavador a cada 60 segundos.
+- **Frequência:** Backend pinga APIFull a cada 60 segundos.
 - **Se UP:** Botão de compra habilitado.
 - **Se DOWN:** Botão desabilitado. Mensagem: "Estamos em manutenção. Tente novamente mais tarde." + campo de e-mail para notificação.
 
@@ -311,21 +305,32 @@ O Health Check é a primeira linha de defesa (pré-pagamento). Mas se uma API fa
 
 O job é disparado pelo webhook do Asaas após confirmação do Pix. O fluxo difere entre CPF e CNPJ.
 
-### 3.5.1 Fluxo CPF (sequencial → paralelo)
+### 3.5.1 Fluxo CPF (3 chamadas APIFull + Serper + 2 IAs)
 
-- **APIFull (série):** Primeira chamada obrigatória. Descobre o nome vinculado ao CPF + dados financeiros. O nome é necessário para as buscas seguintes.
-- **Paralelo (após ter o nome):** Escavador (processos) + Datajud/CNJ (processos) + Google Custom Search (2 queries usando o nome descoberto).
-- **GPT-4o-mini (série, após receber tudo):** Gera resumo factual + filtra homônimos por geolocalização.
-- **Salvar + Notificar:** Salva SearchResult. Atualiza Purchase.status para COMPLETED. Envia e-mail via Resend.
+**Chamadas por consulta CPF: 8 total** (3 APIFull + 3 Serper + 2 IA)
 
-### 3.5.2 Fluxo CNPJ (BrasilAPI primeiro, depois paralelo)
+1. **APIFull `r-cpf-completo` (obrigatório):** Dados cadastrais (nome, endereços, telefones, emails, empresas vinculadas). Descobre o nome para buscas seguintes.
+2. **Em paralelo após ter nome:**
+   - APIFull `r-acoes-e-processos-judiciais` (processos judiciais)
+   - APIFull `srs-premium` (financeiro: protestos, pendências, score interno)
+   - Serper (3 queries: byDocument, byName, reclameAqui)
+3. **IA 1 - Análise de Processos (se houver):** Classifica cada processo por relevância (alta/média/baixa/nenhuma).
+4. **IA 2 - Menções + Resumo:** Classifica menções web + gera resumo de 2-3 frases.
+5. **Salvar + Notificar:** Salva SearchResult. Atualiza Purchase.status para COMPLETED. Envia e-mail via Resend.
 
-- **BrasilAPI (série, rápida e grátis):** Descobre razão social. Se falhar, fallback para APIFull (que também retorna o nome).
-- **Paralelo (após ter o nome):** APIFull (financeiro) + Escavador (processos) + Datajud/CNJ (processos) + Google Custom Search (3 queries: geral + focada + Reclame Aqui).
-- **GPT-4o-mini (série, após receber tudo):** Gera resumo factual.
-- **Salvar + Notificar:** Mesmo fluxo do CPF.
+### 3.5.2 Fluxo CNPJ (2 chamadas APIFull + Serper + 2 IAs)
 
-**Diferença do CPF:** BrasilAPI é gratuita e rápida, então o nome vem quase instantâneo. Se cair, APIFull cobre. Tempo total similar ao CPF.
+**Chamadas por consulta CNPJ: 7 total** (2 APIFull + 3 Serper + 2 IA)
+
+1. **APIFull `ic-dossie-juridico` (obrigatório):** Retorna dados cadastrais E processos em uma única chamada. Descobre razão social para buscas seguintes.
+2. **Em paralelo após ter nome:**
+   - APIFull `srs-premium` (financeiro: protestos, pendências, score interno)
+   - Serper (3 queries: byDocument, byName, reclameAqui)
+3. **IA 1 - Análise de Processos:** Para CNPJ, processos já vêm categorizados no dossiê (opcional analisar com IA).
+4. **IA 2 - Menções + Resumo:** Mesmo fluxo do CPF.
+5. **Salvar + Notificar:** Mesmo fluxo do CPF.
+
+**Otimização:** CNPJ usa 1 chamada a menos pois `ic-dossie-juridico` retorna cadastral + processos juntos.
 
 ## 3.6 Webhook Asaas
 
@@ -525,7 +530,7 @@ createdAt DateTime @default(now())
 
 ## 6.2 LGPD e Direitos do Titular
 
-Como o E o Pix processa dados de terceiros (APIFull, Escavador, Google), atua como Controlador de Dados.
+Como o E o Pix processa dados de terceiros (APIFull, Serper), atua como Controlador de Dados.
 
 - **Formulário (Tally no MVP):** Pessoa pode solicitar exclusão de seus dados e informar erro de homônimo.
 - **Ação:** Admin adiciona CPF/CNPJ + nome associado à Blocklist. Próximas consultas são bloqueadas ANTES do pagamento.
@@ -666,11 +671,9 @@ Implementar com Plausible (cookieless, free tier, sem banner de cookie consent L
 
 | **Item**                                    | **Custo estimado**      |
 | ------------------------------------------- | ----------------------- |
-| APIFull                                     | Conforme plano pré-pago |
+| APIFull (CPF: 3 chamadas, CNPJ: 2 chamadas) | Conforme plano pré-pago |
 | ---                                         | ---                     |
-| Escavador                                   | Conforme plano pré-pago |
-| ---                                         | ---                     |
-| Serper (2-3 queries)                        | ~R\$ 0,02-0,04          |
+| Serper (3 queries)                          | ~R\$ 0,02-0,04          |
 | ---                                         | ---                     |
 | GPT-4o-mini                                 | ~R\$ 0,03               |
 | ---                                         | ---                     |
@@ -703,12 +706,9 @@ Implementar com Plausible (cookieless, free tier, sem banner de cookie consent L
 - Purchase criado como PENDING antes do redirect (grava asaasPaymentId).
 - Tela pós-pagamento (/compra/confirmacao?id={purchaseId}): e-mail destaque + corrigir e-mail + código compra + avisos.
 - Webhook /api/webhooks/asaas: validação assinatura + idempotência + extração buyerName/buyerCpfCnpj do payload.
-- Inngest: Job de processamento (fluxo CPF sequencial + fluxo CNPJ: BrasilAPI primeiro, fallback APIFull, depois paralelo).
-- Integração APIFull (nome + financeiro).
-- Integração Escavador (processos detalhados).
-- Integração Datajud/CNJ (processos gratuitos).
-- Integração BrasilAPI (CNPJ - razão social gratuita + fallback para APIFull).
-- Integração Google Custom Search (busca dupla + Reclame Aqui).
+- Inngest: Job de processamento (fluxo CPF: 3 APIFull + Serper, fluxo CNPJ: 2 APIFull + Serper).
+- Integração APIFull (CPF: cadastral + processos + financeiro; CNPJ: dossiê + financeiro).
+- Integração Serper (3 queries: byDocument + byName + reclameAqui).
 - Integração GPT-4o-mini (resumo + filtragem homônimos).
 - Health Check (ping 60s + bloqueio de botão + captura lead).
 - Lógica de falha: retry 1x em 5xx + reembolso automático + retry reembolso 3x + REFUND_FAILED.
