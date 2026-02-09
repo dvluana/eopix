@@ -68,6 +68,49 @@ export const processSearch = inngest.createFunction(
   async ({ event, step }) => {
     const { purchaseId, term, type, email } = event.data
 
+    // ========== CACHE: Verificar se ja existe SearchResult valido (24h) ==========
+    const existingResult = await step.run('check-cache', async () => {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+      return prisma.searchResult.findFirst({
+        where: {
+          term,
+          type,
+          createdAt: { gt: twentyFourHoursAgo },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+    })
+
+    // Se encontrou cache valido, reutiliza
+    if (existingResult) {
+      await step.run('use-cached-result', async () => {
+        await prisma.purchase.update({
+          where: { id: purchaseId },
+          data: {
+            status: 'COMPLETED',
+            searchResultId: existingResult.id,
+            processingStep: 0,
+          },
+        })
+      })
+
+      // Enviar email de notificacao com resultado cacheado
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eopix.com.br'
+      const maskedTerm = type === 'CPF'
+        ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
+        : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')
+
+      await step.run('send-email-cached', async () => {
+        await sendReportReady(
+          email,
+          maskedTerm,
+          `${appUrl}/relatorio/${existingResult.id}`
+        )
+      })
+
+      return { success: true, cached: true, searchResultId: existingResult.id }
+    }
+
     // Helper para atualizar step
     const updateStep = async (stepNum: number) => {
       await prisma.purchase.update({
@@ -255,7 +298,7 @@ export const processSearch = inngest.createFunction(
             name,
             data: jsonData,
             summary: summaryResult.summary,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
           },
         })
       })
@@ -366,20 +409,20 @@ export const cleanupMagicCodes = inngest.createFunction(
   }
 )
 
-// Cleanup pending purchases (every 15 minutes)
+// Cleanup pending purchases (every 15 minutes) - cancel after 30 min per spec
 export const cleanupPendingPurchases = inngest.createFunction(
   {
     id: 'cleanup-pending-purchases',
   },
   { cron: '*/15 * * * *' },
   async ({ step }) => {
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000)
 
     const result = await step.run('expire-old-pending', async () => {
       return prisma.purchase.updateMany({
         where: {
           status: 'PENDING',
-          createdAt: { lt: twentyFourHoursAgo },
+          createdAt: { lt: thirtyMinutesAgo },
         },
         data: {
           status: 'FAILED',
@@ -393,6 +436,7 @@ export const cleanupPendingPurchases = inngest.createFunction(
 )
 
 // Auto-refund failed purchases (every 30 minutes)
+// Spec: Retry 3x with exponential backoff. After 3 failures, mark as REFUND_FAILED and alert via Sentry
 export const autoRefundFailedPurchases = inngest.createFunction(
   {
     id: 'auto-refund-failed-purchases',
@@ -401,31 +445,60 @@ export const autoRefundFailedPurchases = inngest.createFunction(
   async ({ step }) => {
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
 
-    // Find purchases stuck in PROCESSING for more than 2 hours
+    // Find purchases stuck in PROCESSING for more than 2 hours OR previously failed refunds
     const stuckPurchases = await step.run('find-stuck-purchases', async () => {
       return prisma.purchase.findMany({
         where: {
-          status: 'PROCESSING',
-          updatedAt: { lt: twoHoursAgo },
-          asaasPaymentId: { not: null },
+          OR: [
+            // Stuck in PROCESSING for 2+ hours
+            {
+              status: 'PROCESSING',
+              updatedAt: { lt: twoHoursAgo },
+              asaasPaymentId: { not: null },
+            },
+            // FAILED status that needs refund (already paid but processing failed)
+            {
+              status: 'FAILED',
+              paidAt: { not: null },
+              asaasPaymentId: { not: null },
+              refundAttempts: { lt: 3 },
+            },
+          ],
         },
         select: {
           id: true,
           asaasPaymentId: true,
           code: true,
+          refundAttempts: true,
+          status: true,
         },
       })
     })
 
     if (stuckPurchases.length === 0) {
       console.log('No stuck purchases to refund')
-      return { refunded: 0 }
+      return { refunded: 0, failed: 0 }
     }
 
     let refundedCount = 0
+    let failedCount = 0
 
     for (const purchase of stuckPurchases) {
       if (!purchase.asaasPaymentId) continue
+
+      // Check if already exceeded max retries
+      if (purchase.refundAttempts >= 3) {
+        await step.run(`mark-refund-failed-${purchase.id}`, async () => {
+          await prisma.purchase.update({
+            where: { id: purchase.id },
+            data: { status: 'REFUND_FAILED' },
+          })
+          // TODO: Send Sentry alert for REFUND_FAILED
+          console.error(`[ALERT] Purchase ${purchase.code} marked as REFUND_FAILED after 3 attempts`)
+        })
+        failedCount++
+        continue
+      }
 
       const refundResult = await step.run(`refund-${purchase.id}`, async () => {
         try {
@@ -433,23 +506,44 @@ export const autoRefundFailedPurchases = inngest.createFunction(
           if (result.success) {
             await prisma.purchase.update({
               where: { id: purchase.id },
-              data: { status: 'REFUNDED' },
+              data: { status: 'REFUNDED', refundAttempts: purchase.refundAttempts + 1 },
             })
             console.log(`Refunded purchase ${purchase.code}`)
-            return true
+            return 'success'
           }
-          return false
+          // Increment attempt counter on failure
+          await prisma.purchase.update({
+            where: { id: purchase.id },
+            data: { refundAttempts: purchase.refundAttempts + 1 },
+          })
+          return 'failed'
         } catch (error) {
-          console.error(`Failed to refund purchase ${purchase.code}:`, error)
-          return false
+          console.error(`Failed to refund purchase ${purchase.code} (attempt ${purchase.refundAttempts + 1}/3):`, error)
+          // Increment attempt counter on error
+          await prisma.purchase.update({
+            where: { id: purchase.id },
+            data: { refundAttempts: purchase.refundAttempts + 1 },
+          })
+
+          // Check if this was the 3rd attempt
+          if (purchase.refundAttempts + 1 >= 3) {
+            await prisma.purchase.update({
+              where: { id: purchase.id },
+              data: { status: 'REFUND_FAILED' },
+            })
+            // TODO: Send Sentry alert for REFUND_FAILED
+            console.error(`[ALERT] Purchase ${purchase.code} marked as REFUND_FAILED after 3 attempts`)
+          }
+          return 'failed'
         }
       })
 
-      if (refundResult) refundedCount++
+      if (refundResult === 'success') refundedCount++
+      else failedCount++
     }
 
-    console.log(`Auto-refunded ${refundedCount} stuck purchases`)
-    return { refunded: refundedCount }
+    console.log(`Auto-refund: ${refundedCount} refunded, ${failedCount} failed`)
+    return { refunded: refundedCount, failed: failedCount }
   }
 )
 

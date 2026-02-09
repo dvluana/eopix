@@ -40,6 +40,7 @@ model Purchase {
   amount          Int       // Valor em centavos (2990)
   status          String    @default("PENDING") // PENDING | PAID | PROCESSING | COMPLETED | FAILED | REFUNDED | REFUND_FAILED
   processingStep  Int       @default(0) // 0=não iniciado, 1-6 = etapas do processamento
+  refundAttempts  Int       @default(0) // Contador de tentativas de reembolso (max 3)
   asaasPaymentId  String?   @unique
   buyerName       String?   // Nome do comprador (via webhook Asaas)
   buyerCpfCnpj    String?   // CPF/CNPJ do comprador (via webhook Asaas)
