@@ -3,11 +3,11 @@
 export default function Disclaimer() {
   return (
     <p
+      className="report-section--disclaimer"
       style={{
-        marginTop: '12px',
         fontFamily: 'var(--font-family-body)',
         fontSize: '11px',
-        color: '#888888',
+        color: 'var(--color-text-tertiary)',
         fontStyle: 'italic',
         lineHeight: 1.5,
       }}

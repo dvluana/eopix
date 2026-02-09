@@ -15,8 +15,8 @@ export default function PositiveMentionsBlock({ mentions }: PositiveMentionsBloc
 
   return (
     <div
+      className="report-section--secondary"
       style={{
-        marginTop: '24px',
         background: 'var(--color-status-success-bg)',
         border: '1px solid var(--color-status-success)',
         borderRadius: '6px',
@@ -27,7 +27,7 @@ export default function PositiveMentionsBlock({ mentions }: PositiveMentionsBloc
       <div
         style={{
           padding: '12px 20px',
-          borderBottom: '1px solid rgba(34, 197, 94, 0.2)',
+          borderBottom: '1px solid var(--color-checklist-divider)',
         }}
       >
         <h3
@@ -55,7 +55,7 @@ export default function PositiveMentionsBlock({ mentions }: PositiveMentionsBloc
             style={{
               paddingTop: index > 0 ? '12px' : 0,
               paddingBottom: '12px',
-              borderBottom: index < mentions.length - 1 ? '1px dashed rgba(34, 197, 94, 0.3)' : 'none',
+              borderBottom: index < mentions.length - 1 ? '1px dashed var(--color-checklist-divider-dashed)' : 'none',
             }}
           >
             <div

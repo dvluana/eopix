@@ -10,16 +10,16 @@ export default function ClimateBlock({ weatherStatus, message, occurrenceCount }
   const config = {
     sol: {
       icon: '☀️',
-      bg: 'rgba(102, 204, 102, 0.12)', // Verde suave - positivo
-      border: 'rgba(102, 204, 102, 0.4)', // Verde com mais opacidade
-      textColor: '#2D7A2D', // Verde escuro para contraste
+      bgVar: 'var(--color-climate-sol-bg)',
+      borderVar: 'var(--color-climate-sol-border)',
+      textVar: 'var(--color-climate-sol-text)',
       defaultMessage: 'Céu limpo. Nenhuma ocorrência encontrada.',
     },
     chuva: {
       icon: '🌧️',
-      bg: 'rgba(204, 51, 51, 0.08)', // Vermelho suave - alerta
-      border: 'rgba(204, 51, 51, 0.25)', // Vermelho com mais opacidade
-      textColor: '#993333', // Vermelho escuro para contraste
+      bgVar: 'var(--color-climate-chuva-bg)',
+      borderVar: 'var(--color-climate-chuva-border)',
+      textVar: 'var(--color-climate-chuva-text)',
       defaultMessage: 'Clima instável.',
     },
   };
@@ -34,10 +34,10 @@ export default function ClimateBlock({ weatherStatus, message, occurrenceCount }
 
   return (
     <div
+      className="report-section"
       style={{
-        marginTop: '32px',
-        background: cfg.bg,
-        border: `1px solid ${cfg.border}`,
+        background: cfg.bgVar,
+        border: `1px solid ${cfg.borderVar}`,
         borderRadius: '6px',
         padding: '24px',
         display: 'flex',
@@ -51,7 +51,7 @@ export default function ClimateBlock({ weatherStatus, message, occurrenceCount }
           fontFamily: 'var(--font-family-heading)',
           fontSize: '18px',
           fontWeight: 700,
-          color: cfg.textColor,
+          color: cfg.textVar,
         }}
       >
         {displayMessage}

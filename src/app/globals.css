@@ -113,6 +113,22 @@
     --color-bg-error-light: rgba(204, 51, 51, 0.1);
     --color-bg-success-light: rgba(102, 204, 102, 0.1);
 
+    /* Climate-specific colors */
+    --color-climate-sol-bg: rgba(102, 204, 102, 0.12);
+    --color-climate-sol-border: rgba(102, 204, 102, 0.4);
+    --color-climate-sol-text: #2D7A2D;
+    --color-climate-chuva-bg: rgba(204, 51, 51, 0.08);
+    --color-climate-chuva-border: rgba(204, 51, 51, 0.25);
+    --color-climate-chuva-text: #993333;
+
+    /* Checklist colors */
+    --color-checklist-success: #66CC66;
+    --color-checklist-divider: rgba(34, 197, 94, 0.2);
+    --color-checklist-divider-dashed: rgba(34, 197, 94, 0.3);
+
+    /* Shadows */
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.10);
+
     /* Transitions */
     --transition-fast: 0.15s ease;
     --transition-normal: 0.25s ease;

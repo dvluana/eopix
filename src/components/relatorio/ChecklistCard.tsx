@@ -19,7 +19,7 @@ function CheckmarkIcon() {
         width: '24px',
         height: '24px',
         borderRadius: '50%',
-        background: '#66CC66',
+        background: 'var(--color-checklist-success)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -52,14 +52,14 @@ function WarningIcon() {
         width: '24px',
         height: '24px',
         borderRadius: '50%',
-        background: '#FFD600',
+        background: 'var(--primitive-yellow)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
       }}
     >
-      <span style={{ fontSize: '14px', fontWeight: 700, color: '#1A1A1A' }}>!</span>
+      <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--primitive-black)' }}>!</span>
     </div>
   );
 }
@@ -68,19 +68,14 @@ export default function ChecklistCard({ items, variant }: ChecklistCardProps) {
   if (variant === 'chuva') {
     return (
       <div
-        style={{
-          marginTop: '32px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '16px',
-        }}
+        className="checklist-grid report-section"
       >
         {items.map((item, index) => (
           <div
             key={index}
             style={{
               background: 'var(--primitive-white)',
-              border: '1px solid #E8E7E3',
+              border: '1px solid var(--color-border-default)',
               borderRadius: '6px',
               padding: '16px',
               display: 'flex',
@@ -94,7 +89,7 @@ export default function ChecklistCard({ items, variant }: ChecklistCardProps) {
                 style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '14px',
-                  color: '#1A1A1A',
+                  color: 'var(--color-text-primary)',
                   fontWeight: 600,
                 }}
               >
@@ -105,7 +100,7 @@ export default function ChecklistCard({ items, variant }: ChecklistCardProps) {
                   style={{
                     fontFamily: 'var(--font-family-body)',
                     fontSize: '12px',
-                    color: '#666666',
+                    color: 'var(--color-text-secondary)',
                     marginTop: '4px',
                   }}
                 >
@@ -121,12 +116,12 @@ export default function ChecklistCard({ items, variant }: ChecklistCardProps) {
 
   return (
     <div
+      className="report-section"
       style={{
-        marginTop: '32px',
         background: 'var(--primitive-white)',
-        border: '1px solid #E8E7E3',
+        border: '1px solid var(--color-border-default)',
         borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
+        boxShadow: 'var(--shadow-card)',
         padding: '32px',
       }}
     >
@@ -139,7 +134,7 @@ export default function ChecklistCard({ items, variant }: ChecklistCardProps) {
             gap: '16px',
             paddingTop: '16px',
             paddingBottom: '16px',
-            borderBottom: index < items.length - 1 ? '1px dashed #E8E7E3' : 'none',
+            borderBottom: index < items.length - 1 ? '1px dashed var(--color-border-default)' : 'none',
           }}
         >
           {item.status === 'ok' ? <CheckmarkIcon /> : <WarningIcon />}
@@ -148,7 +143,7 @@ export default function ChecklistCard({ items, variant }: ChecklistCardProps) {
               style={{
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
-                color: '#1A1A1A',
+                color: 'var(--color-text-primary)',
               }}
             >
               <strong>{item.label}:</strong> {item.detail}
@@ -158,7 +153,7 @@ export default function ChecklistCard({ items, variant }: ChecklistCardProps) {
                 style={{
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '10px',
-                  color: '#888888',
+                  color: 'var(--color-text-tertiary)',
                   marginTop: '4px',
                 }}
               >

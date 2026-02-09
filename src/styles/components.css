@@ -432,6 +432,11 @@
   box-shadow: 0 8px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,214,0,0.3);
 }
 
+.search-bar--error {
+  border-color: var(--color-border-danger);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3), 0 0 0 1px var(--color-border-danger);
+}
+
 .search-bar__icon {
   flex-shrink: 0;
   margin-right: var(--primitive-space-4);
@@ -1550,4 +1555,38 @@
 
 .section-header--full-width .section-header__title {
   max-width: none;
+}
+
+/* ===== REPORT PAGE SECTIONS ===== */
+.report-section {
+  margin-top: var(--primitive-space-8);
+}
+
+.report-section--secondary {
+  margin-top: var(--primitive-space-6);
+}
+
+.report-section--small {
+  margin-top: var(--primitive-space-4);
+}
+
+.report-section--disclaimer {
+  margin-top: var(--primitive-space-3);
+}
+
+.report-section--footer {
+  margin-top: var(--primitive-space-9);
+}
+
+/* ===== CHECKLIST GRID ===== */
+.checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--primitive-space-4);
+}
+
+@media (max-width: 480px) {
+  .checklist-grid {
+    grid-template-columns: 1fr;
+  }
 }

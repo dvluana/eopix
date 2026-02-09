@@ -7,8 +7,8 @@ interface ReportErrorProps {
 export default function ReportError({ onRelatarErro }: ReportErrorProps) {
   return (
     <div
+      className="report-section--secondary"
       style={{
-        marginTop: '24px',
         textAlign: 'right',
       }}
     >
@@ -20,7 +20,7 @@ export default function ReportError({ onRelatarErro }: ReportErrorProps) {
           border: 'none',
           fontFamily: 'var(--font-family-body)',
           fontSize: '11px',
-          color: '#888888',
+          color: 'var(--color-text-tertiary)',
           textDecoration: 'underline',
           cursor: 'pointer',
           padding: 0,
