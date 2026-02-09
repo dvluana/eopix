@@ -122,45 +122,58 @@ export async function consultCpf(cpf: string): Promise<ApiFullCpfResponse> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapCpfResponse(raw: any): ApiFullCpfResponse {
-  // APIFull Cred Completa Plus (e-boavista) response structure
-  const data = raw.dados || raw
+  // APIFull e-boavista response structure: dados.data.saida
+  const saida = raw.dados?.data?.saida || raw.dados || raw
+
+  // Dados de identificação
+  const identificacao = saida.Identificacao || {}
 
   // Calcular total de consultas recentes (últimos 3 meses)
-  // historicoConsultasResumo.totaisHistoricoConsultas é um array com totais por mês
-  const historicoResumo = data.historicoConsultasResumo?.totaisHistoricoConsultas || []
-  const recentInquiries = historicoResumo.slice(0, 3).reduce((sum: number, val: number) => sum + val, 0)
+  const consultas = saida.Consultas || {}
+  const historicoMeses = consultas.historicoMeses || []
+  const mesCorrente = consultas.mesCorrente?.quantidade || 0
+  const recentInquiries = mesCorrente + historicoMeses.slice(0, 2).reduce((sum: number, m: { quantidade?: number }) => sum + (m.quantidade || 0), 0)
 
-  // Extract UF/region from address if available
-  const endereco = data.endereco || data.enderecos?.[0] || {}
-  const region = endereco.uf || endereco.estado || data.uf || data.estado || ''
+  // Extract UF/region from Localizacao
+  const localizacao = saida.Localizacao || {}
+  const region = localizacao.uf || localizacao.estado || identificacao.regiaoCpf?.split(',')[0]?.trim() || ''
 
-  // Mapear protestos - pode vir em diferentes formatos
-  const protestosRaw = data.protestos || data.cenprot?.protestos || []
-  const protests = protestosRaw.map((p: { data?: string; dataProtesto?: string; dataOcorrencia?: string; valor?: number; valorProtesto?: number; cartorio?: string; nomeCartorio?: string }) => ({
-    date: p.data || p.dataProtesto || p.dataOcorrencia || '',
-    amount: p.valor || p.valorProtesto || 0,
-    registry: p.cartorio || p.nomeCartorio || '',
-  }))
+  // Mapear débitos/protestos from RegistroDeDebitos
+  const registroDebitos = saida.RegistroDeDebitos || {}
+  const listaDebitos = registroDebitos.listaDebitos || []
 
-  // Mapear dívidas/pendências financeiras
-  const dividasRaw = data.pendenciasFinanceiras || data.dividas || data.pefin || []
-  const debts = dividasRaw.map((d: { tipo?: string; descricao?: string; natureza?: string; valor?: number; origem?: string; credor?: string; informante?: string }) => ({
-    type: d.tipo || d.descricao || d.natureza || '',
-    amount: d.valor || 0,
-    origin: d.origem || d.credor || d.informante || '',
-  }))
+  // Separar protestos e dívidas
+  const protests = listaDebitos
+    .filter((d: { tipo?: string; tipoOcorrencia?: string }) =>
+      (d.tipo || d.tipoOcorrencia || '').toLowerCase().includes('protesto')
+    )
+    .map((p: { data?: string; dataOcorrencia?: string; valor?: number; cartorio?: string; informante?: string }) => ({
+      date: p.data || p.dataOcorrencia || '',
+      amount: p.valor || 0,
+      registry: p.cartorio || p.informante || '',
+    }))
 
-  // Calcular totais de protestos
-  const totalProtests = data.totalProtestos || data.cenprot?.quantidadeProtestos || protests.length
-  const totalProtestsAmount = data.valorTotalProtestos || data.cenprot?.valorTotalProtestos || 0
+  const debts = listaDebitos
+    .filter((d: { tipo?: string; tipoOcorrencia?: string }) =>
+      !(d.tipo || d.tipoOcorrencia || '').toLowerCase().includes('protesto')
+    )
+    .map((d: { tipo?: string; tipoOcorrencia?: string; valor?: number; informante?: string; credor?: string }) => ({
+      type: d.tipo || d.tipoOcorrencia || '',
+      amount: d.valor || 0,
+      origin: d.informante || d.credor || '',
+    }))
+
+  // Calcular totais
+  const totalProtests = protests.length
+  const totalProtestsAmount = protests.reduce((sum: number, p: { amount: number }) => sum + p.amount, 0)
 
   return {
-    name: data.nome || data.name || '',
+    name: identificacao.nome || '',
     cleanNameYears: null, // API e-boavista não retorna este campo
     recentInquiries: recentInquiries,
     protests: protests,
     debts: debts,
-    bouncedChecks: data.chequesDevolvidos || data.chequesSemFundo || data.ccf?.quantidade || 0,
+    bouncedChecks: registroDebitos.totalCheques || 0,
     totalProtests: totalProtests,
     totalProtestsAmount: totalProtestsAmount,
     region: region,
@@ -202,72 +215,82 @@ export async function consultCpfCadastral(cpf: string): Promise<ApiFullCpfCadast
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapCpfCadastralResponse(raw: any, cpf: string): ApiFullCpfCadastralResponse {
-  const data = raw.dados || raw
+  // APIFull ic-cpf-completo response structure: dados.CREDCADASTRAL
+  const credCadastral = raw.dados?.CREDCADASTRAL || raw.dados || raw
 
-  // Mapear endereços
-  const enderecosRaw = data.enderecos || data.endereco ? [data.endereco] : []
-  const enderecos = (Array.isArray(enderecosRaw) ? enderecosRaw : [enderecosRaw])
+  // Identificação da pessoa física
+  const identificacao = credCadastral.IDENTIFICACAO_PESSOA_FISICA || {}
+
+  // Mapear endereços from SOMENTE_ENDERECO.DADOS[]
+  const enderecosData = credCadastral.SOMENTE_ENDERECO?.DADOS || []
+  const enderecos = (Array.isArray(enderecosData) ? enderecosData : [])
     .filter((e: unknown) => e !== null && e !== undefined)
-    .map((e: { logradouro?: string; endereco?: string; rua?: string; numero?: string; complemento?: string; bairro?: string; cidade?: string; municipio?: string; uf?: string; estado?: string; cep?: string }) => ({
-      logradouro: e.logradouro || e.endereco || e.rua || '',
-      numero: e.numero || '',
-      complemento: e.complemento || '',
-      bairro: e.bairro || '',
-      cidade: e.cidade || e.municipio || '',
-      uf: e.uf || e.estado || '',
-      cep: e.cep || '',
+    .map((e: { ENDERECO?: string; NUMERO?: string; COMPLEMENTO?: string; BAIRRO?: string; CIDADE?: string; UF?: string; CEP?: string }) => ({
+      logradouro: e.ENDERECO || '',
+      numero: e.NUMERO || '',
+      complemento: e.COMPLEMENTO || '',
+      bairro: e.BAIRRO || '',
+      cidade: e.CIDADE || '',
+      uf: e.UF || '',
+      cep: e.CEP || '',
     }))
 
-  // Mapear telefones
-  const telefonesRaw = data.telefones || data.telefone ? [data.telefone] : []
-  const telefones = (Array.isArray(telefonesRaw) ? telefonesRaw : [telefonesRaw])
+  // Mapear telefones from SOMENTE_TELEFONE.DADOS[]
+  const telefonesData = credCadastral.SOMENTE_TELEFONE?.DADOS || []
+  const telefones = (Array.isArray(telefonesData) ? telefonesData : [])
     .filter((t: unknown) => t !== null && t !== undefined)
-    .map((t: { ddd?: string; numero?: string; telefone?: string; tipo?: string; tipoTelefone?: string }) => ({
-      ddd: t.ddd || '',
-      numero: t.numero || t.telefone || '',
-      tipo: t.tipo || t.tipoTelefone || 'Fixo',
+    .map((t: { DDD?: string; NUM_TELEFONE?: string; TIPO_TELEFONE?: string }) => ({
+      ddd: t.DDD || '',
+      numero: t.NUM_TELEFONE || '',
+      tipo: t.TIPO_TELEFONE || 'Fixo',
     }))
 
-  // Mapear emails
-  const emailsRaw = data.emails || data.email ? [data.email] : []
-  const emails: string[] = (Array.isArray(emailsRaw) ? emailsRaw : [emailsRaw])
-    .filter((e: unknown) => e !== null && e !== undefined && e !== '')
-    .map((e: string | { email?: string }) => typeof e === 'string' ? e : e.email || '')
+  // Mapear emails from EMAILS.INFOEMAILS[]
+  const emailsData = credCadastral.EMAILS?.INFOEMAILS || []
+  const emails: string[] = (Array.isArray(emailsData) ? emailsData : [])
+    .filter((e: unknown) => e !== null && e !== undefined)
+    .map((e: { ENDERECO?: string }) => e.ENDERECO || '')
     .filter((e: string) => e !== '')
 
-  // Mapear empresas vinculadas (sociedades)
-  const empresasRaw = data.empresas || data.sociedades || data.participacoes || []
-  const empresasVinculadas = (Array.isArray(empresasRaw) ? empresasRaw : [])
-    .map((emp: { cnpj?: string; razaoSocial?: string; razao_social?: string; nome?: string; participacao?: string; qualificacao?: string; cargo?: string }) => ({
-      cnpj: emp.cnpj || '',
-      razaoSocial: emp.razaoSocial || emp.razao_social || emp.nome || '',
-      participacao: emp.participacao || emp.qualificacao || emp.cargo || 'Sócio',
+  // Mapear empresas vinculadas from PARTICIPACAO_EM_EMPRESAS.OCORRENCIAS[]
+  const empresasData = credCadastral.PARTICIPACAO_EM_EMPRESAS?.OCORRENCIAS || []
+  const empresasVinculadas = (Array.isArray(empresasData) ? empresasData : [])
+    .map((emp: { CNPJ?: string; RAZAO_SOCIAL?: string; PARTICIPANTE_TIPO?: string; PARTICIPANTE_CARGO?: string }) => ({
+      cnpj: emp.CNPJ || '',
+      razaoSocial: emp.RAZAO_SOCIAL || '',
+      participacao: emp.PARTICIPANTE_TIPO || emp.PARTICIPANTE_CARGO || 'Sócio',
     }))
 
-  // Calcular idade a partir da data de nascimento
+  // Parse data de nascimento (formato DD/MM/YYYY)
+  let dataNascimento: string | null = null
   let idade: number | null = null
-  const dataNascimento = data.dataNascimento || data.nascimento || data.data_nascimento || null
-  if (dataNascimento) {
-    const birthDate = new Date(dataNascimento)
-    if (!isNaN(birthDate.getTime())) {
-      const today = new Date()
-      idade = today.getFullYear() - birthDate.getFullYear()
-      const monthDiff = today.getMonth() - birthDate.getMonth()
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        idade--
+  const nascimentoRaw = identificacao.NASCIMENTO || null
+  if (nascimentoRaw) {
+    // Converter de DD/MM/YYYY para YYYY-MM-DD
+    const parts = nascimentoRaw.split('/')
+    if (parts.length === 3) {
+      dataNascimento = `${parts[2]}-${parts[1]}-${parts[0]}`
+      const birthDate = new Date(dataNascimento)
+      if (!isNaN(birthDate.getTime())) {
+        const today = new Date()
+        idade = today.getFullYear() - birthDate.getFullYear()
+        const monthDiff = today.getMonth() - birthDate.getMonth()
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          idade--
+        }
       }
     }
   }
 
   return {
-    nome: data.nome || data.name || '',
+    nome: identificacao.NOME || '',
     cpf: cpf,
     dataNascimento: dataNascimento,
     idade: idade,
-    nomeMae: data.nomeMae || data.mae || data.nome_mae || null,
-    sexo: data.sexo || data.genero || null,
-    signo: data.signo || null,
-    situacaoRF: data.situacaoRF || data.situacaoReceitaFederal || data.situacao_rf || null,
+    nomeMae: identificacao.MAE || null,
+    sexo: identificacao.SEXO || null,
+    signo: null, // API não retorna signo
+    situacaoRF: identificacao.CPF_SITUACAO || null,
     enderecos: enderecos,
     telefones: telefones,
     emails: emails,
