@@ -124,8 +124,10 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // Tenta disparar Inngest se configurado, senão apenas loga
+      // Tenta disparar Inngest, com fallback para processamento síncrono
       const hasInngestKey = !!process.env.INNGEST_EVENT_KEY
+      let inngestDispatched = false
+
       if (hasInngestKey) {
         try {
           await inngest.send({
@@ -138,14 +140,19 @@ export async function POST(request: NextRequest) {
               email: email.toLowerCase(),
             },
           })
-          console.log(`🧪 [TEST_MODE] Inngest job disparado para purchase: ${purchase.code}`)
+          console.log(`🧪 [TEST_MODE] Inngest job disparado: ${purchase.code}`)
+          inngestDispatched = true
         } catch {
-          console.log(`🧪 [TEST_MODE] Inngest não disponível, purchase criada: ${purchase.code}`)
-          console.log(`🧪 [TEST_MODE] Para processar manualmente, use: POST /api/process-search/${purchase.id}`)
+          console.log(`🧪 [TEST_MODE] Inngest indisponível, usando fallback síncrono`)
         }
-      } else {
-        console.log(`🧪 [TEST_MODE] Inngest não configurado, purchase criada: ${purchase.code}`)
-        console.log(`🧪 [TEST_MODE] Para processar, configure INNGEST_EVENT_KEY ou use processamento manual`)
+      }
+
+      // Fallback: processamento síncrono (fire-and-forget)
+      if (!inngestDispatched) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        fetch(`${appUrl}/api/process-search/${purchase.code}`, { method: 'POST' })
+          .then(() => console.log(`🧪 [TEST_MODE] Processamento síncrono concluído: ${purchase.code}`))
+          .catch(err => console.error(`🧪 [TEST_MODE] Fallback falhou:`, err))
       }
 
       // Retorna URL de confirmação direto (sem checkout Asaas)

@@ -20,7 +20,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { RefreshCw, Search, Undo2, ExternalLink, CheckCircle2 } from 'lucide-react'
+import { RefreshCw, Search, Undo2, ExternalLink, CheckCircle2, Play } from 'lucide-react'
 
 interface Purchase {
   id: string
@@ -95,6 +95,10 @@ export default function ComprasPage() {
   // Mark paid dialog
   const [markPaidPurchase, setMarkPaidPurchase] = React.useState<Purchase | null>(null)
   const [markPaidLoading, setMarkPaidLoading] = React.useState(false)
+
+  // Process dialog
+  const [processPurchase, setProcessPurchase] = React.useState<Purchase | null>(null)
+  const [processLoading, setProcessLoading] = React.useState(false)
 
   const fetchData = React.useCallback(async () => {
     try {
@@ -174,6 +178,31 @@ export default function ComprasPage() {
       alert('Erro ao marcar como pago')
     } finally {
       setMarkPaidLoading(false)
+    }
+  }
+
+  const handleProcess = async () => {
+    if (!processPurchase) return
+
+    try {
+      setProcessLoading(true)
+      const res = await fetch(`/api/admin/purchases/${processPurchase.id}/process`, {
+        method: 'POST',
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        alert(error.error || 'Erro ao processar')
+        return
+      }
+
+      setProcessPurchase(null)
+      fetchData()
+    } catch (err) {
+      console.error('Error processing:', err)
+      alert('Erro ao processar')
+    } finally {
+      setProcessLoading(false)
     }
   }
 
@@ -291,6 +320,16 @@ export default function ComprasPage() {
                               <CheckCircle2 size={16} />
                             </Button>
                           )}
+                          {purchase.status === 'PAID' && !purchase.hasReport && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setProcessPurchase(purchase)}
+                              title="Processar"
+                            >
+                              <Play size={16} />
+                            </Button>
+                          )}
                           {purchase.hasReport && (
                             <Button
                               variant="ghost"
@@ -382,6 +421,26 @@ export default function ComprasPage() {
             <Button variant="outline" onClick={() => setMarkPaidPurchase(null)}>Cancelar</Button>
             <Button onClick={handleMarkPaid} disabled={markPaidLoading}>
               {markPaidLoading ? 'Processando...' : 'Confirmar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Process Dialog */}
+      <Dialog open={!!processPurchase} onOpenChange={() => setProcessPurchase(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Processar Compra</DialogTitle>
+            <DialogDescription>
+              Iniciar processamento da compra {processPurchase?.code}?
+              <br />
+              Isso vai disparar a geracao do relatorio.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProcessPurchase(null)}>Cancelar</Button>
+            <Button onClick={handleProcess} disabled={processLoading}>
+              {processLoading ? 'Processando...' : 'Confirmar'}
             </Button>
           </DialogFooter>
         </DialogContent>
