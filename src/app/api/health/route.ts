@@ -94,7 +94,7 @@ export async function GET() {
           ? 'https://api.asaas.com'
           : 'https://sandbox.asaas.com/api'
 
-        const res = await fetch(`${baseUrl}/v3/myaccount`, {
+        const res = await fetch(`${baseUrl}/v3/myAccount`, {
           method: 'GET',
           headers: {
             access_token: process.env.ASAAS_API_KEY || '',
