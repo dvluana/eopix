@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="pt-br" dir="ltr" class="">
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+  <meta charset="utf-8">
+            <title>Erro 404 | Escavador</title>
+        <meta name="base-url-site" content="https://www.escavador.com">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+
+  <meta property="og:locale" content="pt_BR"/>
+<meta property="og:url" content="https://api.escavador.com/v1/busca"/>
+<meta property="og:site_name" content="Escavador"/>
+<meta property="og:type" content="website"/>
+    <meta property="og:title" content="Erro 404 | Escavador"/>
+<meta property='og:image' content='https://www.escavador.com/assets/images/escavadeira.jpg'/>
+<meta property="og:image:width" content="295">
+<meta property="og:image:height" content="295">
+<!-- Facebook instant article -->
+<meta property="fb:pages" content="942066845880479"/>
+
+  <meta name="facebook-domain-verification" content="as3nlqmmylv09dcllkmda5q5fxkxmm" />
+
+  <meta name="csrf-token" content="e42LQwjcd7FWD30kD8b6zLOrL57uFN1NhakklZ7o">
+  <!-- Facebook instant article -->
+  <meta property="fb:pages" content="942066845880479"/>
+
+  <meta name="application-name" content="Escavador"/>
+  <meta name="msapplication-square70x70logo" content="https://www.escavador.com/assets/images/win-tiles/small.jpg"/>
+  <meta name="msapplication-square150x150logo" content="https://www.escavador.com/assets/images/win-tiles/medium.jpg"/>
+  <meta name="msapplication-wide310x150logo" content="https://www.escavador.com/assets/images/win-tiles/wide.jpg"/>
+  <meta name="msapplication-square310x310logo" content="https://www.escavador.com/assets/images/win-tiles/large.jpg"/>
+  <meta name="msapplication-TileColor" content="#ffffff"/>
+
+  <!-- Chrome, FIrefox OS e Opera -->
+  <meta name="theme-color" content="#ffffff">
+  <!-- Windows phone -->
+  <meta name="msapplication-navbutton-color" content="#ffffff">
+  <!-- IOS e Safari -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="#ffffff">
+  <!-- Página like an app or likeaboss :) -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  
+    <link rel="icon" href="https://www.escavador.com/assets/escavador/user/img/favicon.png" />
+<link rel="icon" href="https://www.escavador.com/assets/escavador/user/img/favicon-16x16.png" sizes="16x16" />
+<link rel="icon" href="https://www.escavador.com/assets/escavador/user/img/favicon-32x32.png" sizes="32x32" />
+<link rel="icon" href="https://www.escavador.com/assets/escavador/user/img/favicon-64x64.png" sizes="64x64" />
+<link rel="icon" href="https://www.escavador.com/assets/escavador/user/img/favicon-128x128.png" sizes="128x128" />
+
+<link rel="apple-touch-icon" href="https://www.escavador.com/assets/escavador/user/img/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="57x57" href="https://www.escavador.com/assets/escavador/user/img/apple-touch-icon-57x57.png" />
+
+<link rel="apple-touch-icon" sizes="60x60" href="https://www.escavador.com/assets/escavador/user/img/apple-touch-icon-60x60.png" />
+
+<link rel="apple-touch-icon" sizes="72x72" href="https://www.escavador.com/assets/escavador/user/img/apple-touch-icon-72x72.png" />
+
+<link rel="apple-touch-icon" sizes="76x76" href="https://www.escavador.com/assets/escavador/user/img/apple-touch-icon-76x76.png" />
+
+<link rel="apple-touch-icon" sizes="114x114" href="https://www.escavador.com/assets/escavador/user/img/apple-touch-icon-114x114.png" />
+
+<link rel="apple-touch-icon" sizes="120x120" href="https://www.escavador.com/assets/escavador/user/img/apple-touch-icon-120x120.png" />
+
+<link rel="apple-touch-icon" sizes="144x144" href="https://www.escavador.com/assets/escavador/user/img/apple-touch-icon-144x144.png" />
+
+<link rel="apple-touch-icon" sizes="152x152" href="https://www.escavador.com/assets/escavador/user/img/apple-touch-icon-152x152.png" />  
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/assets/css/user/sm/app.css?id=c66c2951108cc885b5e5aa740a54f824">
+
+  <link rel="stylesheet" href="/assets/css/user/site-navbar.css?id=1fa766d9cbea37aba4493729747e1eda">
+
+      
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+    <script src="https://www.escavador.com/assets/js/css3-mediaqueries.js"></script>
+  <![endif]-->
+
+  <script src="/assets/js/popup-consentimento/app.js?id=add6176bec6c3c01b589b030bf701d2e"></script>
+
+          
+  <script async='async' src='https://www.googletagservices.com/tag/js/gpt.js'></script>
+    <script>
+        var googletag = googletag || {};
+        googletag.cmd = googletag.cmd || [];
+    </script>
+
+    <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init(
+    "phc_z3KmZIimN67HXuM5QNRFKbSN3qh5LRgKErRjtXui9uS",
+    {
+        api_host: "https:\/\/pg.potelo.com.br",
+        defaults:'2025-05-24',
+        autocapture: false,
+        capture_pageview: false,
+        capture_pageleave: false,
+        disable_session_recording: true,
+        capture_performance: false,
+        capture_exceptions: {
+            capture_unhandled_errors: false,
+            capture_unhandled_rejections: false,
+            capture_console_errors: false,
+        },
+        person_profiles: 'identified_only',
+        before_send: (event) => {
+            if (event?.event === '$exception' || event?.event === 'exception') {
+                return null;
+            }
+            return event;
+        },
+      })
+    </script>
+
+  
+
+</head>
+
+<body itemscope="itemscope" itemtype="http://schema.org/WebPage">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W9Z95KZ"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<div class="c-site-navbar__wrapper">
+    <div id="site-navbar" class="c-site-navbar">
+        <div class="c-site-navbar__container">
+            <div class="c-site-navbar__top-bar">
+                <button id="toggle-menu-button" class="c-site-navbar__button-navbar c-site-navbar__button-toggle"
+                    data-action="toggle-mobile-menu">
+                                            <span class="c-mobile-navbar__badge c-badge c-badge--intercept">1</span>
+                                        <svg class="c-site-navbar__icon-x" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" class="feather feather-x">
+                        <title>Fechar menu</title>
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    <svg class="c-site-navbar__icon-menu" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <title>Abrir menu</title>
+                        <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round"></path>
+                    </svg>
+                </button>
+                <div class="c-site-navbar__logo">
+                    <a href="/" class="c-site-navbar__logo-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 1286 260"><title>Logo do Escavador</title><defs/><path fill="#F5BD1D" d="M269.6 41.7c-5.8-8.8-15.9-13.1-26.2-11.4L184 40c-3.4-22.7-23.4-40-46.9-40-23.4 0-43.4998 17.3-46.8998 39.9l-59.4-9.7c-10.4-1.6-20.4 2.8-26.19998 11.5-5.8 8.7-5.9 19.6-.4 28.5 0 0 0 .1.1.1L114.8 246.7c4.8 7.7 13.2 12.4 22.3 12.4 9.1 0 17.5-4.6 22.3-12.4L270 70.3c5.6-8.9 5.4-19.9-.4-28.6zM137.1 238.6v2.8-2.8c-2.1 0-3.9-1-5-2.8L21.6002 59.4c-1.3-2.1-1.3-4.4.1-6.4 1.1-1.7 2.9-2.7 4.8-2.7.4 0 .7 0 1.1.1l64.3 10.5c6.4 23.5 26.0998 54.9 45.2998 54.9s38.9-31.4 45.3-54.9l64.3-10.5c2.3-.4 4.5.6 5.9 2.6 1.3 2 1.4 4.4.1 6.4L142.1 235.8c-1.1 1.8-2.9 2.8-5 2.8zm0-218.1c14.9 0 27 11.8 27 26.4 0 19.5-21.7 48.5-27 48.5-5.4 0-27-29-27-48.5 0-14.6 12.1-26.4 27-26.4z"/><path fill="#424242" d="M517.5 142.4c0 34.3 26.2 56.7 58 56.7 12.9 0 24.7-3.3 29.8-5.8v-26.1c-5.3 2.6-15.1 6.5-25.8 6.5-18.3 0-34-10.7-34-30.9 0-20.6 16.4-31.1 34.9-31.1 10.2 0 19.4 2.9 25.1 6.5V91.9999c-4-2-15.5-6-30.1-6-31 0-57.9 21.7001-57.9 56.4001zM367.8 85.6999c-28.7 0-53.3 22.5001-53.3 55.8001 0 34 24 57.6 62 57.6 18 0 30.2-5.6 34.4-8v-24.2c-5.1 2.9-19.1 8.9-34.3 8.9-18 0-32-8.9-35.2-24h76.7c.2-2.5.5-8.2.5-11.6-.1-33.3-22.9-54.5001-50.8-54.5001zM341.4 133.3c1.4-16 11.8-24.5 25.8-24.5 13.3 0 24.2 7.8 25.6 24.5h-51.4zm130.5-4c-10-2.9-18.4-5.3-18.4-11.6 0-6.5 7.8-9.8 18-9.8 13.8 0 24.9 5.3 31.6 8.9V91.6999c-4.9-2.2-16.7-6-31.6-6-28.9 0-44.5 14-44.5 32.4001 0 20.6 16.4 26.9 31.8 31.3 12.7 3.7 24.7 6.2 24.7 15.5 0 7.6-7.6 10.7-19.4 10.7-15.8 0-30.7-8-35.6-10.7v26c5.8 2.9 20.5 8 36.4 8 26.2 0 44.7-13.3 44.7-35.6.1-24-21.2-29.6-37.7-34zm804.2-43.6001c-15.1 0-26.7 12.7-30.9 21.6001V87.9999h-26.7V197h27.6v-50.7c0-18.9 11.8-33.2 30.2-33.2 2.9 0 6.2.2 9.6.6V86.5999c-2.5-.4-5.8-.9-9.8-.9zm-227.9-45.3V102.7c-2.9-5.6001-13.2-16.9001-32.2-16.9001-28.7 0-51.3 24.2001-51.3 56.4001 0 32.7 22.5 56.9 51.3 56.9 18.3 0 26.9-9.3 32.2-17.4v15.1h27.6V40.3999h-27.6zM1020.8 174.9c-14.7 0-28.2-12.9-28.2-32.7 0-20.5 13.8-32 28.2-32 16.7 0 28.9 12.7 28.9 31.8.1 19.8-12.4 32.9-28.9 32.9zm126.3-89.2001c-30.1 0-57.4 24.2001-57.4 56.7001s27.3 56.7 57.4 56.7c30.1 0 57.4-24.2 57.4-56.7s-27.3-56.7001-57.4-56.7001zm0 87.4001c-15.8 0-29.3-12-29.3-30.7s13.6-30.7 29.3-30.7c15.8 0 29.3 12 29.3 30.7s-13.4 30.7-29.3 30.7zm-450.7-70.5c-2.9-5.6001-13.2-16.9001-32.2-16.9001-28.5 0-51.3 24.2001-51.3 56.4001 0 32.7 22.6 56.9 51.3 56.9 18.4 0 27.1-9.3 32.2-17.4v15.1h27.8V87.9999h-27.8V102.6zm-27.1 72.3c-14.7 0-28.2-12.9-28.2-32.7 0-20.5 13.8-32 28.2-32 16.7 0 28.9 12.7 28.9 31.8.1 19.8-12.4 32.9-28.9 32.9zM923 102.6c-2.9-5.6001-13.2-16.9001-32.2-16.9001-28.5 0-51.3 24.2001-51.3 56.4001 0 32.7 22.6 56.9 51.3 56.9 18.4 0 27.1-9.3 32.2-17.4v15.1h27.8V87.9999H923V102.6zm-27.1 72.3c-14.7 0-28.2-12.9-28.2-32.7 0-20.5 13.8-32 28.2-32 16.7 0 28.9 12.7 28.9 31.8 0 19.8-12.5 32.9-28.9 32.9zm-85.8-86.9001L786.9 168.9l-23.1-80.9001h-30.2L772.1 196.9h29.6l38.6-108.9001h-30.2z"/></svg>
+                    </a>
+                </div>
+                                    <form id="search-box-form" method="get"
+                        action="https://www.escavador.com/busca"
+                        class="c-site-navbar__search">
+                        <div class="c-site-navbar__search-field">
+
+                            <button type="button" class="c-site-navbar__options-button"
+                                data-action="open-opcoes-busca-menu" data-action-type="click" data-open="false">
+                                <div class="c-site-navbar__inner-button">
+                                    <span id="opcoes-busca-menu-opcao">
+                                                                                    Tudo
+                                                                            </span>
+                                    <svg width="24" height="24" viewBox="0 0 20 20" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M5.29301 7.29289C5.68354 6.90237 6.3167 6.90237 6.70723 7.29289L10.0001 10.5858L13.293 7.29289C13.6835 6.90237 14.3167 6.90237 14.7072 7.29289C15.0977 7.68342 15.0977 8.31658 14.7072 8.70711L10.7072 12.7071C10.3167 13.0976 9.68353 13.0976 9.29301 12.7071L5.29301 8.70711C4.90249 8.31658 4.90249 7.68342 5.29301 7.29289Z"
+                                            fill="currentColor"></path>
+                                    </svg>
+                                </div>
+                            </button>
+                            <input id="search-box-category" type="hidden" name="qo"
+                                value="t">
+                            <input id="search-box-input" name="q" class="c-site-navbar__input"
+                                placeholder="Pesquise por pessoas, empresas, processos..."
+                                value="" autocapitalize="off"
+                                autocomplete="off" autocorrect="off" data-action="focus-search-box"
+                                data-action-type="focus" />
+                            <button type="submit" class=" c-site-navbar__search-button"
+                                data-action="submit-search-box">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="search-box-history" class="c-site-navbar__history">
+                            <ul id="search-box-history-list" style="list-style:none; margin: 0;">
+
+                            </ul>
+                        </div>
+                    </form>
+                                <div class="c-site-navbar__right-menu">
+
+                                            <button id="open-lista-solucoes-menu" type="button" class="c-solucoes-menu__button"
+                            data-action="open-lista-solucoes-menu" data-action-type="click" data-open="false" data-status-usuario="deslogado">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                viewBox="0 0 20 20" fill="none">
+                                <path
+                                    d="M3.125 5C3.125 3.96447 3.96447 3.125 5 3.125H6.875C7.91053 3.125 8.75 3.96447 8.75 5V6.875C8.75 7.91053 7.91053 8.75 6.875 8.75H5C3.96447 8.75 3.125 7.91053 3.125 6.875V5Z"
+                                    stroke="black" stroke-width="1.25" stroke-linecap="round"
+                                    stroke-linejoin="round"></path>
+                                <path
+                                    d="M3.125 13.125C3.125 12.0895 3.96447 11.25 5 11.25H6.875C7.91053 11.25 8.75 12.0895 8.75 13.125V15C8.75 16.0355 7.91053 16.875 6.875 16.875H5C3.96447 16.875 3.125 16.0355 3.125 15V13.125Z"
+                                    stroke="black" stroke-width="1.25" stroke-linecap="round"
+                                    stroke-linejoin="round"></path>
+                                <path
+                                    d="M11.25 5C11.25 3.96447 12.0895 3.125 13.125 3.125H15C16.0355 3.125 16.875 3.96447 16.875 5V6.875C16.875 7.91053 16.0355 8.75 15 8.75H13.125C12.0895 8.75 11.25 7.91053 11.25 6.875V5Z"
+                                    stroke="black" stroke-width="1.25" stroke-linecap="round"
+                                    stroke-linejoin="round"></path>
+                                <path
+                                    d="M11.25 13.125C11.25 12.0895 12.0895 11.25 13.125 11.25H15C16.0355 11.25 16.875 12.0895 16.875 13.125V15C16.875 16.0355 16.0355 16.875 15 16.875H13.125C12.0895 16.875 11.25 16.0355 11.25 15V13.125Z"
+                                    stroke="black" stroke-width="1.25" stroke-linecap="round"
+                                    stroke-linejoin="round"></path>
+                            </svg>
+                            Soluções
+                        </button>
+                                                                <button id="open-search-box" class="c-site-navbar__button-navbar c-site-navbar__button-search"
+                            data-action="open-search-box" data-action-type="click" data-open="false">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round"></path>
+                            </svg>
+                        </button>
+                        <button id="close-search-box" style="display: none"
+                            class="c-site-navbar__button-navbar c-site-navbar__button-search"
+                            data-action="close-search-box" data-action-type="click" data-open="false">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </button>
+                    
+                                            <div class="c-site-navbar__access-buttons">
+                            <a href="https://www.escavador.com/login"
+                                class="c-site-navbar__button c-site-navbar__white"
+                                data-action="track-clicou-elemento-cabecalho"
+                                data-nome-elemento="entrar"
+                                data-tipo-elemento="botao"
+                                data-status-usuario="deslogado">
+                                Entrar
+                            </a>
+                            <a href="https://www.escavador.com/cadastrar"
+                                class="c-site-navbar__button c-site-navbar__yellow"
+                                data-action="track-clicou-elemento-cabecalho"
+                                data-nome-elemento="cadastrar"
+                                data-tipo-elemento="botao"
+                                data-status-usuario="deslogado">
+                                Cadastrar
+                            </a>
+                        </div>
+                                    </div>
+            </div>
+                            <nav>
+                    <ul class="c-site-navbar__tab-menu">
+                                                    <li>
+                                <a class="c-site-navbar__tab-item"
+                                    href="https://www.escavador.com/solucoes/consulta-de-processos" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Consulta de
+                                    processos</a>
+                            </li>
+                            <li>
+                                <a class="c-site-navbar__tab-item"
+                                    href="https://monitoramentos.escavador.com/sobre" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Monitorar Processos</a>
+                            </li>
+                            <li>
+                                <a class="c-site-navbar__tab-item" href="https://www.escavador.com/solucoes/autos-do-processo" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Autos
+                                    do processo</a>
+                            </li>
+                            <li>
+                                <a class="c-site-navbar__tab-item "
+                                    href="https://www.escavador.com/diarios" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Diários Oficiais</a>
+                            </li>
+                            <li>
+                                <a class="c-site-navbar__tab-item" href="https://api.escavador.com" data-action="track-clicou-link-navbar" data-localizacao="toplevel">API</a>
+                            </li>
+                            <li>
+                                <button class="c-site-navbar__tab-item" data-action="open-solucoes-outros-menu"
+                                    data-action-type="click" data-open="false">
+                                    <span>
+                                        Outros
+                                    </span>
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M5.29301 7.29289C5.68354 6.90237 6.3167 6.90237 6.70723 7.29289L10.0001 10.5858L13.293 7.29289C13.6835 6.90237 14.3167 6.90237 14.7072 7.29289C15.0977 7.68342 15.0977 8.31658 14.7072 8.70711L10.7072 12.7071C10.3167 13.0976 9.68353 13.0976 9.29301 12.7071L5.29301 8.70711C4.90249 8.31658 4.90249 7.68342 5.29301 7.29289Z"
+                                            fill="currentColor"></path>
+                                    </svg></button>
+                            </li>
+                            <li>
+                                <a class="c-site-navbar__tab-item" href="https://blog.escavador.com" data-action="track-clicou-link-navbar"
+                                    data-localizacao="toplevel">
+                                    Blog
+                                </a>
+                            </li>
+                            <li>
+                                <a class="c-site-navbar__tab-item"
+                                    href="https://www.escavador.com/precos?intervaloPagamento=6" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Preços</a>
+                            </li>
+                                            </ul>
+                </nav>
+                    </div>
+    </div>
+</div>
+
+<div id="solucoes-outros-menu" class="c-popover-menu">
+    <div class="c-site-navbar__submenu">
+        <a href="https://www.escavador.com/solucoes/relatorios-juridicos" class="c-site-navbar__submenu-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_outros">
+            Relatórios jurídicos
+        </a>
+        <a href="https://www.escavador.com/jurisprudencia"  class="c-site-navbar__submenu-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_outros">
+            Jurisprudências
+        </a>
+        <a href="https://www.escavador.com/legislacao"  class="c-site-navbar__submenu-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_outros">
+            Legislações
+        </a>
+    </div>
+</div>
+
+<div id="opcoes-busca-menu" class="c-popover-menu">
+    <div class="c-site-navbar__submenu">
+        <button class="c-site-navbar__submenu-item" data-search-category="t" data-action="select-opcoes-busca-menu"
+            data-action-type="click">
+            Tudo
+        </button>
+        <button class="c-site-navbar__submenu-item" data-search-category="en" data-action="select-opcoes-busca-menu"
+            data-action-type="click">
+            Partes em Processos
+        </button>
+        <button class="c-site-navbar__submenu-item" data-search-category="c" data-action="select-opcoes-busca-menu"
+            data-action-type="click">
+            Currículos
+        </button>
+        <button class="c-site-navbar__submenu-item" data-search-category="d" data-action="select-opcoes-busca-menu"
+            data-action-type="click">
+            Diários Oficiais
+        </button>
+        <button class="c-site-navbar__submenu-item" data-search-category="jr" data-action="select-opcoes-busca-menu"
+            data-action-type="click">
+            Jurisprudências
+        </button>
+        <button class="c-site-navbar__submenu-item" data-search-category="leis"
+            data-action="select-opcoes-busca-menu" data-action-type="click">
+            Legislações
+        </button>
+    </div>
+</div>
+
+<div id="pesquisar-menu" class="c-popover-menu">
+    <div class="c-site-navbar__submenu">
+        <a href="https://www.escavador.com/solucoes/relatorios-juridicos" class="c-site-navbar__submenu-item"
+            data-action="track-clicou-link-navbar" data-localizacao="dropdown_mais_recursos">
+            Relatórios Jurídicos
+        </a>
+        <a href="https://www.escavador.com/diarios" class="c-site-navbar__submenu-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_mais_recursos">
+            Diários Oficiais
+        </a>
+        <a href="https://www.escavador.com/jurisprudencia" class="c-site-navbar__submenu-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_mais_recursos">
+            Jurisprudência
+        </a>
+        <a href="https://www.escavador.com/legislacao" class="c-site-navbar__submenu-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_mais_recursos">
+            Legislação
+        </a>
+    </div>
+</div>
+
+<div id="empresas-menu" class="c-popover-menu">
+    <div class="c-site-navbar__submenu">
+        <a href="https://api.escavador.com" class="c-site-navbar__submenu-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_para_empresas">
+            API de Dados Jurídicos
+        </a>
+        <a href="https://www.escavador.com/business" class="c-site-navbar__submenu-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_para_empresas">
+            Escavador Business
+        </a>
+        <a href="https://www.escavador.com/solucoes/relatorios-juridicos" class="c-site-navbar__submenu-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_para_empresas">
+            Relatórios Jurídicos
+        </a>
+    </div>
+</div>
+
+<div id="site-navbar-overlay" class="c-site-navbar__overlay" data-action="close-navbar-overlay"></div>
+
+<script id="search-box-history-item" type="text/x-handlebars-template">
+  {{#each searchBoxHistory}}
+  <li class="busca-historico-item">
+    <a href="{{ form.link }}" data-search-value="{{ form.search.value }}" class="c-site-navbar__history-item" onclick="Escavador.hideSearchBoxHistory();Escavador.searchBoxInput.value=this.dataset.searchValue">
+        <div class="c-site-navbar__history-content">
+            <div class="c-svg-symbol" style="height:13px;width:13px;">
+              <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" width="24px" height="24px"><path d="M 12 2 C 6.4889971 2 2 6.4889971 2 12 C 2 17.511003 6.4889971 22 12 22 C 17.511003 22 22 17.511003 22 12 C 22 6.4889971 17.511003 2 12 2 z M 12 4 C 16.430123 4 20 7.5698774 20 12 C 20 16.430123 16.430123 20 12 20 C 7.5698774 20 4 16.430123 4 12 C 4 7.5698774 7.5698774 4 12 4 z M 11 6 L 11 12.414062 L 15.292969 16.707031 L 16.707031 15.292969 L 13 11.585938 L 13 6 L 11 6 z"/></svg>
+            </div>
+            <div class="c-site-navbar__history-tag">
+                Em:
+                {{ form.filter.label }}
+            </div>
+            <span class="c-search-box_filtersHistoryValue c-search-box_filtersHistoryTitle">
+              {{ form.search.typed }}<strong>{{ form.search.hint }}</strong>
+            </span>
+        </div>
+        <span
+          class="c-search-history__btn"
+          data-search-history-id="{{ createdAt }}"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </span>
+    </a>
+  </li>
+  {{/each}}
+</script>
+
+<div id="lista-solucoes-menu" class="c-popover-menu">
+    <div class="c-popover-menu__inner">
+        <div class="c-solucoes-menu-box" data-prevent-remove="true">
+            <div class="c-solucoes-menu-cards">
+                                    <a href="https://monitoramentos.escavador.com/sobre" class="c-solucoes-menu-card"
+                        data-action="track-clicou-elemento-cabecalho"
+                        data-nome-elemento="Monitoramentos"
+                        data-tipo-elemento="link_menu_solucoes"
+                        data-status-usuario="deslogado">
+                        <div class="c-solucoes-menu-card__title">Monitoramentos</div>
+                        <p>
+                            Acompanhe processos, visualize os andamentos e receba notificações
+                            sobre atualizações.
+                        </p>
+                    </a>
+                                <div class="c-solucoes-menu__separador"></div>
+                <a href="https://escavai.escavador.com/" class="c-solucoes-menu-card"
+                   data-action="track-clicou-elemento-cabecalho"
+                   data-nome-elemento="escavai"
+                   data-tipo-elemento="link_menu_solucoes"
+                   data-status-usuario="deslogado">
+                    <div class="c-solucoes-menu-card__logo">
+                        <svg viewBox="0 0 153 56" fill="none" xmlns="http://www.w3.org/2000/svg"
+                            class="c-solucoes-menu-card__svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M67.7694 36.3401V33.3289C68.3358 33.6379 70.0607 34.5645 71.8884 34.5645C73.253 34.5645 74.128 34.2043 74.128 33.3289C74.128 32.3547 72.9992 32.0282 71.7022 31.6531C71.5599 31.6119 71.4155 31.5701 71.2703 31.5268C69.4938 31.0121 67.5888 30.2912 67.5888 27.8971C67.5888 25.7604 69.3909 24.1385 72.7378 24.1385C74.4627 24.1385 75.8268 24.576 76.3933 24.8333V27.7421C75.6211 27.3303 74.3337 26.7122 72.7378 26.7122C71.5538 26.7122 70.6527 27.0985 70.6527 27.845C70.6527 28.5678 71.5697 28.832 72.6794 29.1518L72.7895 29.1835L72.8378 29.1966C74.736 29.7093 77.1659 30.3656 77.1659 33.1479C77.1659 35.722 75.0291 37.2667 71.9913 37.2667C70.1379 37.2667 68.4387 36.6747 67.7694 36.3401ZM53.9141 30.6009C53.9141 26.7394 56.7718 24.1396 60.0926 24.1396C63.4134 24.1396 65.9621 26.5853 65.9881 30.4468C65.9881 30.8331 65.9625 31.5024 65.9365 31.7853H57.0548C57.415 33.5357 59.037 34.5657 61.1221 34.5657C62.8726 34.5657 64.4946 33.8708 65.0866 33.5362V36.3421C64.5974 36.6251 63.1816 37.2688 61.0965 37.2688C56.6945 37.2683 53.9141 34.5396 53.9141 30.6009ZM62.9759 29.6487C62.8214 27.7181 61.5601 26.8171 60.0153 26.8171C58.3933 26.8171 57.1837 27.7954 57.0292 29.6487H62.9759ZM85.1892 24.1647C81.5849 24.1647 78.4698 26.6872 78.4698 30.7032C78.4698 34.6675 81.5077 37.2677 85.1892 37.2677C86.6823 37.2677 88.0469 36.8815 88.6389 36.5985V33.5608C88.0213 33.8698 86.8884 34.3073 85.6527 34.3073C83.5416 34.3073 81.7138 33.1233 81.7138 30.7292C81.7138 28.3352 83.6188 27.1251 85.7556 27.1251C86.9397 27.1251 87.9952 27.4597 88.6645 27.8716V24.8595C88.2014 24.6282 86.8624 24.1647 85.1892 24.1647ZM90.1071 30.6776C90.1071 26.9451 92.7586 24.1391 96.0539 24.1391C98.2679 24.1391 99.4519 25.452 99.7866 26.0957V24.3965H103.005V37.0104H99.7866V35.26C99.1945 36.1867 98.1906 37.2678 96.0539 37.2678C92.733 37.2678 90.1071 34.4619 90.1071 30.6776ZM99.9928 30.652C99.9928 28.4381 98.5769 26.9707 96.6459 26.9707C94.9727 26.9707 93.3763 28.3092 93.3763 30.6776C93.3763 33.0461 94.9466 34.4619 96.6459 34.4619C98.5509 34.4619 99.9928 32.9432 99.9928 30.652ZM107.977 24.3965H104.476H104.476L108.929 37.0105H112.353L116.833 24.3965H113.332L110.654 33.7671L107.977 24.3965Z"
+                                fill="#3D3D3D"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M120.02 33.0968H127.459L128.824 37.0099H132.299L125.452 18.7324H122.027L115.18 37.0099H118.655L120.02 33.0968ZM123.727 22.3877L126.353 29.9562H121.101L123.727 22.3877ZM137.192 18.7324H133.948V37.0099H137.192V18.7324Z"
+                                fill="url(#paint0_linear_386_99)"></path>
+                            <path
+                                d="M46.8862 25.9434C46.7087 25.7475 46.3705 25.714 45.6942 25.647C39.0545 24.9895 33.7679 19.6042 33.327 12.9072C33.1889 15.7323 32.4095 18.3892 31.1308 20.7353C31.1084 20.7764 31.086 20.8176 31.0631 20.8587C32.7258 23.8562 35.2073 26.3376 38.2049 28.0002C38.246 28.0231 38.2872 28.0455 38.3283 28.0679C40.6745 29.3465 43.3315 30.1259 46.1567 30.264C46.3421 30.273 46.4348 30.2775 46.523 30.2584C46.7663 30.2058 46.976 30.006 47.0404 29.7656C47.0637 29.6784 47.0637 29.5785 47.0637 29.3786V27.0859C47.0637 26.4549 47.0637 26.1394 46.8862 25.9434Z"
+                                fill="#3D3D3D"></path>
+                            <path
+                                d="M30.9955 35.2651C31.0179 35.224 31.0403 35.1828 31.0631 35.1417C29.4004 32.1442 26.9194 29.6633 23.9218 28.0002C23.7577 27.9092 23.5922 27.8205 23.4253 27.7346C23.3417 27.6916 23.2576 27.6491 23.1734 27.6071C22.7099 27.3776 22.2353 27.1668 21.7503 26.9762C21.6746 26.9466 21.5984 26.9174 21.5222 26.8882L21.5217 26.888C20.9324 26.6653 20.3294 26.4724 19.7132 26.3111C18.5095 25.9952 17.2569 25.7995 15.9695 25.7364C15.7842 25.7274 15.6915 25.7229 15.6033 25.742C15.36 25.7946 15.1502 25.9944 15.0858 26.2348C15.0625 26.3219 15.0625 26.4219 15.0625 26.6218V28.9145C15.0625 29.5455 15.0625 29.861 15.24 30.057C15.4175 30.2529 15.7557 30.2864 16.432 30.3534C23.0721 31.0108 28.3583 36.3962 28.7993 43.0932C28.9373 40.2681 29.7168 37.6112 30.9955 35.2651Z"
+                                fill="#3D3D3D"></path>
+                            <path
+                                d="M46.156 30.2638C39.4591 30.7047 34.0732 35.9907 33.4156 42.6306C33.3487 43.3068 33.3152 43.645 33.1192 43.8225C32.9232 44 32.6077 44 31.9767 44H29.6839C29.484 44 29.3841 44 29.2969 43.9767C29.0565 43.9123 28.8567 43.7026 28.8041 43.4593C28.785 43.3711 28.7895 43.2784 28.7985 43.093C28.9366 40.2679 29.716 37.611 30.9947 35.2649C31.0171 35.2238 31.0395 35.1826 31.0624 35.1415C32.7251 32.144 35.2065 29.6626 38.2041 28C38.2453 28.0229 38.2864 28.0453 38.3276 28.0677C40.6737 29.3463 43.3307 30.1257 46.156 30.2638Z"
+                                fill="url(#paint1_linear_386_99)"></path>
+                            <path
+                                d="M32.4408 12C32.6407 12 32.7407 12 32.8278 12.0233C33.0683 12.0877 33.268 12.2974 33.3207 12.5407C33.3397 12.6289 33.3352 12.7216 33.3262 12.907C33.1881 15.7321 32.4087 18.389 31.13 20.7351C31.1076 20.7762 31.0852 20.8174 31.0624 20.8585C29.3997 23.856 26.9187 26.3369 23.9211 28C23.7569 27.909 23.5914 27.8203 23.4246 27.7344C23.3409 27.691 23.2568 27.6489 23.1727 27.6069C22.7091 27.3774 22.2346 27.1666 21.7495 26.976C21.6737 26.9463 21.5978 26.9166 21.521 26.8878C20.9317 26.6651 20.3287 26.4722 19.7124 26.3109C18.5087 25.995 17.2561 25.7993 15.9688 25.7362C22.6661 25.2953 28.0516 20.0093 28.7091 13.3694C28.7761 12.6932 28.8095 12.355 29.0055 12.1775C29.2015 12 29.517 12 30.148 12H32.4408Z"
+                                fill="url(#paint2_linear_386_99)"></path>
+                            <defs>
+                                <linearGradient id="paint0_linear_386_99" x1="115.18" y1="27.8712" x2="137.192"
+                                    y2="27.8712" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#4F489F"></stop>
+                                    <stop offset="1" stop-color="#8B96F6"></stop>
+                                </linearGradient>
+                                <linearGradient id="paint1_linear_386_99" x1="15.9687" y1="28" x2="46.156"
+                                    y2="28" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#4F489F"></stop>
+                                    <stop offset="1" stop-color="#8B96F6"></stop>
+                                </linearGradient>
+                                <linearGradient id="paint2_linear_386_99" x1="15.9687" y1="28" x2="46.156"
+                                    y2="28" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#4F489F"></stop>
+                                    <stop offset="1" stop-color="#8B96F6"></stop>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <p>
+                        Solicite o resumo inteligente do seu processo e faça perguntas sobre
+                        o andamento da ação ou qualquer tema jurídico.
+                    </p>
+                </a>
+
+                <div class="c-solucoes-menu__separador"></div>
+                <a href="https://api.escavador.com/" class="c-solucoes-menu-card"
+                   data-action="track-clicou-elemento-cabecalho"
+                   data-nome-elemento="API"
+                   data-tipo-elemento="link_menu_solucoes"
+                   data-status-usuario="deslogado">
+                    <div class="c-solucoes-menu-card__title">API</div>
+                    <p>
+                        Integre dados jurídicos estruturados diretamente ao seu sistema.
+                    </p>
+                </a>
+                <a href="https://www.escavador.com/business" class="c-solucoes-menu-card"
+                   data-action="track-clicou-elemento-cabecalho"
+                   data-nome-elemento="Business"
+                   data-tipo-elemento="link_menu_solucoes"
+                   data-status-usuario="deslogado">
+                    <div class="c-solucoes-menu-card__title">Business</div>
+                    <p>
+                        Simplifique o complexo, fortaleça sua tomada de decisão e garanta a segurança da sua empresa com inteligência jurídica, em uma plataforma pronta para uso.
+                    </p>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div id="mobile-navbar" class=" c-site-navbar__side-menu">
+            <div style="border-top: 0">
+            <a class="c-site-navbar__side-menu-nav-item"
+                href="https://www.escavador.com/login">Entrar</a>
+            <a class="c-site-navbar__side-menu-nav-item" href="https://www.escavador.com/cadastrar">
+                <div class="c-site-navbar__side-menu-with-description">
+                    Cadastre-se
+                    <div class="c-site-navbar__help c-site-navbar__help-orange">
+                        Tenha acesso a funcionalidades exclusivas
+                    </div>
+                </div>
+            </a>
+        </div>
+                    <div style="border-top: 0">
+                <a class="c-site-navbar__side-menu-nav-item"
+                    href="https://www.escavador.com/precos?intervaloPagamento=6">Torne-se um
+                    assinante</a>
+            </div>
+                <div class="c-site-navbar__side-menu-divisor"></div>
+        <nav class="c-site-navbar__side-menu-nav">
+                                            <a class="c-site-navbar__side-menu-nav-item" href="https://www.escavador.com/solucoes/consulta-de-processos" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Consulta
+                    de
+                    processos</a>
+                <a class="c-site-navbar__side-menu-nav-item"
+                    href="https://monitoramentos.escavador.com/sobre" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Monitorar Processos</a>
+                <a class="c-site-navbar__side-menu-nav-item" href="https://www.escavador.com/solucoes/autos-do-processo" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Autos do
+                    processo</a>
+                <a class="c-site-navbar__side-menu-nav-item v--active-link" href="https://www.escavador.com/diarios" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Diários
+                    Oficiais</a>
+                <a class="c-site-navbar__side-menu-nav-item" href="https://api.escavador.com" data-action="track-clicou-link-navbar" data-localizacao="toplevel">API</a>
+                <button id="outros-menu-mobile-toggle"
+                    class="c-site-navbar__side-menu-nav-item c-site-navbar__side-menu-nav-item--toggle"
+                    data-action="open-solucoes-outros-menu-mobile" data-action-type="click" data-open="false">
+                    <span>
+                        Outros
+                    </span>
+
+                    <svg class="c-site-navbar__icon-chevron-up" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 15L12 8L19 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round"></path>
+                    </svg>
+                </button>
+                                <div id="outros-menu-mobile" class="c-site-navbar__side-menu-submenu">
+            <a href="https://www.escavador.com/solucoes/relatorios-juridicos" class="c-site-navbar__side-menu-nav-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_outros" >
+                Relatórios jurídicos
+            </a>
+            <a href="https://www.escavador.com/jurisprudencia" class="c-site-navbar__side-menu-nav-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_outros">
+                Jurisprudências
+            </a>
+            <a href="https://www.escavador.com/legislacao" class="c-site-navbar__side-menu-nav-item" data-action="track-clicou-link-navbar" data-localizacao="dropdown_outros">
+                Legislações
+            </a>
+        </div>
+                            <a class="c-site-navbar__side-menu-nav-item" href="https://blog.escavador.com" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Blog</a>
+            <a class="c-site-navbar__side-menu-nav-item" href="https://www.escavador.com/precos?intervaloPagamento=6" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Preços</a>
+            <a class="c-site-navbar__side-menu-nav-item" href="https://www.escavador.com/business" data-action="track-clicou-link-navbar" data-localizacao="toplevel">Business</a>
+                    <div class="c-site-navbar__side-menu-divisor"></div>
+            <div>
+                <a class="c-site-navbar__side-menu-nav-item" href="http://onelink.to/8rmmbq">Instalar aplicativo</a>
+            </div>
+            <div class="c-site-navbar__side-menu-divisor"></div>
+                <a class="c-site-navbar__side-menu-nav-item" href="https://ajuda.escavador.com">Ajuda</a>
+            </nav>
+</div>
+
+<main role="main" id="escavador-app" class="main ">
+      <div class="errorPage container">
+        <div class="arrowSearch"></div><!-- /.arrowSearch -->
+        <h1>404</h1>
+        <div class="bgError">
+            <img src="https://www.escavador.com/assets/images/errors/404min.png" alt="">
+        </div><!-- /.bgError -->
+        <p class="errorTitle">Página não encontrada</p>
+        <p class="errorDesc">A página que você solicitou não está disponível. Clique <a href="https://www.escavador.com" title="Página inicial do Escavador" class="link -color">aqui</a> para voltar a página inicial.</p>
+    </div>
+
+  <!-- Modal mensagem para o usuario -->
+  
+
+  <!-- Modal de excluir itens -->
+  <div class="modal -small" data-modal="deletar-itens" id="mdl-eletar-itens">
+  <div class="body">
+    <span class="close-modal" data-action="close-modal"></span>
+    <div class="dialog-box">
+      <button class="close" data-action="close-modal">×</button>
+      <div class="container -flush">
+        <section class="dialog">
+          <header class="header">
+            <p class="heading -likeH3 title">Confirma a exclusão?</p>
+            <p class="heading -likeH4 legend">
+                          </p>
+          </header>
+          <div class="content">
+                      </div>
+          <footer class="footer">
+  <button class="btn delete-item">
+    Excluir
+  </button>
+  <button class="btn -clear" data-action="close-modal">
+    Cancelar
+  </button>
+</footer>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+  <script id="modal-hadlebars" type="text/x-handlebars-template">
+  <div class="modal {{classes-modal}}" data-modal="{{data-modal}}" id="{{id-modal}}">
+    <div class="body">
+      <div class="dialog-box">
+        <button class="close" data-action="close-modal">×</button>
+        <div class="container -flush">
+          <section class="dialog">
+            <header class="header">
+              <h3 class="title">{{title-modal}}</h3>
+              <h5 class="legend">
+                {{{legend-modal}}}
+              </h5>
+            </header>
+            <div class="content">
+              {{{content-modal}}}
+            </div>
+            <footer class="footer">
+              {{{footer-modal}}}
+            </footer>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+  <div ref="loading" class="LoadingBar is-hidden"></div>
+  <!-- Se o usuário ta logado e não tem monitoramento -->
+    <popup-consentimento />
+</main>
+
+<footer class="c-footer">
+    <div class="c-container c-container--flex">
+      <div style="margin-top:32px;margin-bottom:32px;">
+        <div class="c-footer_container">
+          <nav class="c-footer_menu">
+            <a href="https://www.escavador.com/precos?intervaloPagamento=6" class="c-footer_menuItem">
+              Preços
+            </a>
+                          <a href="https://suporte.escavador.com" class="c-footer_menuItem">
+                Ajuda
+              </a>
+                        <a href="https://blog.escavador.com" class="c-footer_menuItem">
+              Blog
+            </a>
+            <a href="https://www.escavador.com/api/painel" class="c-footer_menuItem">
+              API
+            </a>
+            <a href="https://www.escavador.com/quem-somos" class="c-footer_menuItem">
+              Quem somos
+            </a>
+            <a href="https://www.escavador.com/fale-conosco" class="c-footer_menuItem">
+              Contato
+            </a>
+            <a href="https://www.escavador.com/termos-de-uso" class="c-footer_menuItem">
+              Termos
+            </a>
+            <a
+              href="https://www.escavador.com/politica-de-privacidade"
+              class="c-footer_menuItem"
+            >
+              Privacidade
+            </a>
+          </nav>
+          <div class="c-footer_social">
+            <div>
+              <a
+                class="c-footer_store"
+                href="https://itunes.apple.com/br/app/escavador-monitoramentos/id1206044185"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <img
+                  class="c-footer_storePicture c-footer_menuItem"
+                  src="https://www.escavador.com/images/applestore.svg"
+                  alt="App no iTunes"
+                >
+              </a>
+              <a
+                class="c-footer_store"
+                href="https://play.google.com/store/apps/details?id=com.escavador.escavador"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <img
+                  class="c-footer_storePicture c-footer_menuItem"
+                  src="https://www.escavador.com/images/googleplay.svg"
+                  alt="App no Android"
+                >
+              </a>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:48px;" class="c-footer_bottom">
+          <div style="margin-top:8px">
+            <div class="c-footer_logo-container">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 1286 260"><title>Logo do Escavador</title><defs/><path fill="#F5BD1D" d="M269.6 41.7c-5.8-8.8-15.9-13.1-26.2-11.4L184 40c-3.4-22.7-23.4-40-46.9-40-23.4 0-43.4998 17.3-46.8998 39.9l-59.4-9.7c-10.4-1.6-20.4 2.8-26.19998 11.5-5.8 8.7-5.9 19.6-.4 28.5 0 0 0 .1.1.1L114.8 246.7c4.8 7.7 13.2 12.4 22.3 12.4 9.1 0 17.5-4.6 22.3-12.4L270 70.3c5.6-8.9 5.4-19.9-.4-28.6zM137.1 238.6v2.8-2.8c-2.1 0-3.9-1-5-2.8L21.6002 59.4c-1.3-2.1-1.3-4.4.1-6.4 1.1-1.7 2.9-2.7 4.8-2.7.4 0 .7 0 1.1.1l64.3 10.5c6.4 23.5 26.0998 54.9 45.2998 54.9s38.9-31.4 45.3-54.9l64.3-10.5c2.3-.4 4.5.6 5.9 2.6 1.3 2 1.4 4.4.1 6.4L142.1 235.8c-1.1 1.8-2.9 2.8-5 2.8zm0-218.1c14.9 0 27 11.8 27 26.4 0 19.5-21.7 48.5-27 48.5-5.4 0-27-29-27-48.5 0-14.6 12.1-26.4 27-26.4z"/><path fill="#424242" d="M517.5 142.4c0 34.3 26.2 56.7 58 56.7 12.9 0 24.7-3.3 29.8-5.8v-26.1c-5.3 2.6-15.1 6.5-25.8 6.5-18.3 0-34-10.7-34-30.9 0-20.6 16.4-31.1 34.9-31.1 10.2 0 19.4 2.9 25.1 6.5V91.9999c-4-2-15.5-6-30.1-6-31 0-57.9 21.7001-57.9 56.4001zM367.8 85.6999c-28.7 0-53.3 22.5001-53.3 55.8001 0 34 24 57.6 62 57.6 18 0 30.2-5.6 34.4-8v-24.2c-5.1 2.9-19.1 8.9-34.3 8.9-18 0-32-8.9-35.2-24h76.7c.2-2.5.5-8.2.5-11.6-.1-33.3-22.9-54.5001-50.8-54.5001zM341.4 133.3c1.4-16 11.8-24.5 25.8-24.5 13.3 0 24.2 7.8 25.6 24.5h-51.4zm130.5-4c-10-2.9-18.4-5.3-18.4-11.6 0-6.5 7.8-9.8 18-9.8 13.8 0 24.9 5.3 31.6 8.9V91.6999c-4.9-2.2-16.7-6-31.6-6-28.9 0-44.5 14-44.5 32.4001 0 20.6 16.4 26.9 31.8 31.3 12.7 3.7 24.7 6.2 24.7 15.5 0 7.6-7.6 10.7-19.4 10.7-15.8 0-30.7-8-35.6-10.7v26c5.8 2.9 20.5 8 36.4 8 26.2 0 44.7-13.3 44.7-35.6.1-24-21.2-29.6-37.7-34zm804.2-43.6001c-15.1 0-26.7 12.7-30.9 21.6001V87.9999h-26.7V197h27.6v-50.7c0-18.9 11.8-33.2 30.2-33.2 2.9 0 6.2.2 9.6.6V86.5999c-2.5-.4-5.8-.9-9.8-.9zm-227.9-45.3V102.7c-2.9-5.6001-13.2-16.9001-32.2-16.9001-28.7 0-51.3 24.2001-51.3 56.4001 0 32.7 22.5 56.9 51.3 56.9 18.3 0 26.9-9.3 32.2-17.4v15.1h27.6V40.3999h-27.6zM1020.8 174.9c-14.7 0-28.2-12.9-28.2-32.7 0-20.5 13.8-32 28.2-32 16.7 0 28.9 12.7 28.9 31.8.1 19.8-12.4 32.9-28.9 32.9zm126.3-89.2001c-30.1 0-57.4 24.2001-57.4 56.7001s27.3 56.7 57.4 56.7c30.1 0 57.4-24.2 57.4-56.7s-27.3-56.7001-57.4-56.7001zm0 87.4001c-15.8 0-29.3-12-29.3-30.7s13.6-30.7 29.3-30.7c15.8 0 29.3 12 29.3 30.7s-13.4 30.7-29.3 30.7zm-450.7-70.5c-2.9-5.6001-13.2-16.9001-32.2-16.9001-28.5 0-51.3 24.2001-51.3 56.4001 0 32.7 22.6 56.9 51.3 56.9 18.4 0 27.1-9.3 32.2-17.4v15.1h27.8V87.9999h-27.8V102.6zm-27.1 72.3c-14.7 0-28.2-12.9-28.2-32.7 0-20.5 13.8-32 28.2-32 16.7 0 28.9 12.7 28.9 31.8.1 19.8-12.4 32.9-28.9 32.9zM923 102.6c-2.9-5.6001-13.2-16.9001-32.2-16.9001-28.5 0-51.3 24.2001-51.3 56.4001 0 32.7 22.6 56.9 51.3 56.9 18.4 0 27.1-9.3 32.2-17.4v15.1h27.8V87.9999H923V102.6zm-27.1 72.3c-14.7 0-28.2-12.9-28.2-32.7 0-20.5 13.8-32 28.2-32 16.7 0 28.9 12.7 28.9 31.8 0 19.8-12.5 32.9-28.9 32.9zm-85.8-86.9001L786.9 168.9l-23.1-80.9001h-30.2L772.1 196.9h29.6l38.6-108.9001h-30.2z"/></svg>
+            </div>
+          </div>
+          <div>
+            <span
+              class="c-footer_copyrights"
+            >
+              © Copyright 2026. Todos os direitos reservados.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<!--
+<div id="mobile-menu" class="c-mobile-menu">
+  <div class="c-container c-container--flex c-mobile-menu__container">
+    <ul class="c-mobile-menu__list">
+            <li>
+        <a class="c-mobile-menu__item" href="https://www.escavador.com/login">
+          Entrar
+        </a>
+      </li>
+      <li>
+        <a class="c-mobile-menu__item c-mobile-menu__item--notifications" href="https://www.escavador.com/cadastrar">
+          <div>Cadastre-se</div>
+          <span>Tenha acesso a funcionalidades exclusivas</span>
+        </a>
+      </li>
+              <li>
+          <a class="c-mobile-menu__item c-mobile-menu__item--notifications" href="https://www.escavador.com/cadastrar">
+            <div>Torne-se um assinante</div>
+          </a>
+        </li>
+                  <li class="c-mobile-menu__item--divisor"></li>
+      <li>
+        <div class="c-toggle-box">
+          <div class="c-toggle-box__trigger c-mobile-menu__item" data-action="expand-content">
+            <p>Soluções</p>
+            <div class="c-mobile-menu__toggle c-toggle-box__trigger-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-up">
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+            </div>
+          </div>
+          <ul class="c-toggle-box__content c-mobile-menu__sub-menu">
+            <li class="c-mobile-menu__sub-item">
+              <a href="https://www.escavador.com/solucoes/consulta-de-processos">Consulta de processos</a>
+            </li>
+            <li class="c-mobile-menu__sub-item">
+              <a href="https://www.escavador.com/solucoes/autos-do-processo">Autos do processo</a>
+            </li>
+            <li class="c-mobile-menu__sub-item">
+              <a href="https://monitoramentos.escavador.com/sobre">Monitoramento de Diários Oficiais</a>
+            </li>
+            <li class="c-mobile-menu__sub-item">
+              <a href="https://www.escavador.com/solucoes/relatorios-juridicos">Relatórios jurídicos</a>
+            </li>
+            <li class="c-mobile-menu__sub-item">
+              <a href="https://api.escavador.com">Integração (API)</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+      <li>
+        <div class="c-toggle-box">
+          <div class="c-toggle-box__trigger c-mobile-menu__item" data-action="expand-content">
+            <p>Explore</p>
+            <div class="c-mobile-menu__toggle c-toggle-box__trigger-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-up">
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+            </div>
+          </div>
+          <ul class="c-toggle-box__content c-mobile-menu__sub-menu">
+            <li class="c-mobile-menu__sub-item">
+              <a href="https://www.escavador.com/diarios">Diários Oficiais</a>
+            </li>
+            <li class="c-mobile-menu__sub-item">
+              <a href="https://www.escavador.com/jurisprudencia">Jurisprudências</a>
+            </li>
+            <li class="c-mobile-menu__sub-item">
+              <a href="https://www.escavador.com/legislacao">Legislações</a>
+            </li>
+            <li class="c-mobile-menu__sub-item">
+              <a href="https://blog.escavador.com">Blog</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+      <li>
+        <a class="c-mobile-menu__item" href="https://www.escavador.com/precos">Preços</a>
+      </li>
+      <li>
+        <a class="c-mobile-menu__item" href="https://www.escavador.com/business">Business</a>
+      </li>
+      <li class="c-mobile-menu__item--divisor"></li>
+      <li>
+        <a class="c-mobile-menu__item" href="http://onelink.to/8rmmbq" rel="noreferrer" target="_blank">
+          Instalar aplicativo
+        </a>
+      </li>
+
+      <li class="c-mobile-menu__item--divisor"></li>
+      <li>
+        <a class="c-mobile-menu__item" href="https://ajuda.escavador.com" rel="noreferrer" target="_blank">
+          Ajuda
+        </a>
+      </li>
+          </ul>
+  </div>
+</div>
+<div id="searcher" class="c-searcher">
+  <div class="c-searcher__overlay" data-action="close-search-box"></div>
+  <div class="c-container c-searcher__container">
+    <button class="c-button c-searcher__container-x-btn v--flushed" data-action="close-search-box">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <span class="c-searcher__label">Pesquisar por:</span>
+    <div class="c-searcher__wrapper">
+      <form id="search-box-form" class="c-search-field" method="get" action="https://www.escavador.com/busca">
+        <div class="c-search-field__container">
+          <input id="search-box-category" type="hidden" name="qo" value="t">
+          <input id="search-box-input" class="c-search-field__input" type="search" autocapitalize="off"
+            autocomplete="off" autocorrect="off" name="q" placeholder="Nome da pessoa, empresa, número do processo..."
+            aria-label="Nome da pessoa, empresa, número do processo..." />
+          <button :loading="loading" class="c-button c-search-field__submit-button primary" type="submit"
+            data-action="submit-search-box">
+            <div class="c-svg-symbol" style="height:20px;width:20px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="feather feather-search">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <div class="c-search-field__submit-label">
+              <span>Buscar</span>
+            </div>
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="c-searcher__options">
+      <button
+        class="c-button c-searcher__options-item c-button--primary"
+        data-search-category="t">
+        Tudo
+      </button>
+      <button
+        class="c-button c-searcher__options-item c-button--outline"
+        data-search-category="en">
+        Partes em Processos
+      </button>
+      <button
+        class="c-button c-searcher__options-item c-button--outline"
+        data-search-category="c">
+        Currículos
+      </button>
+      <button
+        class="c-button c-searcher__options-item c-button--outline"
+        data-search-category="d">
+        Diários Oficiais
+      </button>
+      <button
+        class="c-button c-searcher__options-item c-button--outline"
+        data-search-category="jr">
+        Jurisprudências
+      </button>
+      <button
+        class="c-button c-searcher__options-item c-button--outline"
+        data-search-category="leis">
+        Legislações
+      </button>
+    </div>
+
+    <div id="search-box-history" class="c-search-history">
+      <div class="c-search-history__label-wrapper">
+        <span class="c-search-history__label">Pesquisas recentes</span>
+      </div>
+      <ul id="search-box-history-list" class="c-search-history__list">
+
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script id="search-box-history-item" type="text/x-handlebars-template">
+  {{#each searchBoxHistory}}
+  <li>
+    <a href="{{ form.link }}" data-search-value="{{ form.search.value }}" class="c-search-history__item-wrapper" onclick="Escavador.searchBoxInput.value=this.dataset.searchValue;Escavador.hideSearchHistory()">
+      <div class="c-search-history__item">
+        <div class="c-search-history__content">
+          <div class="c-search-history__icon">
+            <div class="c-svg-symbol" style="height:16px;width:16px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+          </div>
+            <div right="1">
+              <div class="c-tag c-search-history__tag">
+                <div class="c-tag__content">
+                  Em:
+                  {{ form.filter.label }}
+                </div>
+              </div>
+            </div>
+            <span class="c-search-box_filtersHistoryValue c-search-box_filtersHistoryTitle">
+              {{ form.search.value }}
+            </span>
+
+            <span
+              class="c-search-history__btn"
+              data-search-history-id="{{ createdAt }}"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </span>
+        </div>
+      </div>
+    </a>
+  </li>
+  {{/each}}
+</script> -->
+
+<!--[if lt IE 9]>
+<script src="https://www.escavador.com/assets/js/jquery1x.min.js"></script>
+<![endif]-->
+<script src="/assets/js/user/app.js?id=5a164bc51497a5fd8c541d1bdd306426"></script>
+
+
+<script>
+  var globalState = {
+    production: true,
+    url_monitoramentos: 'https://monitoramentos.escavador.com',
+    baseUrl: 'https://www.escavador.com',
+    apiUrl: 'https://api.escavador.com'
+  };
+</script>
+
+<!-- Adicionado para carregar scripts antes do app -->
+      <script src="/assets/js/sm/bundle.js?id=2ec0f1adfdf5ff9cbfec701fe5ed4339"></script>
+  
+
+
+<noscript id="deferred-styles">
+  <link rel="stylesheet" href="/assets/css/user/sm/vendor.css?id=0125e911a1a65247963101558acbbbbe">
+</noscript>
+
+<script>
+  var loadDeferredStyles = function () {
+    var addStylesNode = document.getElementById("deferred-styles");
+    var replacement = document.createElement("div");
+    replacement.innerHTML = addStylesNode.textContent;
+    document.body.appendChild(replacement)
+    addStylesNode.parentElement.removeChild(addStylesNode);
+  };
+  var raf = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+      window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+  if ('function' === typeof raf) raf(function () {
+    window.setTimeout(loadDeferredStyles, 0);
+  });
+  else window.addEventListener('load', loadDeferredStyles);
+</script>
+
+<script src="https://www.escavador.com/assets/escavador/admin/js/prevent-multiple-submits.js"></script>
+
+</body>
+</html>

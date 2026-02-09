@@ -1,9 +1,8 @@
 import { Inngest } from 'inngest'
 import { Prisma } from '@prisma/client'
 import { prisma } from './prisma'
-import { consultCpf, consultCpfCadastral, consultCnpj as consultCnpjApiFull, ApiFullCpfCadastralResponse } from './apifull'
+import { consultCpf, consultCpfCadastral, consultCnpj as consultCnpjApiFull, consultCnpjFinancial, ApiFullCpfCadastralResponse, ApiFullCnpjFinancialResponse } from './apifull'
 import { consultCnpj as consultCnpjBrasilApi } from './brasilapi'
-import { searchProcesses as searchEscavador } from './escavador'
 import { searchDatajud } from './datajud'
 import { searchWeb } from './google-search'
 import { generateSummary } from './openai'
@@ -36,6 +35,14 @@ type CleanupEvent = {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type AllEvents = SearchProcessEvent | CleanupEvent
 
+// Etapas de processamento (para barra de progresso)
+// 1 = Dados cadastrais
+// 2 = Dados financeiros
+// 3 = Processos judiciais
+// 4 = Menções na web
+// 5 = Gerando resumo
+// 6 = Finalizando
+
 // Process search job
 export const processSearch = inngest.createFunction(
   {
@@ -46,19 +53,27 @@ export const processSearch = inngest.createFunction(
   async ({ event, step }) => {
     const { purchaseId, term, type, email } = event.data
 
+    // Helper para atualizar step
+    const updateStep = async (stepNum: number) => {
+      await prisma.purchase.update({
+        where: { id: purchaseId },
+        data: { processingStep: stepNum },
+      })
+    }
+
     // Update purchase to PROCESSING
     await step.run('set-processing', async () => {
       await prisma.purchase.update({
         where: { id: purchaseId },
-        data: { status: 'PROCESSING' },
+        data: { status: 'PROCESSING', processingStep: 1 },
       })
     })
 
     // Fetch data from APIs
     let apiFullData: Awaited<ReturnType<typeof consultCpf>> | Awaited<ReturnType<typeof consultCnpjApiFull>> | null = null
     let cadastralCpfData: ApiFullCpfCadastralResponse | null = null
+    let cnpjFinancialData: ApiFullCnpjFinancialResponse | null = null
     let brasilApiData: Awaited<ReturnType<typeof consultCnpjBrasilApi>> | null = null
-    let escavadorData: Awaited<ReturnType<typeof searchEscavador>> | null = null
     let datajudData: Awaited<ReturnType<typeof searchDatajud>> | null = null
     let googleData: Awaited<ReturnType<typeof searchWeb>> | null = null
     let name = ''
@@ -67,87 +82,100 @@ export const processSearch = inngest.createFunction(
     try {
       // Step 1: Get primary data from APIFull
       if (type === 'CPF') {
-        // Buscar dados cadastrais e financeiros em paralelo
+        // Buscar dados cadastrais (step 1)
+        cadastralCpfData = await step.run('fetch-apifull-cpf-cadastral', async () => {
+          return consultCpfCadastral(term)
+        })
+        name = cadastralCpfData.nome || ''
+
+        // Atualiza para step 2 - Dados financeiros
+        await step.run('update-step-2', async () => updateStep(2))
+
+        // Buscar dados financeiros (step 2)
+        apiFullData = await step.run('fetch-apifull-cpf-financial', async () => {
+          return consultCpf(term)
+        })
+
+        if (!name) name = apiFullData.name
+        region = cadastralCpfData.enderecos?.[0]?.uf || apiFullData.region
+      } else {
+        // CNPJ: Start with BrasilAPI (free) for cadastral data
+        brasilApiData = await step.run('fetch-brasilapi', async () => {
+          try {
+            return await consultCnpjBrasilApi(term)
+          } catch (err) {
+            console.error('BrasilAPI error (will use APIFull):', err)
+            return null
+          }
+        })
+        if (brasilApiData) {
+          name = brasilApiData.razaoSocial
+        }
+
+        // Atualiza para step 2 - Dados financeiros
+        await step.run('update-step-2', async () => updateStep(2))
+
+        // CNPJ: Buscar dados cadastrais (api/cnpj) e financeiros (e-boavista) em paralelo
         const [cadastralData, financialData] = await Promise.all([
-          step.run('fetch-apifull-cpf-cadastral', async () => {
-            return consultCpfCadastral(term)
+          step.run('fetch-apifull-cnpj-cadastral', async () => {
+            return consultCnpjApiFull(term)
           }),
-          step.run('fetch-apifull-cpf-financial', async () => {
-            return consultCpf(term)
+          step.run('fetch-apifull-cnpj-financial', async () => {
+            try {
+              return await consultCnpjFinancial(term)
+            } catch (err) {
+              console.error('CNPJ Financial (e-boavista) error:', err)
+              return null
+            }
           }),
         ])
 
-        apiFullData = financialData
-        cadastralCpfData = cadastralData
-        name = cadastralData.nome || financialData.name
-        region = cadastralData.enderecos?.[0]?.uf || financialData.region
-      } else {
-        // CNPJ: Start with BrasilAPI (free), then APIFull
-        brasilApiData = await step.run('fetch-brasilapi', async () => {
-          return consultCnpjBrasilApi(term)
-        })
-        name = brasilApiData.razaoSocial
+        apiFullData = cadastralData
+        cnpjFinancialData = financialData
 
-        apiFullData = await step.run('fetch-apifull-cnpj', async () => {
-          return consultCnpjApiFull(term)
-        })
+        // Use APIFull data as fallback for name if BrasilAPI failed
+        if (!name && apiFullData) {
+          name = (apiFullData as Awaited<ReturnType<typeof consultCnpjApiFull>>).razaoSocial
+        }
         region = (apiFullData as Awaited<ReturnType<typeof consultCnpjApiFull>>).region
       }
 
-      // Step 2: Parallel fetches - Escavador, Datajud, Google
-      const [escavador, datajud, google] = await Promise.all([
-        step.run('fetch-escavador', async () => {
-          try {
-            return await searchEscavador(name, term)
-          } catch (err) {
-            console.error('Escavador error:', err)
-            return { totalCount: 0, processes: [] }
-          }
-        }),
-        step.run('fetch-datajud', async () => {
-          try {
-            return await searchDatajud(name, term)
-          } catch (err) {
-            console.error('Datajud error:', err)
-            return { processes: [] }
-          }
-        }),
-        step.run('fetch-google', async () => {
-          try {
-            return await searchWeb(name, term, type)
-          } catch (err) {
-            console.error('Google error:', err)
-            return { general: [], focused: [], reclameAqui: [] }
-          }
-        }),
-      ])
+      // Atualiza para step 3 - Processos judiciais
+      await step.run('update-step-3', async () => updateStep(3))
 
-      escavadorData = escavador
-      datajudData = datajud
-      googleData = google
-
-      // Step 3: Merge and deduplicate processes
-      const allProcesses = [
-        ...(escavadorData?.processes || []).map((p) => ({
-          ...p,
-          source: 'escavador' as const,
-        })),
-        ...(datajudData?.processes || []).map((p) => ({
-          ...p,
-          source: 'datajud' as const,
-        })),
-      ]
-
-      // Deduplicate by number (if available) or tribunal+date+classe
-      const seenKeys = new Set<string>()
-      const uniqueProcesses = allProcesses.filter((p) => {
-        const key = p.number || `${p.tribunal}-${p.date}-${p.classe}`
-        if (seenKeys.has(key)) return false
-        seenKeys.add(key)
-        return true
+      // Step 3: Fetch processos judiciais (Datajud multi-tribunal)
+      datajudData = await step.run('fetch-datajud', async () => {
+        try {
+          return await searchDatajud(name, term)
+        } catch (err) {
+          console.error('Datajud error:', err)
+          return { processes: [] }
+        }
       })
 
-      // Step 4: Generate summary with GPT
+      // Atualiza para step 4 - Menções na web
+      await step.run('update-step-4', async () => updateStep(4))
+
+      // Step 4: Fetch Google/Serper
+      googleData = await step.run('fetch-google', async () => {
+        try {
+          return await searchWeb(name, term, type)
+        } catch (err) {
+          console.error('Google error:', err)
+          return { general: [], focused: [], reclameAqui: [] }
+        }
+      })
+
+      // Processos já vêm deduplicados do Datajud (multi-tribunal)
+      const uniqueProcesses = (datajudData?.processes || []).map((p) => ({
+        ...p,
+        source: 'datajud' as const,
+      }))
+
+      // Atualiza para step 5 - Gerando resumo
+      await step.run('update-step-5', async () => updateStep(5))
+
+      // Step 5: Generate summary with GPT
       const combinedData = {
         apiFull: apiFullData,
         cadastral: cadastralCpfData,
@@ -171,12 +199,16 @@ export const processSearch = inngest.createFunction(
         }
       }
 
-      // Step 5: Save SearchResult
+      // Atualiza para step 6 - Finalizando
+      await step.run('update-step-6', async () => updateStep(6))
+
+      // Step 6: Save SearchResult
       const searchResult = await step.run('save-result', async () => {
         // Convert to plain JSON to satisfy Prisma's Json type
         const jsonData = JSON.parse(JSON.stringify({
           apiFull: apiFullData,
           cadastral: cadastralCpfData,
+          cnpjFinancial: cnpjFinancialData,
           brasilApi: brasilApiData,
           processes: uniqueProcesses,
           google: googleData,
@@ -195,13 +227,14 @@ export const processSearch = inngest.createFunction(
         })
       })
 
-      // Step 6: Update purchase to COMPLETED
+      // Step 7: Update purchase to COMPLETED
       await step.run('complete-purchase', async () => {
         await prisma.purchase.update({
           where: { id: purchaseId },
           data: {
             status: 'COMPLETED',
             searchResultId: searchResult.id,
+            processingStep: 0, // Reset step on completion
           },
         })
       })

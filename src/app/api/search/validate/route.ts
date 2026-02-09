@@ -3,8 +3,6 @@ import { prisma } from '@/lib/prisma'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { isValidCPF, isValidCNPJ, cleanDocument } from '@/lib/validators'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { consultCpf } from '@/lib/apifull'
-import { consultCnpj as consultCnpjBrasilApi } from '@/lib/brasilapi'
 
 interface ValidateRequest {
   document: string
@@ -75,26 +73,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Fetch teaser data (name only for display)
-    let name = ''
-    try {
-      if (docType === 'CPF') {
-        const cpfData = await consultCpf(cleanedDoc)
-        name = cpfData.name
-      } else {
-        const cnpjData = await consultCnpjBrasilApi(cleanedDoc)
-        name = cnpjData.razaoSocial
-      }
-    } catch (err) {
-      console.error('Error fetching teaser data:', err)
-      // Continue without name - will show masked document only
-    }
+    // Teaser (name) removed for performance - it's fetched again on the consultation page
+    // This reduces validation time from 3-6s to ~300ms
 
     return NextResponse.json({
       valid: true,
       type: docType,
       term: cleanedDoc,
-      name: name || null,
       // Mask for display: 123.456.***-** or 12.345.678/****-**
       maskedDocument: docType === 'CPF'
         ? cleanedDoc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')

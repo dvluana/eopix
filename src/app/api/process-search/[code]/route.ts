@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { consultCpf, consultCpfCadastral, consultCnpj as consultCnpjApiFull, ApiFullCpfCadastralResponse } from '@/lib/apifull'
+import { consultCpf, consultCpfCadastral, consultCnpj as consultCnpjApiFull, consultCnpjFinancial, ApiFullCpfCadastralResponse, ApiFullCnpjFinancialResponse } from '@/lib/apifull'
 import { consultCnpj as consultCnpjBrasilApi } from '@/lib/brasilapi'
-import { searchProcesses as searchEscavador } from '@/lib/escavador'
 import { searchDatajud } from '@/lib/datajud'
 import { searchWeb } from '@/lib/google-search'
 import { generateSummary } from '@/lib/openai'
@@ -66,8 +65,8 @@ export async function POST(
     // Fetch data from APIs
     let apiFullData: Awaited<ReturnType<typeof consultCpf>> | Awaited<ReturnType<typeof consultCnpjApiFull>> | null = null
     let cadastralCpfData: ApiFullCpfCadastralResponse | null = null
+    let cnpjFinancialData: ApiFullCnpjFinancialResponse | null = null
     let brasilApiData: Awaited<ReturnType<typeof consultCnpjBrasilApi>> | null = null
-    let escavadorData: Awaited<ReturnType<typeof searchEscavador>> | null = null
     let datajudData: Awaited<ReturnType<typeof searchDatajud>> | null = null
     let googleData: Awaited<ReturnType<typeof searchWeb>> | null = null
     let name = ''
@@ -89,22 +88,42 @@ export async function POST(
       console.log(`🧪 [TEST_MODE] APIFull CPF: nome=${name}, região=${region}`)
     } else {
       console.log(`🧪 [TEST_MODE] Consultando BrasilAPI CNPJ...`)
-      brasilApiData = await consultCnpjBrasilApi(term)
-      name = brasilApiData.razaoSocial
-      console.log(`🧪 [TEST_MODE] BrasilAPI CNPJ: razaoSocial=${name}`)
+      try {
+        brasilApiData = await consultCnpjBrasilApi(term)
+        name = brasilApiData.razaoSocial
+        console.log(`🧪 [TEST_MODE] BrasilAPI CNPJ: razaoSocial=${name}`)
+      } catch (err) {
+        console.error(`🧪 [TEST_MODE] BrasilAPI error (will use APIFull):`, err)
+        brasilApiData = null
+      }
 
-      console.log(`🧪 [TEST_MODE] Consultando APIFull CNPJ...`)
-      apiFullData = await consultCnpjApiFull(term)
+      console.log(`🧪 [TEST_MODE] Consultando APIFull CNPJ (cadastral + financeiro em paralelo)...`)
+      // CNPJ: Buscar dados cadastrais (api/cnpj) e financeiros (e-boavista) em paralelo
+      const [cadastralData, financialData] = await Promise.all([
+        consultCnpjApiFull(term),
+        consultCnpjFinancial(term).catch((err) => {
+          console.error('🧪 [TEST_MODE] CNPJ Financial (e-boavista) error:', err)
+          return null
+        }),
+      ])
+
+      apiFullData = cadastralData
+      cnpjFinancialData = financialData
+
+      // Use APIFull as fallback if BrasilAPI failed
+      if (!name && apiFullData) {
+        name = (apiFullData as Awaited<ReturnType<typeof consultCnpjApiFull>>).razaoSocial
+      }
       region = (apiFullData as Awaited<ReturnType<typeof consultCnpjApiFull>>).region
+
+      if (cnpjFinancialData) {
+        console.log(`🧪 [TEST_MODE] CNPJ Financial: ${cnpjFinancialData.totalProtests} protestos, ${cnpjFinancialData.totalDebts} dívidas, situação=${cnpjFinancialData.situacao}`)
+      }
     }
 
-    // Step 2: Parallel fetches - Escavador, Datajud, Google
-    console.log(`🧪 [TEST_MODE] Buscando Escavador, Datajud e Web em paralelo...`)
-    const [escavador, datajud, google] = await Promise.all([
-      searchEscavador(name, term).catch((err) => {
-        console.error('🧪 [TEST_MODE] Escavador error:', err)
-        return { totalCount: 0, processes: [] }
-      }),
+    // Step 2: Parallel fetches - Datajud (multi-tribunal) e Google
+    console.log(`🧪 [TEST_MODE] Buscando Datajud (multi-tribunal) e Web em paralelo...`)
+    const [datajud, google] = await Promise.all([
       searchDatajud(name, term).catch((err) => {
         console.error('🧪 [TEST_MODE] Datajud error:', err)
         return { processes: [] }
@@ -115,35 +134,19 @@ export async function POST(
       }),
     ])
 
-    escavadorData = escavador
     datajudData = datajud
     googleData = google
 
-    console.log(`🧪 [TEST_MODE] Escavador: ${escavadorData.totalCount} processos`)
-    console.log(`🧪 [TEST_MODE] Datajud: ${datajudData.processes.length} processos`)
+    console.log(`🧪 [TEST_MODE] Datajud: ${datajudData.processes.length} processos (multi-tribunal)`)
     console.log(`🧪 [TEST_MODE] Web: ${googleData.general.length} menções gerais, ${googleData.reclameAqui.length} Reclame Aqui`)
 
-    // Step 3: Merge and deduplicate processes
-    const allProcesses = [
-      ...(escavadorData?.processes || []).map((p) => ({
-        ...p,
-        source: 'escavador' as const,
-      })),
-      ...(datajudData?.processes || []).map((p) => ({
-        ...p,
-        source: 'datajud' as const,
-      })),
-    ]
+    // Processos já vêm deduplicados do Datajud (multi-tribunal)
+    const uniqueProcesses = (datajudData?.processes || []).map((p) => ({
+      ...p,
+      source: 'datajud' as const,
+    }))
 
-    const seenKeys = new Set<string>()
-    const uniqueProcesses = allProcesses.filter((p) => {
-      const key = p.number || `${p.tribunal}-${p.date}-${p.classe}`
-      if (seenKeys.has(key)) return false
-      seenKeys.add(key)
-      return true
-    })
-
-    console.log(`🧪 [TEST_MODE] Total processos únicos: ${uniqueProcesses.length}`)
+    console.log(`🧪 [TEST_MODE] Total processos: ${uniqueProcesses.length}`)
 
     // Step 4: Generate summary with GPT
     console.log(`🧪 [TEST_MODE] Gerando resumo com OpenAI...`)
@@ -174,6 +177,7 @@ export async function POST(
     const jsonData = JSON.parse(JSON.stringify({
       apiFull: apiFullData,
       cadastral: cadastralCpfData,
+      cnpjFinancial: cnpjFinancialData,
       brasilApi: brasilApiData,
       processes: uniqueProcesses,
       google: googleData,

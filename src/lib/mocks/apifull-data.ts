@@ -145,3 +145,60 @@ export const MOCK_APIFULL_CNPJ_SOL = {
   totalProtestsAmount: 0,
   region: 'SC',
 }
+
+// CNPJ Financial com problemas (Chuva) - dados de e-boavista
+export const MOCK_APIFULL_CNPJ_FINANCIAL_CHUVA = {
+  razaoSocial: 'EMPRESA PROBLEMATICA LTDA',
+  cnpj: '12345678000190',
+  situacao: 'EM RECUPERAÇÃO JUDICIAL',
+  recentInquiries: 45,
+  protests: [
+    {
+      date: '2025-06-10',
+      amount: 15000,
+      registry: '1o Cartorio - Sao Paulo',
+    },
+    {
+      date: '2025-08-22',
+      amount: 28500,
+      registry: '2o Cartorio - Sao Paulo',
+    },
+    {
+      date: '2025-11-15',
+      amount: 12300,
+      registry: '3o Cartorio - Campinas',
+    },
+  ],
+  debts: [
+    {
+      type: 'DIVIDA_ATIVA',
+      amount: 45000,
+      origin: 'Receita Federal',
+    },
+    {
+      type: 'PENDENCIA_FINANCEIRA',
+      amount: 23000,
+      origin: 'Banco do Brasil',
+    },
+  ],
+  bouncedChecks: 5,
+  totalProtests: 3,
+  totalProtestsAmount: 55800,
+  totalDebts: 2,
+  totalDebtsAmount: 68000,
+}
+
+// CNPJ Financial limpo (Sol) - dados de e-boavista
+export const MOCK_APIFULL_CNPJ_FINANCIAL_SOL = {
+  razaoSocial: 'TECH SOLUTIONS SERVICOS DE TI LTDA',
+  cnpj: '98765432000155',
+  situacao: 'ATIVA',
+  recentInquiries: 8,
+  protests: [],
+  debts: [],
+  bouncedChecks: 0,
+  totalProtests: 0,
+  totalProtestsAmount: 0,
+  totalDebts: 0,
+  totalDebtsAmount: 0,
+}

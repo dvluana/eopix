@@ -185,73 +185,6 @@ async function testAPIFull(): Promise<TestResult> {
   }
 }
 
-async function testEscavador(): Promise<TestResult> {
-  console.log("\n🧪 Testando Escavador...");
-  const apiKey = process.env.ESCAVADOR_API_KEY;
-  if (!apiKey || apiKey.endsWith("...")) {
-    return {
-      api: "Escavador",
-      status: "skipped",
-      message: "API key incompleta (truncada com ...)",
-    };
-  }
-
-  try {
-    // Testa endpoint de monitoramentos (v1)
-    const response = await fetch(
-      "https://api.escavador.com/api/v1/monitoramentos-tribunal",
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          Accept: "application/json",
-        },
-        redirect: "follow",
-      }
-    );
-
-    // Tenta parsear como JSON
-    const text = await response.text();
-    let data: Record<string, unknown> = {};
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return {
-        api: "Escavador",
-        status: "error",
-        message: "Resposta não é JSON - verifique configuração da conta",
-      };
-    }
-
-    if (response.ok) {
-      return {
-        api: "Escavador",
-        status: "success",
-        message: "API autenticada com sucesso",
-        data,
-      };
-    }
-    if (data.error === "Unauthenticated.") {
-      return {
-        api: "Escavador",
-        status: "error",
-        message: "Token não aceito - verifique configuração no painel Escavador",
-      };
-    }
-    return {
-      api: "Escavador",
-      status: "error",
-      message: `HTTP ${response.status}: ${data.error || data.message || "Erro"}`,
-      data,
-    };
-  } catch (error) {
-    return {
-      api: "Escavador",
-      status: "error",
-      message: error instanceof Error ? error.message : "Erro desconhecido",
-    };
-  }
-}
-
 async function testSerper(): Promise<TestResult> {
   console.log("\n🧪 Testando Serper...");
   const apiKey = process.env.SERPER_API_KEY;
@@ -359,7 +292,6 @@ async function main() {
   results.push(await testDatajud());
   results.push(await testAsaas());
   results.push(await testAPIFull());
-  results.push(await testEscavador());
   results.push(await testSerper());
   results.push(await testOpenAI());
 

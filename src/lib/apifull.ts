@@ -6,6 +6,8 @@ import {
   MOCK_APIFULL_CPF_CADASTRAL_SOL,
   MOCK_APIFULL_CNPJ_CHUVA,
   MOCK_APIFULL_CNPJ_SOL,
+  MOCK_APIFULL_CNPJ_FINANCIAL_CHUVA,
+  MOCK_APIFULL_CNPJ_FINANCIAL_SOL,
 } from './mocks/apifull-data'
 
 export interface ApiFullCpfResponse {
@@ -77,6 +79,29 @@ export interface ApiFullCnpjResponse {
   totalProtests: number
   totalProtestsAmount: number
   region: string
+}
+
+// Interface para dados financeiros de CNPJ (e-boavista)
+export interface ApiFullCnpjFinancialResponse {
+  razaoSocial: string
+  cnpj: string
+  situacao: string | null // "ATIVA", "BAIXADA", "EM RECUPERAÇÃO JUDICIAL"
+  recentInquiries: number
+  protests: Array<{
+    date: string
+    amount: number
+    registry: string
+  }>
+  debts: Array<{
+    type: string
+    amount: number
+    origin: string
+  }>
+  bouncedChecks: number
+  totalProtests: number
+  totalProtestsAmount: number
+  totalDebts: number
+  totalDebtsAmount: number
 }
 
 // CPFs terminados em 0-4 = Chuva, 5-9 = Sol
@@ -358,5 +383,98 @@ function mapCnpjResponse(raw: any): ApiFullCnpjResponse {
     totalProtests: data.totalProtestos || data.qtdProtestos || (data.protestos?.length || 0),
     totalProtestsAmount: data.valorTotalProtestos || 0,
     region: region,
+  }
+}
+
+/**
+ * Consulta dados FINANCEIROS de CNPJ via e-boavista
+ * Retorna protestos, dívidas, cheques devolvidos - dados que /api/cnpj não retorna
+ */
+export async function consultCnpjFinancial(cnpj: string): Promise<ApiFullCnpjFinancialResponse> {
+  if (isMockMode) {
+    console.log(`[MOCK] APIFull consultCnpjFinancial: ${cnpj}`)
+    await new Promise((r) => setTimeout(r, 500))
+    return isChuvaScenario(cnpj) ? MOCK_APIFULL_CNPJ_FINANCIAL_CHUVA : MOCK_APIFULL_CNPJ_FINANCIAL_SOL
+  }
+
+  // === CHAMADA REAL - e-boavista com CNPJ ===
+  // Mesma API usada para CPF, mas passando CNPJ retorna dados financeiros da empresa
+  const res = await fetch('https://api.apifull.com.br/api/e-boavista', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      document: cnpj.replace(/\D/g, ''), // Remove pontuação
+      link: 'e-boavista',
+    }),
+  })
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => '')
+    console.error(`APIFull CNPJ Financial error: ${res.status}`, errorText)
+    throw new Error(`APIFull CNPJ Financial error: ${res.status}`)
+  }
+
+  const rawData = await res.json()
+  console.log('🔍 [DEBUG] APIFull CNPJ Financial (e-boavista) raw response:', JSON.stringify(rawData, null, 2))
+
+  return mapCnpjFinancialResponse(rawData)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapCnpjFinancialResponse(raw: any): ApiFullCnpjFinancialResponse {
+  // APIFull e-boavista response structure: dados.data.saida
+  const saida = raw.dados?.data?.saida || raw.dados || raw
+
+  // Dados de identificação (para CNPJ)
+  const identificacao = saida.Identificacao || {}
+
+  // Calcular total de consultas recentes (últimos 3 meses)
+  const consultas = saida.Consultas || {}
+  const historicoMeses = consultas.historicoMeses || []
+  const mesCorrente = consultas.mesCorrente?.quantidade || 0
+  const recentInquiries = mesCorrente + historicoMeses.slice(0, 2).reduce((sum: number, m: { quantidade?: number }) => sum + (m.quantidade || 0), 0)
+
+  // Mapear protestos from Protestos section
+  const protestosSection = saida.Protestos || {}
+  const resumoProtestos = protestosSection.resumo || {}
+  const listaProtestos = protestosSection.listaProtestos || []
+
+  const protests = listaProtestos.map((p: { data?: string; dataProtesto?: string; valor?: number; cartorio?: string; cidade?: string }) => ({
+    date: p.data || p.dataProtesto || '',
+    amount: p.valor || 0,
+    registry: p.cartorio || p.cidade || '',
+  }))
+
+  // Mapear débitos/pendências from RegistroDeDebitos
+  const registroDebitos = saida.RegistroDeDebitos || {}
+  const listaDebitos = registroDebitos.listaDebitos || []
+
+  const debts = listaDebitos.map((d: { tipo?: string; tipoOcorrencia?: string; valor?: number; informante?: string; credor?: string }) => ({
+    type: d.tipo || d.tipoOcorrencia || '',
+    amount: d.valor || 0,
+    origin: d.informante || d.credor || '',
+  }))
+
+  // Calcular totais
+  const totalProtests = resumoProtestos.quantidade || protests.length
+  const totalProtestsAmount = resumoProtestos.valorTotal || protests.reduce((sum: number, p: { amount: number }) => sum + p.amount, 0)
+  const totalDebts = listaDebitos.length
+  const totalDebtsAmount = debts.reduce((sum: number, d: { amount: number }) => sum + d.amount, 0)
+
+  return {
+    razaoSocial: identificacao.nome || identificacao.razaoSocial || '',
+    cnpj: identificacao.documento || identificacao.cnpj || '',
+    situacao: identificacao.situacao || identificacao.situacaoReceita || null,
+    recentInquiries: recentInquiries,
+    protests: protests,
+    debts: debts,
+    bouncedChecks: registroDebitos.totalCheques || 0,
+    totalProtests: totalProtests,
+    totalProtestsAmount: totalProtestsAmount,
+    totalDebts: totalDebts,
+    totalDebtsAmount: totalDebtsAmount,
   }
 }

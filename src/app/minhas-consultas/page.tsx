@@ -16,12 +16,23 @@ interface Purchase {
   id: string;
   code: string;
   status: PurchaseStatus;
+  processingStep?: number;
   term: string;
   type: 'CPF' | 'CNPJ';
   createdAt: string;
   hasReport: boolean;
   reportId?: string;
 }
+
+// Etapas de processamento
+const PROCESSING_STEPS = [
+  { step: 1, label: 'Dados cadastrais' },
+  { step: 2, label: 'Dados financeiros' },
+  { step: 3, label: 'Processos judiciais' },
+  { step: 4, label: 'Menções na web' },
+  { step: 5, label: 'Gerando resumo' },
+  { step: 6, label: 'Finalizando' },
+];
 
 // ============================================
 // CARD DE CONSULTA
@@ -32,6 +43,11 @@ interface CardConsultaProps {
 }
 
 function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
+  const isProcessing = purchase.status === 'PROCESSING' || purchase.status === 'PAID';
+  const currentStep = purchase.processingStep || 0;
+  const progressPercent = isProcessing && currentStep > 0 ? (currentStep / 6) * 100 : 0;
+  const currentStepInfo = PROCESSING_STEPS.find(s => s.step === currentStep);
+
   const getBadgeConfig = (status: PurchaseStatus) => {
     switch (status) {
       case 'COMPLETED':
@@ -90,115 +106,24 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
         border: '1px solid var(--color-border-subtle)',
         borderRadius: '6px',
         padding: '20px 24px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
       }}
     >
-      {/* Lado esquerdo */}
-      <div>
-        {/* Badge de status */}
-        <div
-          style={{
-            display: 'inline-block',
-            background: badge.bg,
-            color: badge.color,
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '10px',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            padding: '4px 10px',
-            borderRadius: '3px',
-          }}
-        >
-          {badge.label}
-        </div>
-
-        {/* Documento */}
-        <div
-          style={{
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: 'var(--primitive-black)',
-            marginTop: '8px',
-          }}
-        >
-          {documentType}: {purchase.term}
-        </div>
-
-        {/* Data/mensagem */}
-        <div
-          style={{
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '12px',
-            color: 'var(--color-text-tertiary)',
-            marginTop: '4px',
-          }}
-        >
-          {new Date(purchase.createdAt).toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </div>
-      </div>
-
-      {/* Lado direito */}
-      <div>
-        {purchase.status === 'COMPLETED' && purchase.hasReport && purchase.reportId && (
-          <button
-            type="button"
-            onClick={() => onViewReport(purchase.reportId!)}
-            style={{
-              background: 'var(--primitive-white)',
-              color: 'var(--primitive-black)',
-              border: '1px solid var(--color-text-primary)',
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '12px',
-              fontWeight: 700,
-              padding: '10px 20px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            Ver Relatório
-          </button>
-        )}
-
-        {(purchase.status === 'PROCESSING' || purchase.status === 'PAID') && (
+      {/* Header: Badge + Documento + Botão */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        {/* Lado esquerdo */}
+        <div>
+          {/* Badge de status */}
           <div
             style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '12px',
-              color: 'var(--color-text-tertiary)',
-              fontStyle: 'italic',
-            }}
-          >
-            Aguarde...
-          </div>
-        )}
-
-        {purchase.status === 'PENDING' && (
-          <div
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '12px',
-              color: 'var(--color-text-tertiary)',
-              fontStyle: 'italic',
-            }}
-          >
-            Aguardando pagamento
-          </div>
-        )}
-
-        {purchase.status === 'FAILED' && (
-          <div
-            style={{
-              background: 'var(--color-border-subtle)',
-              color: 'var(--color-text-secondary)',
+              display: 'inline-block',
+              background: badge.bg,
+              color: badge.color,
               fontFamily: 'var(--font-family-body)',
               fontSize: '10px',
               fontWeight: 700,
@@ -207,10 +132,173 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
               borderRadius: '3px',
             }}
           >
-            REEMBOLSADO
+            {badge.label}
           </div>
-        )}
+
+          {/* Documento */}
+          <div
+            style={{
+              fontFamily: 'var(--font-family-body)',
+              fontSize: '14px',
+              fontWeight: 700,
+              color: 'var(--primitive-black)',
+              marginTop: '8px',
+            }}
+          >
+            {documentType}: {purchase.term}
+          </div>
+
+          {/* Data/mensagem */}
+          <div
+            style={{
+              fontFamily: 'var(--font-family-body)',
+              fontSize: '12px',
+              color: 'var(--color-text-tertiary)',
+              marginTop: '4px',
+            }}
+          >
+            {new Date(purchase.createdAt).toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </div>
+        </div>
+
+        {/* Lado direito */}
+        <div>
+          {purchase.status === 'COMPLETED' && purchase.hasReport && purchase.reportId && (
+            <button
+              type="button"
+              onClick={() => onViewReport(purchase.reportId!)}
+              style={{
+                background: 'var(--primitive-white)',
+                color: 'var(--primitive-black)',
+                border: '1px solid var(--color-text-primary)',
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '12px',
+                fontWeight: 700,
+                padding: '10px 20px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              Ver Relatório
+            </button>
+          )}
+
+          {purchase.status === 'PENDING' && (
+            <div
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '12px',
+                color: 'var(--color-text-tertiary)',
+                fontStyle: 'italic',
+              }}
+            >
+              Aguardando pagamento
+            </div>
+          )}
+
+          {purchase.status === 'FAILED' && (
+            <div
+              style={{
+                background: 'var(--color-border-subtle)',
+                color: 'var(--color-text-secondary)',
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '10px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                padding: '4px 10px',
+                borderRadius: '3px',
+              }}
+            >
+              REEMBOLSADO
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Barra de Progresso (apenas quando processando) */}
+      {isProcessing && (
+        <div style={{ marginTop: '16px' }}>
+          {/* Label da etapa atual */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '12px',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              {currentStepInfo ? currentStepInfo.label : 'Iniciando...'}
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '11px',
+                color: 'var(--color-text-tertiary)',
+              }}
+            >
+              {currentStep}/6
+            </span>
+          </div>
+
+          {/* Barra de progresso */}
+          <div
+            style={{
+              height: '6px',
+              background: 'var(--color-bg-secondary)',
+              borderRadius: '3px',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${progressPercent}%`,
+                background: 'linear-gradient(90deg, var(--primitive-yellow) 0%, #E6C200 100%)',
+                borderRadius: '3px',
+                transition: 'width 0.5s ease-out',
+              }}
+            />
+          </div>
+
+          {/* Indicadores de etapas */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '8px',
+            }}
+          >
+            {PROCESSING_STEPS.map((s) => (
+              <div
+                key={s.step}
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: currentStep >= s.step
+                    ? 'var(--primitive-yellow)'
+                    : 'var(--color-border-subtle)',
+                  transition: 'background 0.3s ease',
+                }}
+                title={s.label}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -272,6 +360,31 @@ export default function Page() {
     };
     checkSession();
   }, []);
+
+  // Polling para atualizar progresso quando há purchases em processamento
+  React.useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const hasProcessing = purchases.some(
+      p => p.status === 'PROCESSING' || p.status === 'PAID'
+    );
+
+    if (!hasProcessing) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/purchases');
+        if (res.ok) {
+          const data = await res.json();
+          setPurchases(data.purchases || []);
+        }
+      } catch {
+        // Ignore errors during polling
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, purchases]);
 
   // ============================================
   // ESTADO 1: ENVIAR CÓDIGO

@@ -217,6 +217,7 @@ export async function GET() {
             code: true,
             term: true,
             status: true,
+            processingStep: true,
             createdAt: true,
             paidAt: true,
             searchResultId: true,
@@ -234,6 +235,7 @@ export async function GET() {
       id: p.id,
       code: p.code,
       status: p.status,
+      processingStep: p.processingStep,
       type: p.term.length === 11 ? 'CPF' : 'CNPJ',
       term: p.term.length === 11
         ? p.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
