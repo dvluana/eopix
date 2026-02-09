@@ -179,39 +179,74 @@ export default function Page() {
           style={{
             maxWidth: '800px',
             margin: '0 auto',
-            paddingTop: 'calc(64px + 100px)',
+            paddingTop: 'calc(64px + 24px)',
             paddingBottom: '60px',
             paddingLeft: '24px',
             paddingRight: '24px',
-            textAlign: 'center',
           }}
         >
-          <div
+          {/* LINK VOLTAR */}
+          <button
+            type="button"
+            onClick={() => router.push('/minhas-consultas')}
             style={{
-              display: 'inline-block',
-              width: '48px',
-              height: '48px',
-              border: '4px solid var(--color-border-subtle)',
-              borderTopColor: 'var(--color-accent-primary)',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-            }}
-          />
-          <p
-            style={{
-              marginTop: '24px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'transparent',
+              border: 'none',
+              padding: '8px 0',
+              marginBottom: '16px',
+              cursor: 'pointer',
               fontFamily: 'var(--font-family-body)',
-              fontSize: '16px',
+              fontSize: '13px',
+              fontWeight: 500,
               color: 'var(--color-text-secondary)',
             }}
           >
-            Carregando relatório...
-          </p>
-          <style>{`
-            @keyframes spin {
-              to { transform: rotate(360deg); }
-            }
-          `}</style>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Minhas Consultas
+          </button>
+
+          <div style={{ textAlign: 'center', marginTop: '60px' }}>
+            <div
+              style={{
+                display: 'inline-block',
+                width: '48px',
+                height: '48px',
+                border: '4px solid var(--color-border-subtle)',
+                borderTopColor: 'var(--color-accent-primary)',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+              }}
+            />
+            <p
+              style={{
+                marginTop: '24px',
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '16px',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              Carregando relatório...
+            </p>
+            <style>{`
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
         </main>
         <Footer />
       </div>
@@ -243,13 +278,46 @@ export default function Page() {
           style={{
             maxWidth: '800px',
             margin: '0 auto',
-            paddingTop: 'calc(64px + 100px)',
+            paddingTop: 'calc(64px + 24px)',
             paddingBottom: '60px',
             paddingLeft: '24px',
             paddingRight: '24px',
-            textAlign: 'center',
           }}
         >
+          {/* LINK VOLTAR */}
+          <button
+            type="button"
+            onClick={() => router.push('/minhas-consultas')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'transparent',
+              border: 'none',
+              padding: '8px 0',
+              marginBottom: '16px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-family-body)',
+              fontSize: '13px',
+              fontWeight: 500,
+              color: 'var(--color-text-secondary)',
+            }}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Minhas Consultas
+          </button>
+
           <div
             style={{
               background: 'var(--primitive-white)',
@@ -257,6 +325,7 @@ export default function Page() {
               borderRadius: '8px',
               padding: '48px 32px',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
+              textAlign: 'center',
             }}
           >
             <p
@@ -286,7 +355,7 @@ export default function Page() {
               style={{
                 marginTop: '24px',
                 background: 'var(--color-accent-primary)',
-                color: 'var(--primitive-white)',
+                color: 'var(--color-text-primary)',
                 fontFamily: 'var(--font-family-body)',
                 fontSize: '14px',
                 fontWeight: 600,
@@ -545,12 +614,49 @@ export default function Page() {
         style={{
           maxWidth: '800px',
           margin: '0 auto',
-          paddingTop: 'calc(64px + 40px)',
+          paddingTop: 'calc(64px + 24px)',
           paddingBottom: '60px',
           paddingLeft: '24px',
           paddingRight: '24px',
         }}
       >
+        {/* LINK VOLTAR */}
+        <button
+          type="button"
+          onClick={handleVoltarConsultas}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'transparent',
+            border: 'none',
+            padding: '8px 0',
+            marginBottom: '16px',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-family-body)',
+            fontSize: '13px',
+            fontWeight: 500,
+            color: 'var(--color-text-secondary)',
+            transition: 'color 0.15s ease',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
+          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          Minhas Consultas
+        </button>
+
         {/* 1. HEADER DO RELATÓRIO */}
         <ReportHeader
           cpf={report.term}

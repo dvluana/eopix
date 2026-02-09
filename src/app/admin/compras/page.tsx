@@ -20,7 +20,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { RefreshCw, Search, Undo2, ExternalLink } from 'lucide-react'
+import { RefreshCw, Search, Undo2, ExternalLink, CheckCircle2 } from 'lucide-react'
 
 interface Purchase {
   id: string
@@ -92,6 +92,10 @@ export default function ComprasPage() {
   const [refundPurchase, setRefundPurchase] = React.useState<Purchase | null>(null)
   const [refundLoading, setRefundLoading] = React.useState(false)
 
+  // Mark paid dialog
+  const [markPaidPurchase, setMarkPaidPurchase] = React.useState<Purchase | null>(null)
+  const [markPaidLoading, setMarkPaidLoading] = React.useState(false)
+
   const fetchData = React.useCallback(async () => {
     try {
       setLoading(true)
@@ -145,6 +149,31 @@ export default function ComprasPage() {
       alert('Erro ao processar reembolso')
     } finally {
       setRefundLoading(false)
+    }
+  }
+
+  const handleMarkPaid = async () => {
+    if (!markPaidPurchase) return
+
+    try {
+      setMarkPaidLoading(true)
+      const res = await fetch(`/api/admin/purchases/${markPaidPurchase.id}/mark-paid`, {
+        method: 'POST',
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        alert(error.error || 'Erro ao marcar como pago')
+        return
+      }
+
+      setMarkPaidPurchase(null)
+      fetchData()
+    } catch (err) {
+      console.error('Error marking as paid:', err)
+      alert('Erro ao marcar como pago')
+    } finally {
+      setMarkPaidLoading(false)
     }
   }
 
@@ -252,6 +281,16 @@ export default function ComprasPage() {
                       <td style={{ padding: '12px 8px', fontSize: '12px' }}>{formatDate(purchase.paidAt)}</td>
                       <td style={{ padding: '12px 8px', textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                          {purchase.status === 'PENDING' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setMarkPaidPurchase(purchase)}
+                              title="Marcar como pago"
+                            >
+                              <CheckCircle2 size={16} />
+                            </Button>
+                          )}
                           {purchase.hasReport && (
                             <Button
                               variant="ghost"
@@ -323,6 +362,26 @@ export default function ComprasPage() {
             <Button variant="outline" onClick={() => setRefundPurchase(null)}>Cancelar</Button>
             <Button variant="destructive" onClick={handleRefund} disabled={refundLoading}>
               {refundLoading ? 'Processando...' : 'Confirmar Reembolso'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mark Paid Dialog */}
+      <Dialog open={!!markPaidPurchase} onOpenChange={() => setMarkPaidPurchase(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Marcar como Pago</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja marcar a compra {markPaidPurchase?.code} como paga?
+              <br />
+              Isso vai liberar a geracao do relatorio.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMarkPaidPurchase(null)}>Cancelar</Button>
+            <Button onClick={handleMarkPaid} disabled={markPaidLoading}>
+              {markPaidLoading ? 'Processando...' : 'Confirmar'}
             </Button>
           </DialogFooter>
         </DialogContent>

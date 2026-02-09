@@ -10,14 +10,16 @@ export default function ClimateBlock({ weatherStatus, message, occurrenceCount }
   const config = {
     sol: {
       icon: '☀️',
-      bg: 'var(--color-bg-accent-light)',
-      border: 'var(--color-border-accent)',
+      bg: 'rgba(102, 204, 102, 0.12)', // Verde suave - positivo
+      border: 'rgba(102, 204, 102, 0.4)', // Verde com mais opacidade
+      textColor: '#2D7A2D', // Verde escuro para contraste
       defaultMessage: 'Céu limpo. Nenhuma ocorrência encontrada.',
     },
     chuva: {
       icon: '🌧️',
-      bg: 'var(--color-bg-secondary)',
-      border: 'var(--color-border-subtle)',
+      bg: 'rgba(204, 51, 51, 0.08)', // Vermelho suave - alerta
+      border: 'rgba(204, 51, 51, 0.25)', // Vermelho com mais opacidade
+      textColor: '#993333', // Vermelho escuro para contraste
       defaultMessage: 'Clima instável.',
     },
   };
@@ -49,7 +51,7 @@ export default function ClimateBlock({ weatherStatus, message, occurrenceCount }
           fontFamily: 'var(--font-family-heading)',
           fontSize: '18px',
           fontWeight: 700,
-          color: 'var(--color-text-primary)',
+          color: cfg.textColor,
         }}
       >
         {displayMessage}
