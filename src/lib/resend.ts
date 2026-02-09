@@ -34,7 +34,11 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailRespo
   })
 
   if (!res.ok) {
-    throw new Error(`Resend error: ${res.status}`)
+    const errorBody = await res.text().catch(() => 'Unable to read error body')
+    const error = new Error(`Resend error: ${res.status} - ${errorBody}`)
+    // Sentry captura automaticamente via Next.js instrumentation
+    console.error('📧 Resend failed:', { status: res.status, to: params.to, subject: params.subject, error: errorBody })
+    throw error
   }
 
   return res.json()
@@ -81,7 +85,7 @@ export async function sendReportReady(
           Voce tambem pode acessar em <a href="${process.env.NEXT_PUBLIC_APP_URL}/minhas-consultas">Minhas Consultas</a>.
         </p>
         <p style="color: #9ca3af; font-size: 12px; margin-top: 24px;">
-          Se este email foi para o spam, adicione plataforma@somoseopix.com.br aos seus contatos.
+          Se este email foi para o spam, adicione noreply@somoseopix.com.br aos seus contatos.
         </p>
       </div>
     `,
