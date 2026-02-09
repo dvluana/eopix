@@ -17,6 +17,7 @@ export default function LandingPage() {
   const [isValidating, setIsValidating] = React.useState(false);
   const [searchError, setSearchError] = React.useState('');
   const [documentType, setDocumentType] = React.useState<'cpf' | 'cnpj' | 'unknown'>('unknown');
+  const [hasError, setHasError] = React.useState(false);
 
   const fullPlaceholder = 'Digite o CPF ou CNPJ';
 
@@ -57,9 +58,9 @@ export default function LandingPage() {
 
   const detectTypeFromLength = (value: string): 'cpf' | 'cnpj' | 'unknown' => {
     const digits = value.replace(/\D/g, '').length;
-    if (digits === 0) return 'unknown';
-    if (digits <= 11) return 'cpf';
-    return 'cnpj';
+    if (digits === 11) return 'cpf';
+    if (digits === 14) return 'cnpj';
+    return 'unknown';
   };
 
   const getButtonText = () => {
@@ -74,6 +75,7 @@ export default function LandingPage() {
     setSearchTerm(masked);
     setDocumentType(detectTypeFromLength(masked));
     setSearchError('');
+    setHasError(false);
   };
 
   const toggleFaq = (index: number) => {
@@ -91,10 +93,12 @@ export default function LandingPage() {
   const handleSearch = async () => {
     if (!searchTerm) {
       setSearchError('Digite um CPF ou CNPJ para consultar');
+      setHasError(true);
       return;
     }
 
     setSearchError('');
+    setHasError(false);
     setIsValidating(true);
 
     try {
@@ -226,7 +230,7 @@ export default function LandingPage() {
               Processos, dívidas, reclamações e notícias, tudo cruzado por IA num único relatório. Digita o CPF ou CNPJ e descobre em minutos.
             </p>
 
-            <div className="search-bar" role="search">
+            <div className={`search-bar ${hasError ? 'search-bar--error' : ''}`} role="search">
               <div className="search-bar__icon" aria-hidden="true">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <circle cx="10" cy="10" r="7"/>
@@ -908,7 +912,7 @@ export default function LandingPage() {
               <em style={{ fontStyle: 'normal', color: 'var(--color-text-accent)' }}>Processo custa sua paz.</em>
             </h2>
 
-            <div className="search-bar" role="search" style={{ marginTop: '40px' }}>
+            <div className={`search-bar ${hasError ? 'search-bar--error' : ''}`} role="search" style={{ marginTop: '40px' }}>
               <div className="search-bar__icon" aria-hidden="true">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <circle cx="10" cy="10" r="7"/>
