@@ -50,31 +50,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
     })
 
-    // Trigger Inngest job to process the report
-    try {
-      const { inngest } = await import('@/lib/inngest')
-      await inngest.send({
-        name: 'search/process',
-        data: {
-          purchaseId: purchase.id,
-          purchaseCode: purchase.code,
-          term: purchase.term,
-          type: purchase.term.length === 11 ? 'CPF' : 'CNPJ',
-          email: purchase.user.email,
-        },
-      })
-      console.log(`Inngest job triggered for purchase ${purchase.code} (manual mark-paid)`)
-    } catch (err) {
-      console.error('Failed to trigger Inngest job:', err)
-      return NextResponse.json(
-        { error: 'Compra marcada como paga, mas falha ao iniciar processamento' },
-        { status: 500 }
-      )
-    }
+    // Compra marcada como paga - processamento será feito via botão "Processar" separado
+    console.log(`Purchase ${purchase.code} marked as PAID - awaiting manual processing`)
 
     return NextResponse.json({
       success: true,
-      message: 'Compra marcada como paga e processamento iniciado',
+      message: 'Compra marcada como paga. Use o botao Processar para gerar o relatorio.',
     })
   } catch (error) {
     console.error('Mark paid error:', error)
