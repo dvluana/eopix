@@ -12,6 +12,7 @@ import { searchWeb } from '@/lib/google-search'
 import { analyzeProcessos, analyzeMentionsAndSummary } from '@/lib/openai'
 import { calculateCpfFinancialSummary, calculateCnpjFinancialSummary } from '@/lib/financial-summary'
 import { sendReportReady } from '@/lib/resend'
+import { isBypassMode } from '@/lib/mock-mode'
 import type {
   CpfCadastralResponse,
   ProcessosCpfResponse,
@@ -23,25 +24,21 @@ import type {
   FinancialSummary,
 } from '@/types/report'
 
-// TEST_MODE: Endpoint de processamento manual para testes
-// TODO: Remover ou proteger em produção
-const TEST_MODE = process.env.TEST_MODE === 'true'
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params
 
-  // Só funciona em TEST_MODE
-  if (!TEST_MODE) {
+  // Só funciona em bypass mode (MOCK_MODE ou TEST_MODE)
+  if (!isBypassMode) {
     return NextResponse.json(
-      { error: 'Endpoint disponível apenas em TEST_MODE' },
+      { error: 'Endpoint apenas para bypass mode' },
       { status: 403 }
     )
   }
 
-  console.log(`🧪 [TEST_MODE] Processamento manual iniciado para code: ${code}`)
+  console.log(`🧪 [BYPASS] Processamento manual iniciado para code: ${code}`)
 
   try {
     // Buscar purchase pelo code
@@ -75,7 +72,7 @@ export async function POST(
       data: { status: 'PROCESSING' },
     })
 
-    console.log(`🧪 [TEST_MODE] Buscando dados para ${type}: ${term}`)
+    console.log(`🧪 [BYPASS] Buscando dados para ${type}: ${term}`)
 
     // Variables para armazenar dados
     let cadastralData: CpfCadastralResponse | null = null
@@ -91,20 +88,20 @@ export async function POST(
 
     // ========== CPF: 3 chamadas APIFull ==========
     if (type === 'CPF') {
-      console.log(`🧪 [TEST_MODE] Consultando APIFull CPF (cadastral)...`)
+      console.log(`🧪 [BYPASS] Consultando APIFull CPF (cadastral)...`)
       cadastralData = await consultCpfCadastral(term)
       name = cadastralData.nome
       region = cadastralData.enderecos?.[0]?.uf || ''
-      console.log(`🧪 [TEST_MODE] CPF Cadastral: nome=${name}, região=${region}`)
+      console.log(`🧪 [BYPASS] CPF Cadastral: nome=${name}, região=${region}`)
 
-      console.log(`🧪 [TEST_MODE] Consultando APIFull CPF (financeiro + processos em paralelo)...`)
+      console.log(`🧪 [BYPASS] Consultando APIFull CPF (financeiro + processos em paralelo)...`)
       const [financialData, processosResult] = await Promise.all([
         consultCpfFinancial(term).catch((err) => {
-          console.error('🧪 [TEST_MODE] CPF Financial error:', err)
+          console.error('🧪 [BYPASS] CPF Financial error:', err)
           return null
         }),
         consultCpfProcessos(term).catch((err) => {
-          console.error('🧪 [TEST_MODE] CPF Processos error:', err)
+          console.error('🧪 [BYPASS] CPF Processos error:', err)
           return { processos: [], totalProcessos: 0 } as ProcessosCpfResponse
         }),
       ])
@@ -113,29 +110,29 @@ export async function POST(
       processosData = processosResult
 
       if (cpfFinancialData) {
-        console.log(`🧪 [TEST_MODE] CPF Financial: ${cpfFinancialData.totalProtestos} protestos, ${cpfFinancialData.totalPendencias} pendências`)
+        console.log(`🧪 [BYPASS] CPF Financial: ${cpfFinancialData.totalProtestos} protestos, ${cpfFinancialData.totalPendencias} pendências`)
       }
-      console.log(`🧪 [TEST_MODE] CPF Processos: ${processosData.totalProcessos} processos`)
+      console.log(`🧪 [BYPASS] CPF Processos: ${processosData.totalProcessos} processos`)
 
       // Calcular resumo financeiro (sem IA)
       financialSummary = calculateCpfFinancialSummary(cpfFinancialData)
     }
     // ========== CNPJ: 2 chamadas APIFull ==========
     else {
-      console.log(`🧪 [TEST_MODE] Consultando APIFull CNPJ (dossiê)...`)
+      console.log(`🧪 [BYPASS] Consultando APIFull CNPJ (dossiê)...`)
       dossieData = await consultCnpjDossie(term)
       name = dossieData.razaoSocial
       region = dossieData.endereco?.uf || ''
-      console.log(`🧪 [TEST_MODE] CNPJ Dossiê: razaoSocial=${name}, situação=${dossieData.situacao}`)
+      console.log(`🧪 [BYPASS] CNPJ Dossiê: razaoSocial=${name}, situação=${dossieData.situacao}`)
 
-      console.log(`🧪 [TEST_MODE] Consultando APIFull CNPJ (financeiro)...`)
+      console.log(`🧪 [BYPASS] Consultando APIFull CNPJ (financeiro)...`)
       cnpjFinancialData = await consultCnpjFinancial(term).catch((err) => {
-        console.error('🧪 [TEST_MODE] CNPJ Financial error:', err)
+        console.error('🧪 [BYPASS] CNPJ Financial error:', err)
         return null
       })
 
       if (cnpjFinancialData) {
-        console.log(`🧪 [TEST_MODE] CNPJ Financial: ${cnpjFinancialData.totalProtestos} protestos, ${cnpjFinancialData.totalPendencias} pendências`)
+        console.log(`🧪 [BYPASS] CNPJ Financial: ${cnpjFinancialData.totalProtestos} protestos, ${cnpjFinancialData.totalPendencias} pendências`)
       }
 
       // Calcular resumo financeiro (sem IA)
@@ -143,24 +140,24 @@ export async function POST(
     }
 
     // Busca na web (Serper)
-    console.log(`🧪 [TEST_MODE] Buscando na web (Serper)...`)
+    console.log(`🧪 [BYPASS] Buscando na web (Serper)...`)
     googleData = await searchWeb(name, term, type).catch((err) => {
-      console.error('🧪 [TEST_MODE] Google/Serper error:', err)
+      console.error('🧪 [BYPASS] Google/Serper error:', err)
       return { byDocument: [], byName: [], reclameAqui: [] }
     })
 
-    console.log(`🧪 [TEST_MODE] Web: byDocument=${googleData.byDocument.length}, byName=${googleData.byName.length}, reclameAqui=${googleData.reclameAqui.length}`)
+    console.log(`🧪 [BYPASS] Web: byDocument=${googleData.byDocument.length}, byName=${googleData.byName.length}, reclameAqui=${googleData.reclameAqui.length}`)
 
     // ========== IA 1: Analisar processos (se houver) ==========
     if (type === 'CPF' && processosData && processosData.processos.length > 0) {
-      console.log(`🧪 [TEST_MODE] Analisando processos com IA...`)
+      console.log(`🧪 [BYPASS] Analisando processos com IA...`)
       const processosResult = await analyzeProcessos(processosData.processos, term)
       processAnalysis = processosResult.processAnalysis
-      console.log(`🧪 [TEST_MODE] IA Processos: ${processAnalysis.length} analisados`)
+      console.log(`🧪 [BYPASS] IA Processos: ${processAnalysis.length} analisados`)
     }
 
     // ========== IA 2: Analisar menções e gerar resumo ==========
-    console.log(`🧪 [TEST_MODE] Gerando resumo com IA...`)
+    console.log(`🧪 [BYPASS] Gerando resumo com IA...`)
     const mentions = [
       ...(googleData.byDocument || []),
       ...(googleData.byName || []),
@@ -175,7 +172,7 @@ export async function POST(
       region,
     }, term)
 
-    console.log(`🧪 [TEST_MODE] Resumo gerado com sucesso`)
+    console.log(`🧪 [BYPASS] Resumo gerado com sucesso`)
 
     // Aplicar classificações nos resultados do Google
     if (googleData && summaryResult.mentionClassifications) {
@@ -192,7 +189,7 @@ export async function POST(
     }
 
     // Salvar SearchResult
-    console.log(`🧪 [TEST_MODE] Salvando SearchResult...`)
+    console.log(`🧪 [BYPASS] Salvando SearchResult...`)
     const dataToSave = type === 'CPF'
       ? {
           cadastral: cadastralData,
@@ -233,7 +230,7 @@ export async function POST(
       },
     })
 
-    console.log(`🧪 [TEST_MODE] Purchase completada! SearchResult ID: ${searchResult.id}`)
+    console.log(`🧪 [BYPASS] Purchase completada! SearchResult ID: ${searchResult.id}`)
 
     // Send email notification
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -253,7 +250,7 @@ export async function POST(
       reportUrl: `${appUrl}/relatorio/${searchResult.id}`,
     })
   } catch (error) {
-    console.error('🧪 [TEST_MODE] Process search error:', error)
+    console.error('🧪 [BYPASS] Process search error:', error)
 
     // Update purchase to FAILED
     const purchase = await prisma.purchase.findUnique({

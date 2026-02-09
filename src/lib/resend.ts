@@ -1,8 +1,4 @@
-import { isMockMode } from './mock-mode'
-
-// TEST_MODE: Não envia emails reais, apenas loga
-// TODO: Remover TEST_MODE=true quando Resend estiver configurado em produção
-const isTestMode = process.env.TEST_MODE === 'true'
+import { isBypassMode } from './mock-mode'
 
 export interface SendEmailParams {
   to: string
@@ -15,12 +11,11 @@ export interface SendEmailResponse {
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<SendEmailResponse> {
-  // TEST_MODE ou MOCK_MODE: não envia email real
-  if (isTestMode || isMockMode) {
-    const mode = isTestMode ? 'TEST' : 'MOCK'
-    console.log(`📧 [${mode}] Para: ${params.to} | Assunto: ${params.subject}`)
+  // Bypass mode: não envia email real (MOCK_MODE ou TEST_MODE)
+  if (isBypassMode) {
+    console.log(`📧 [BYPASS] Para: ${params.to} | Assunto: ${params.subject}`)
     console.log(`   Conteudo: ${params.html.substring(0, 100)}...`)
-    return { id: `${mode.toLowerCase()}_${Date.now()}` }
+    return { id: `bypass_${Date.now()}` }
   }
 
   // === CHAMADA REAL (Parte B) ===

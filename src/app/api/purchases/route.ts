@@ -4,10 +4,7 @@ import { createPixCharge } from '@/lib/asaas'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument } from '@/lib/validators'
-
-// TEST_MODE: Bypass do Asaas - cria purchase PENDING aguardando ação manual do admin
-// TODO: Remover TEST_MODE=true quando Asaas estiver configurado em produção
-const TEST_MODE = process.env.TEST_MODE === 'true'
+import { isBypassMode } from '@/lib/mock-mode'
 
 interface CreatePurchaseRequest {
   term: string
@@ -55,8 +52,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check rate limit by IP (bypass in TEST_MODE)
-    if (!TEST_MODE) {
+    // Check rate limit by IP (bypass in MOCK_MODE/TEST_MODE)
+    if (!isBypassMode) {
       const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
       const rateLimit = await checkRateLimit(ip, 'purchase')
       if (!rateLimit.allowed) {
@@ -105,9 +102,9 @@ export async function POST(request: NextRequest) {
     // Get price from env
     const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
 
-    // TEST_MODE: Bypass Asaas - cria purchase PENDING aguardando ação manual do admin
-    if (TEST_MODE) {
-      console.log(`🧪 [TEST_MODE] Bypass Asaas - criando purchase PENDING para: ${cleanedTerm}`)
+    // Bypass mode: cria purchase PENDING aguardando ação manual do admin (sem Asaas)
+    if (isBypassMode) {
+      console.log(`🧪 [BYPASS] Asaas bypass - criando purchase PENDING para: ${cleanedTerm}`)
 
       // Cria purchase com status PENDING - aguarda ação manual do admin
       const purchase = await prisma.purchase.create({
@@ -121,14 +118,14 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      console.log(`🧪 [TEST_MODE] Purchase criada PENDING: ${purchase.code} - aguardando ação manual no admin`)
+      console.log(`🧪 [BYPASS] Purchase criada PENDING: ${purchase.code} - aguardando ação manual no admin`)
 
       // Retorna URL de confirmação direto (sem checkout Asaas)
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       return NextResponse.json({
         code: purchase.code,
         checkoutUrl: `${appUrl}/compra/confirmacao?code=${purchase.code}`,
-        _testMode: true,
+        _bypassMode: true,
       })
     }
 

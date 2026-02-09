@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 import { inngest } from '@/lib/inngest'
-
-const TEST_MODE = process.env.TEST_MODE === 'true'
+import { isBypassMode } from '@/lib/mock-mode'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -78,13 +77,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     } catch (err) {
       console.error('Failed to trigger Inngest job:', err)
 
-      // In TEST_MODE, use sync fallback instead of failing
-      if (TEST_MODE) {
-        console.log(`🧪 [TEST_MODE] Inngest indisponível, usando fallback síncrono`)
+      // In bypass mode, use sync fallback instead of failing
+      if (isBypassMode) {
+        console.log(`🧪 [BYPASS] Inngest indisponível, usando fallback síncrono`)
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
         fetch(`${appUrl}/api/process-search/${purchase.code}`, { method: 'POST' })
-          .then(() => console.log(`🧪 [TEST_MODE] Processamento síncrono concluído: ${purchase.code}`))
-          .catch(fallbackErr => console.error(`🧪 [TEST_MODE] Fallback falhou:`, fallbackErr))
+          .then(() => console.log(`🧪 [BYPASS] Processamento síncrono concluído: ${purchase.code}`))
+          .catch(fallbackErr => console.error(`🧪 [BYPASS] Fallback falhou:`, fallbackErr))
         inngestDispatched = true // Consider it dispatched (via fallback)
       } else {
         // Rollback status if Inngest fails in production

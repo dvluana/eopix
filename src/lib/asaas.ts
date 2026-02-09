@@ -1,4 +1,4 @@
-import { isMockMode } from './mock-mode'
+import { isBypassMode } from './mock-mode'
 
 export interface CreatePixChargeParams {
   amount: number // em centavos
@@ -27,13 +27,13 @@ function getAsaasBaseUrl(): string {
 export async function createPixCharge(
   params: CreatePixChargeParams
 ): Promise<PixChargeResponse> {
-  if (isMockMode) {
-    console.log(`[MOCK] Asaas createPixCharge: R$${params.amount / 100}`)
-    const fakePaymentId = `pay_mock_${Date.now()}`
-    // Mock: redirect direto pra confirmacao (pula checkout)
+  if (isBypassMode) {
+    console.log(`🧪 [BYPASS] Asaas bypass - criando fake checkout: R$${params.amount / 100}`)
+    const fakePaymentId = `pay_bypass_${Date.now()}`
+    // Bypass: redirect direto pra confirmacao (pula checkout Asaas)
     return {
       paymentId: fakePaymentId,
-      checkoutUrl: `${process.env.NEXT_PUBLIC_APP_URL}/compra/confirmacao?code=${params.externalRef}&mock=true`,
+      checkoutUrl: `${process.env.NEXT_PUBLIC_APP_URL}/compra/confirmacao?code=${params.externalRef}&bypass=true`,
     }
   }
 
@@ -81,12 +81,12 @@ export async function createPixCharge(
 }
 
 export async function refundPayment(paymentId: string): Promise<RefundResponse> {
-  if (isMockMode) {
-    console.log(`[MOCK] Asaas refundPayment: ${paymentId}`)
+  if (isBypassMode) {
+    console.log(`🧪 [BYPASS] Asaas refundPayment: ${paymentId}`)
     await new Promise((r) => setTimeout(r, 300))
     return {
       success: true,
-      refundId: `refund_mock_${Date.now()}`,
+      refundId: `refund_bypass_${Date.now()}`,
     }
   }
 
