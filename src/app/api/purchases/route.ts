@@ -4,9 +4,8 @@ import { createPixCharge } from '@/lib/asaas'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument } from '@/lib/validators'
-import { inngest } from '@/lib/inngest'
 
-// TEST_MODE: Bypass do Asaas - cria purchase já paga e dispara processamento
+// TEST_MODE: Bypass do Asaas - cria purchase PENDING aguardando ação manual do admin
 // TODO: Remover TEST_MODE=true quando Asaas estiver configurado em produção
 const TEST_MODE = process.env.TEST_MODE === 'true'
 
@@ -106,54 +105,23 @@ export async function POST(request: NextRequest) {
     // Get price from env
     const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
 
-    // TEST_MODE: Bypass Asaas - cria purchase já paga
-    // Nota: Em TEST_MODE sem Inngest configurado, o processamento é feito via endpoint separado
+    // TEST_MODE: Bypass Asaas - cria purchase PENDING aguardando ação manual do admin
     if (TEST_MODE) {
-      console.log(`🧪 [TEST_MODE] Bypass Asaas - criando purchase PAID para: ${cleanedTerm}`)
+      console.log(`🧪 [TEST_MODE] Bypass Asaas - criando purchase PENDING para: ${cleanedTerm}`)
 
-      // Cria purchase já com status PAID (mas ainda PROCESSING para indicar que precisa processar)
+      // Cria purchase com status PENDING - aguarda ação manual do admin
       const purchase = await prisma.purchase.create({
         data: {
           userId: user.id,
           code,
           term: cleanedTerm,
           amount: priceCents,
-          status: 'PAID',
-          paidAt: new Date(),
+          status: 'PENDING',
           termsAcceptedAt: new Date(),
         },
       })
 
-      // Tenta disparar Inngest, com fallback para processamento síncrono
-      const hasInngestKey = !!process.env.INNGEST_EVENT_KEY
-      let inngestDispatched = false
-
-      if (hasInngestKey) {
-        try {
-          await inngest.send({
-            name: 'search/process',
-            data: {
-              purchaseId: purchase.id,
-              purchaseCode: purchase.code,
-              term: cleanedTerm,
-              type: isCpf ? 'CPF' : 'CNPJ',
-              email: email.toLowerCase(),
-            },
-          })
-          console.log(`🧪 [TEST_MODE] Inngest job disparado: ${purchase.code}`)
-          inngestDispatched = true
-        } catch {
-          console.log(`🧪 [TEST_MODE] Inngest indisponível, usando fallback síncrono`)
-        }
-      }
-
-      // Fallback: processamento síncrono (fire-and-forget)
-      if (!inngestDispatched) {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-        fetch(`${appUrl}/api/process-search/${purchase.code}`, { method: 'POST' })
-          .then(() => console.log(`🧪 [TEST_MODE] Processamento síncrono concluído: ${purchase.code}`))
-          .catch(err => console.error(`🧪 [TEST_MODE] Fallback falhou:`, err))
-      }
+      console.log(`🧪 [TEST_MODE] Purchase criada PENDING: ${purchase.code} - aguardando ação manual no admin`)
 
       // Retorna URL de confirmação direto (sem checkout Asaas)
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

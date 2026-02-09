@@ -196,7 +196,7 @@ function ConfirmacaoContent() {
               marginTop: 'var(--primitive-space-4)',
               marginBottom: 0
             }}>
-              Pagamento confirmado!
+              Pedido realizado!
             </h1>
 
             {/* 3. BLOCO E-MAIL EM DESTAQUE */}
@@ -399,7 +399,7 @@ function ConfirmacaoContent() {
               </span>
             </div>
 
-            {/* 5. CALLOUT INFORMATIVO - PROCESSANDO */}
+            {/* 5. CALLOUT INFORMATIVO */}
             <div style={{
               marginTop: 'var(--primitive-space-6)',
               background: 'var(--color-bg-secondary)',
@@ -415,7 +415,7 @@ function ConfirmacaoContent() {
                 lineHeight: 1.6,
                 marginBottom: 'var(--primitive-space-2)'
               }}>
-                Sua consulta está sendo processada. Pode levar alguns minutos.
+                Seu pedido foi registrado. Em alguns minutos seu relatório estará pronto.
               </p>
               <p style={{
                 fontFamily: 'var(--font-family-body)',
@@ -463,7 +463,7 @@ function ConfirmacaoContent() {
                 fontWeight: 'var(--primitive-weight-bold)'
               }}
             >
-              Ir para Minhas Consultas
+              IR PARA MINHAS CONSULTAS
             </button>
           </div>
         </div>
