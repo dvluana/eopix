@@ -3,7 +3,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Turnstile } from '@marsidev/react-turnstile'
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import Footer from '@/components/Footer';
 
@@ -14,7 +13,6 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [placeholderText, setPlaceholderText] = React.useState('');
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [turnstileToken, setTurnstileToken] = React.useState('');
   const [isValidating, setIsValidating] = React.useState(false);
   const [searchError, setSearchError] = React.useState('');
 
@@ -73,11 +71,6 @@ export default function LandingPage() {
       return;
     }
 
-    if (!turnstileToken) {
-      setSearchError('Aguarde a verificação de segurança');
-      return;
-    }
-
     setSearchError('');
     setIsValidating(true);
 
@@ -87,7 +80,6 @@ export default function LandingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           document: searchTerm,
-          turnstileToken,
         }),
       });
 
@@ -243,19 +235,6 @@ export default function LandingPage() {
               >
                 {isValidating ? 'Validando...' : 'E o Pix? Consultar'}
               </button>
-            </div>
-
-            {/* Turnstile CAPTCHA */}
-            <div style={{ marginTop: 'var(--primitive-space-4)', display: 'flex', justifyContent: 'center' }}>
-              <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
-                onSuccess={(token) => setTurnstileToken(token)}
-                onError={() => setSearchError('Erro na verificação de segurança')}
-                options={{
-                  theme: 'dark',
-                  size: 'normal',
-                }}
-              />
             </div>
 
             {/* Erro de busca */}

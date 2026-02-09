@@ -1,31 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyTurnstile } from '@/lib/turnstile'
 import { isValidCPF, isValidCNPJ, cleanDocument } from '@/lib/validators'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 interface ValidateRequest {
   document: string
-  turnstileToken: string
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as ValidateRequest
-    const { document, turnstileToken } = body
+    const { document } = body
 
-    if (!document || !turnstileToken) {
+    if (!document) {
       return NextResponse.json(
-        { error: 'Documento e token Turnstile sao obrigatorios' },
-        { status: 400 }
-      )
-    }
-
-    // Verify Turnstile
-    const turnstileValid = await verifyTurnstile(turnstileToken)
-    if (!turnstileValid) {
-      return NextResponse.json(
-        { error: 'Verificacao de seguranca falhou' },
+        { error: 'Documento e obrigatorio' },
         { status: 400 }
       )
     }

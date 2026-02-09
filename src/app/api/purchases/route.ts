@@ -56,9 +56,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check rate limit (bypass in TEST_MODE)
+    // Check rate limit by IP (bypass in TEST_MODE)
     if (!TEST_MODE) {
-      const rateLimit = await checkRateLimit(email, 'purchase')
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+      const rateLimit = await checkRateLimit(ip, 'purchase')
       if (!rateLimit.allowed) {
         return NextResponse.json(
           { error: 'Limite de compras excedido. Tente novamente mais tarde.' },
