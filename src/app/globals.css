@@ -148,49 +148,49 @@
     --layout-max-width-680: 680px;
     --layout-max-width-840: 840px;
 
-    /* shadcn/ui variables */
-    --background: 240 239 235;
-    --foreground: 26 26 26;
-    --card: 0 0 100%;
-    --card-foreground: 26 26 26;
-    --popover: 0 0 100%;
-    --popover-foreground: 26 26 26;
-    --primary: 48 100 50%;
-    --primary-foreground: 26 26 26;
-    --secondary: 0 0 15%;
-    --secondary-foreground: 0 0 100%;
-    --muted: 0 0 92%;
-    --muted-foreground: 26 26 26;
-    --accent: 48 100 50%;
-    --accent-foreground: 26 26 26;
+    /* shadcn/ui variables - usando HSL corretamente */
+    --background: 45 15% 94%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 48 100% 50%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 45 10% 92%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 48 100% 50%;
+    --accent-foreground: 0 0% 10%;
     --destructive: 0 68% 50%;
-    --destructive-foreground: 0 0 100%;
-    --border: 0 0 85%;
-    --input: 0 0 85%;
-    --ring: 48 100 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 45 10% 85%;
+    --input: 45 10% 85%;
+    --ring: 48 100% 50%;
     --radius: 8px;
   }
 
   .dark {
-    --background: 26 26 26;
-    --foreground: 240 239 235;
-    --card: 26 26 26;
-    --card-foreground: 240 239 235;
-    --popover: 26 26 26;
-    --popover-foreground: 240 239 235;
-    --primary: 48 100 50%;
-    --primary-foreground: 26 26 26;
-    --secondary: 0 0 25%;
-    --secondary-foreground: 0 0 100%;
-    --muted: 0 0 20%;
-    --muted-foreground: 0 0 70%;
-    --accent: 48 100 50%;
-    --accent-foreground: 26 26 26;
+    --background: 0 0% 10%;
+    --foreground: 45 15% 94%;
+    --card: 0 0% 10%;
+    --card-foreground: 45 15% 94%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 45 15% 94%;
+    --primary: 48 100% 50%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 0 0% 25%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 48 100% 50%;
+    --accent-foreground: 0 0% 10%;
     --destructive: 0 68% 50%;
-    --destructive-foreground: 0 0 100%;
-    --border: 0 0 25%;
-    --input: 0 0 25%;
-    --ring: 48 100 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 48 100% 50%;
   }
 
   * {
@@ -208,7 +208,6 @@
     background: var(--color-bg-secondary);
     color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
     /* Use Next.js font variables directly */
     font-family: var(--font-ibm-plex-mono, 'IBM Plex Mono', monospace);
     --font-family-heading: var(--font-zilla-slab, 'Zilla Slab', serif);

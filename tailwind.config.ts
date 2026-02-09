@@ -26,8 +26,8 @@ const config: Config = {
       },
       colors: {
         // Design System Colors
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         paper: {
           50: "#FFFFFF",
           100: "#F0EFEB",
