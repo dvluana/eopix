@@ -18,7 +18,6 @@ import {
   CompanyInfoCard,
   PersonInfoCard,
   ReclameAquiCard,
-  ActivityIndicator,
   LimitedDataWarning,
   PositiveMentionsBlock,
 } from '@/components/relatorio';
@@ -29,116 +28,17 @@ import {
   generateProcessDetail,
   generateFinancialDetail,
 } from '@/lib/report-utils';
-
-interface ApiFullData {
-  name?: string
-  razaoSocial?: string
-  cleanNameYears?: number | null
-  recentInquiries?: number
-  protests?: Array<{
-    date: string
-    amount: number
-    registry: string
-  }>
-  debts?: Array<{
-    type: string
-    amount: number
-    origin: string
-  }>
-  bouncedChecks?: number
-  totalProtests?: number
-  totalProtestsAmount?: number
-  region?: string
-}
-
-interface ProcessData {
-  tribunal: string
-  date: string
-  classe: string
-  polo: string
-  number?: string
-  source?: string
-}
-
-interface GoogleResult {
-  title: string
-  url: string
-  snippet?: string
-  classification?: 'positive' | 'negative' | 'neutral'
-}
-
-interface GoogleData {
-  general?: GoogleResult[]
-  focused?: GoogleResult[]
-  reclameAqui?: GoogleResult[]
-}
-
-interface CnaeItem {
-  codigo: string
-  descricao: string
-}
-
-interface SocioItem {
-  nome: string
-  qualificacao: string
-}
-
-interface BrasilApiData {
-  razaoSocial: string
-  situacao?: string
-  dataAbertura?: string
-  dataBaixa?: string
-  cnaePrincipal?: CnaeItem
-  cnaeSecundarios?: CnaeItem[]
-  socios?: SocioItem[]
-  capitalSocial?: number
-}
-
-interface ReclameAquiData {
-  nota: number | null
-  indiceResolucao: number | null
-  totalReclamacoes?: number | null
-  respondidas?: number | null
-  seloRA1000?: boolean
-  url: string | null
-}
-
-interface CadastralEnderecoItem {
-  logradouro: string
-  numero: string
-  complemento: string
-  bairro: string
-  cidade: string
-  uf: string
-  cep: string
-}
-
-interface CadastralTelefoneItem {
-  ddd: string
-  numero: string
-  tipo: string
-}
-
-interface CadastralEmpresaVinculadaItem {
-  cnpj: string
-  razaoSocial: string
-  participacao: string
-}
-
-interface CadastralCpfData {
-  nome: string
-  cpf: string
-  dataNascimento: string | null
-  idade: number | null
-  nomeMae: string | null
-  sexo: string | null
-  signo: string | null
-  situacaoRF: string | null
-  enderecos: CadastralEnderecoItem[]
-  telefones: CadastralTelefoneItem[]
-  emails: string[]
-  empresasVinculadas: CadastralEmpresaVinculadaItem[]
-}
+import type {
+  CpfCadastralResponse,
+  ProcessosCpfResponse,
+  SrsPremiumCpfResponse,
+  SrsPremiumCnpjResponse,
+  DossieResponse,
+  FinancialSummary,
+  ProcessAnalysis,
+  GoogleSearchResponse,
+  ReclameAquiData,
+} from '@/types/report';
 
 interface ReportData {
   id: string
@@ -146,12 +46,14 @@ interface ReportData {
   type: 'CPF' | 'CNPJ'
   name: string
   data: {
-    apiFull?: ApiFullData
-    cadastral?: CadastralCpfData
-    brasilApi?: BrasilApiData
-    processes?: ProcessData[]
-    google?: GoogleData
-    reclameAqui?: ReclameAquiData
+    cadastral?: CpfCadastralResponse       // CPF cadastral (r-cpf-completo)
+    processos?: ProcessosCpfResponse       // Processos (r-acoes-e-processos-judiciais)
+    financial?: SrsPremiumCpfResponse | SrsPremiumCnpjResponse  // Financeiro (srs-premium)
+    dossie?: DossieResponse                // CNPJ dossie (ic-dossie-juridico)
+    financialSummary?: FinancialSummary    // Resumo financeiro calculado
+    processAnalysis?: ProcessAnalysis[]    // Análise IA de processos
+    google?: GoogleSearchResponse          // Menções web
+    reclameAqui?: ReclameAquiData          // Reclame Aqui
   }
   summary: string
   createdAt: string
@@ -177,12 +79,12 @@ function formatDateOnly(isoDate: string): string {
   return `${day}/${month}/${year}`
 }
 
-// Format currency
+// Format currency (values are in BRL, not cents)
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  }).format(amount / 100) // assuming amount is in cents
+  }).format(amount)
 }
 
 export default function Page() {
@@ -404,52 +306,58 @@ export default function Page() {
   }
 
   // Transform API data to component format
-  const apiFull = report.data.apiFull || {};
   const cadastral = report.data.cadastral;
-  const processes = report.data.processes || [];
-  const google = report.data.google || {};
-  const brasilApi = report.data.brasilApi;
+  const financial = report.data.financial;
+  const financialSummary = report.data.financialSummary;
+  const processos = report.data.processos;
+  // processAnalysis disponível em report.data.processAnalysis para uso futuro
+  const google = report.data.google;
+  const dossie = report.data.dossie;
   const reclameAqui = report.data.reclameAqui;
 
+  // Extract process list (from processos or dossie for CNPJ)
+  const processCount = processos?.totalProcessos || 0;
+
   // Determine weather status based on data
-  const hasProtests = (apiFull.protests?.length || 0) > 0 || (apiFull.totalProtests || 0) > 0;
-  const hasDebts = (apiFull.debts?.length || 0) > 0;
-  const hasBouncedChecks = (apiFull.bouncedChecks || 0) > 0;
-  const hasProcesses = processes.length > 0;
-  const allMentions = [...(google.general || []), ...(google.focused || [])];
+  const hasProtests = (financialSummary?.totalProtestos || 0) > 0;
+  const hasDebts = (financialSummary?.totalDividas || 0) > 0;
+  const hasBouncedChecks = (financialSummary?.chequesSemFundo || 0) > 0;
+  const hasProcesses = processCount > 0 || (dossie?.acoesAtivas?.quantidade || 0) > 0;
+  const allMentions = [...(google?.byDocument || []), ...(google?.byName || [])];
   const hasNegativeMentions = allMentions.some(m => m.classification === 'negative');
-  const isCompanyInactive = report.type === 'CNPJ' && brasilApi && brasilApi.situacao !== 'ATIVA';
+  const isCompanyInactive = report.type === 'CNPJ' && dossie && dossie.situacao !== 'ATIVA';
   const hasNegativeReclameAqui = reclameAqui && reclameAqui.nota !== null && reclameAqui.nota < 7;
 
   const weatherStatus = (hasProtests || hasDebts || hasBouncedChecks || hasProcesses || hasNegativeMentions || isCompanyInactive || hasNegativeReclameAqui) ? 'chuva' : 'sol';
 
   // Calculate total occurrences for climate message
   const totalOccurrences =
-    (apiFull.totalProtests || apiFull.protests?.length || 0) +
-    (apiFull.debts?.length || 0) +
-    (hasBouncedChecks ? 1 : 0) +
-    processes.length +
+    (financialSummary?.totalProtestos || 0) +
+    (financialSummary?.totalDividas || 0) +
+    (hasBouncedChecks ? financialSummary?.chequesSemFundo || 0 : 0) +
+    processCount +
+    (dossie?.acoesAtivas?.quantidade || 0) +
     allMentions.filter(m => m.classification === 'negative').length +
     (isCompanyInactive ? 1 : 0) +
     (hasNegativeReclameAqui ? 1 : 0);
 
   // Check for limited data
-  const hasLimitedData = !apiFull.name && !apiFull.razaoSocial && processes.length === 0 && allMentions.length === 0;
+  const hasLimitedData = !cadastral?.nome && !dossie?.razaoSocial && processCount === 0 && allMentions.length === 0;
 
   // Build checklist items
   const checklistItems = [];
 
   // Financial status - with rich detail including values
   if (hasProtests || hasDebts) {
-    const protestCount = apiFull.totalProtests || apiFull.protests?.length || 0;
-    const protestTotal = apiFull.totalProtestsAmount || 0;
-    const debtCount = apiFull.debts?.length || 0;
-    const debtTotal = apiFull.debts?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0;
+    const protestCount = financialSummary?.totalProtestos || 0;
+    const protestTotal = financialSummary?.valorTotalProtestos || 0;
+    const debtCount = financialSummary?.totalDividas || 0;
+    const debtTotal = financialSummary?.valorTotalDividas || 0;
 
     const financialDetail = generateFinancialDetail(
       { count: protestCount, totalAmount: protestTotal },
       { count: debtCount, totalAmount: debtTotal },
-      apiFull.bouncedChecks || 0
+      financialSummary?.chequesSemFundo || 0
     );
 
     checklistItems.push({
@@ -460,16 +368,22 @@ export default function Page() {
   } else {
     checklistItems.push({
       label: 'Situação financeira',
-      detail: apiFull.cleanNameYears
-        ? `Nome limpo há ${apiFull.cleanNameYears} anos`
-        : 'Sem protestos ou dívidas',
+      detail: 'Sem protestos ou dívidas',
       status: 'ok' as const,
     });
   }
 
   // Judicial status - with rich detail including process types
+  // Transform processos to format expected by generateProcessDetail
+  const processesForDetail = processos?.processos?.map(p => ({
+    tribunal: p.tribunal,
+    date: p.dataAutuacao,
+    classe: p.classeProcessual?.nome || '',
+    polo: p.partes?.find(part => part.nome.toLowerCase().includes(report.name.toLowerCase()))?.polo === 'PASSIVO' ? 'reu' : 'autor',
+  })) || [];
+
   if (hasProcesses) {
-    const processDetail = generateProcessDetail(processes);
+    const processDetail = generateProcessDetail(processesForDetail);
     checklistItems.push({
       label: 'Processos judiciais',
       detail: processDetail,
@@ -485,7 +399,7 @@ export default function Page() {
 
   // Web mentions
   if (hasNegativeMentions) {
-    const negativeCount = [...(google.general || []), ...(google.focused || [])].filter(m => m.classification === 'negative').length;
+    const negativeCount = allMentions.filter(m => m.classification === 'negative').length;
     checklistItems.push({
       label: 'Menções na web',
       detail: `${negativeCount} ocorrência${negativeCount > 1 ? 's' : ''} negativa${negativeCount > 1 ? 's' : ''}`,
@@ -500,38 +414,39 @@ export default function Page() {
   }
 
   // Company status (CNPJ only)
-  if (report.type === 'CNPJ' && brasilApi) {
+  if (report.type === 'CNPJ' && dossie) {
     checklistItems.push({
       label: 'Cadastro empresarial',
-      detail: brasilApi.situacao === 'ATIVA'
-        ? `Ativo${brasilApi.dataAbertura ? ` desde ${new Date(brasilApi.dataAbertura).getFullYear()}` : ''}`
-        : brasilApi.situacao || 'Verificar situação',
-      status: brasilApi.situacao === 'ATIVA' ? 'ok' as const : 'warning' as const,
+      detail: dossie.situacao === 'ATIVA'
+        ? `Ativo${dossie.dataAbertura ? ` desde ${new Date(dossie.dataAbertura).getFullYear()}` : ''}`
+        : dossie.situacao || 'Verificar situação',
+      status: dossie.situacao === 'ATIVA' ? 'ok' as const : 'warning' as const,
     });
   }
 
   // Format protests for FinancialCard (sorted by value, highest first)
-  const protestosFormatted = (apiFull.protests || []).map(p => ({
-    data: formatDateOnly(p.date),
-    valor: formatCurrency(p.amount),
-    cartorio: p.registry,
+  const protestosFormatted = (financial?.protestos || []).map(p => ({
+    data: formatDateOnly(p.data),
+    valor: formatCurrency(p.valor),
+    cartorio: p.cartorio,
   }));
-  const protestos = sortFinancialByValue(protestosFormatted);
+  const protestosCard = sortFinancialByValue(protestosFormatted);
 
   // Format debts for FinancialCard (sorted by value, highest first)
-  const dividasFormatted = (apiFull.debts || []).map(d => ({
-    tipo: d.type,
-    valor: formatCurrency(d.amount),
-    origem: d.origin,
+  const dividasFormatted = (financial?.pendenciasFinanceiras || []).map(d => ({
+    tipo: d.tipo,
+    valor: formatCurrency(d.valor),
+    origem: d.origem,
   }));
   const dividas = sortFinancialByValue(dividasFormatted);
 
   // Calculate total amounts for financial card
-  const totalProtestosValor = apiFull.totalProtestsAmount ? formatCurrency(apiFull.totalProtestsAmount) : undefined;
+  const totalProtestosValor = financialSummary?.valorTotalProtestos ? formatCurrency(financialSummary.valorTotalProtestos) : undefined;
+  const totalDividasValor = financialSummary?.valorTotalDividas ? formatCurrency(financialSummary.valorTotalDividas) : undefined;
 
   // Sort processes by gravity and format for JudicialCard
-  const sortedProcesses = sortProcessesByGravity(processes);
-  const processos = sortedProcesses.map(p => ({
+  const sortedProcesses = sortProcessesByGravity(processesForDetail);
+  const processosCard = sortedProcesses.map(p => ({
     tribunal: p.tribunal,
     data: formatDateOnly(p.date),
     classe: p.classe,
@@ -547,13 +462,13 @@ export default function Page() {
 
   // Format web mentions for WebMentionsCard (negative)
   const negativeMentions = sortedMentions
-    .filter((m): m is GoogleResult & { classification: 'negative' } => m.classification === 'negative')
+    .filter(m => m.classification === 'negative')
     .map(m => ({
       fonte: new URL(m.url).hostname.replace('www.', ''),
       data: '',
       resumo: m.snippet || m.title,
       url: m.url,
-      classification: m.classification,
+      classification: m.classification as 'negative',
     }));
 
   // Format web mentions for PositiveMentionsBlock (positive/neutral)
@@ -665,16 +580,14 @@ export default function Page() {
         />
 
         {/* 4.1 COMPANY INFO CARD (CNPJ only) */}
-        {report.type === 'CNPJ' && brasilApi && (
+        {report.type === 'CNPJ' && dossie && (
           <CompanyInfoCard
-            razaoSocial={brasilApi.razaoSocial}
-            situacao={brasilApi.situacao || 'ATIVA'}
-            dataAbertura={brasilApi.dataAbertura}
-            dataBaixa={brasilApi.dataBaixa}
-            cnaePrincipal={brasilApi.cnaePrincipal}
-            cnaeSecundarios={brasilApi.cnaeSecundarios}
-            socios={brasilApi.socios}
-            capitalSocial={brasilApi.capitalSocial}
+            razaoSocial={dossie.razaoSocial}
+            situacao={dossie.situacao || 'ATIVA'}
+            dataAbertura={dossie.dataAbertura ?? undefined}
+            cnaePrincipal={dossie.cnaePrincipal ?? undefined}
+            socios={dossie.socios}
+            capitalSocial={dossie.capitalSocial ?? undefined}
           />
         )}
 
@@ -693,10 +606,7 @@ export default function Page() {
           />
         )}
 
-        {/* 4.3 ACTIVITY INDICATOR (CPF only) */}
-        {report.type === 'CPF' && apiFull.recentInquiries && apiFull.recentInquiries > 0 && (
-          <ActivityIndicator recentInquiries={apiFull.recentInquiries} />
-        )}
+        {/* 4.3 ACTIVITY INDICATOR - removido pois recentInquiries não está mais disponível */}
 
         {/* 4.4 RECLAME AQUI CARD */}
         {reclameAqui && reclameAqui.nota !== null && reclameAqui.indiceResolucao !== null && reclameAqui.url && (
@@ -713,17 +623,19 @@ export default function Page() {
         {/* 5. CARDS ESPECÍFICOS DE CHUVA */}
         {weatherStatus === 'chuva' && (
           <>
-            {(protestos.length > 0 || dividas.length > 0 || hasBouncedChecks) && (
+            {(protestosCard.length > 0 || dividas.length > 0 || hasBouncedChecks) && (
               <FinancialCard
-                protestos={protestos}
+                protestos={protestosCard}
                 dividas={dividas}
-                chequesDevolvidos={apiFull.bouncedChecks}
+                chequesDevolvidos={financialSummary?.chequesSemFundo}
                 nomeSujo={hasProtests || hasDebts}
-                totalProtestos={apiFull.totalProtests}
+                totalProtestos={financialSummary?.totalProtestos}
                 totalProtestosValor={totalProtestosValor}
+                totalDividas={financialSummary?.totalDividas}
+                totalDividasValor={totalDividasValor}
               />
             )}
-            {processos.length > 0 && <JudicialCard processos={processos} />}
+            {processosCard.length > 0 && <JudicialCard processos={processosCard} />}
             {negativeMentions.length > 0 && <WebMentionsCard mentions={negativeMentions} variant="chuva" />}
           </>
         )}

@@ -227,13 +227,13 @@ export function generateFinancialSummary(
 }
 
 /**
- * Format currency value
+ * Format currency value (values are in BRL, not cents)
  */
 function formatCurrencyValue(amount: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  }).format(amount / 100) // assuming amount is in cents
+  }).format(amount)
 }
 
 /**
