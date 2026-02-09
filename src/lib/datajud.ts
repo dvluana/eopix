@@ -31,12 +31,17 @@ export async function searchDatajud(
 
   // === CHAMADA REAL (API publica do CNJ) ===
   // Endpoint: https://api-publica.datajud.cnj.jus.br/
+  // Autenticação: APIKey pública do CNJ (pode mudar, verificar Wiki do Datajud)
+  // Ref: https://datajud-wiki.cnj.jus.br/api-publica/
+  const DATAJUD_API_KEY = process.env.DATAJUD_API_KEY || 'cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw=='
+
   const res = await fetch(
     `https://api-publica.datajud.cnj.jus.br/api_publica_trf1/_search`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `APIKey ${DATAJUD_API_KEY}`,
       },
       body: JSON.stringify({
         query: {

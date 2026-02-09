@@ -305,12 +305,12 @@ export default function Page() {
                   </tr>
                   <tr>
                     <td style={tableStyles.td}>Processos judiciais</td>
-                    <td style={tableStyles.td}>Escavador, Datajud/CNJ</td>
+                    <td style={tableStyles.td}>APIFull, Datajud/CNJ</td>
                     <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX) — dados públicos de tribunais</td>
                   </tr>
                   <tr>
                     <td style={tableStyles.td}>Menções na web e Reclame Aqui</td>
-                    <td style={tableStyles.td}>Google Custom Search</td>
+                    <td style={tableStyles.td}>Serper</td>
                     <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX)</td>
                   </tr>
                   <tr>
@@ -403,11 +403,10 @@ export default function Page() {
                 paddingLeft: '20px',
               }}
             >
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>APIFull:</strong> protestos, dívidas, situação fiscal e cadastral</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Escavador:</strong> processos judiciais em tribunais</li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>APIFull:</strong> protestos, dívidas, situação fiscal/cadastral e processos judiciais</li>
               <li><strong style={{ color: 'var(--color-text-primary)' }}>Datajud/CNJ:</strong> processos judiciais (complemento gratuito)</li>
               <li><strong style={{ color: 'var(--color-text-primary)' }}>BrasilAPI:</strong> dados cadastrais de CNPJ (Receita Federal)</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Google Custom Search:</strong> menções na web e perfil no Reclame Aqui</li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Serper:</strong> menções na web e perfil no Reclame Aqui</li>
             </ul>
             <p
               style={{

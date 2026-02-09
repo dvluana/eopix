@@ -1,0 +1,457 @@
+{
+  "info": {
+    "_postman_id": "eopix-apis-collection",
+    "name": "EOPIX APIs",
+    "description": "Collection para testar mapeamentos de APIs do EOPIX",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "BrasilAPI",
+      "item": [
+        {
+          "name": "CNPJ Lookup",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Has required fields', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('razao_social');",
+                  "    pm.expect(json).to.have.property('descricao_situacao_cadastral');",
+                  "    pm.expect(json).to.have.property('cnae_fiscal');",
+                  "    pm.expect(json).to.have.property('qsa');",
+                  "    pm.expect(json).to.have.property('capital_social');",
+                  "    pm.expect(json).to.have.property('municipio');",
+                  "    pm.expect(json).to.have.property('uf');",
+                  "});",
+                  "",
+                  "pm.test('QSA is array', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.qsa).to.be.an('array');",
+                  "});",
+                  "",
+                  "console.log('BrasilAPI Response Structure:', JSON.stringify(pm.response.json(), null, 2));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://brasilapi.com.br/api/cnpj/v1/{{TEST_CNPJ}}",
+              "protocol": "https",
+              "host": ["brasilapi", "com", "br"],
+              "path": ["api", "cnpj", "v1", "{{TEST_CNPJ}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Serper",
+      "item": [
+        {
+          "name": "Google Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Has organic results', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('organic');",
+                  "    pm.expect(json.organic).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Organic results have required fields', function() {",
+                  "    var json = pm.response.json();",
+                  "    if (json.organic && json.organic.length > 0) {",
+                  "        pm.expect(json.organic[0]).to.have.property('title');",
+                  "        pm.expect(json.organic[0]).to.have.property('link');",
+                  "        pm.expect(json.organic[0]).to.have.property('snippet');",
+                  "    }",
+                  "});",
+                  "",
+                  "console.log('Serper Response Structure:', JSON.stringify(pm.response.json(), null, 2));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-KEY",
+                "value": "{{SERPER_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"q\": \"123milhas\",\n    \"num\": 10\n}"
+            },
+            "url": {
+              "raw": "https://google.serper.dev/search",
+              "protocol": "https",
+              "host": ["google", "serper", "dev"],
+              "path": ["search"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Datajud",
+      "item": [
+        {
+          "name": "Search TRF1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "console.log('Datajud Response:', JSON.stringify(json, null, 2));",
+                  "",
+                  "pm.test('Has ElasticSearch structure', function() {",
+                  "    pm.expect(json).to.have.property('hits');",
+                  "    pm.expect(json.hits).to.have.property('hits');",
+                  "});",
+                  "",
+                  "pm.test('Check _source fields for mapping', function() {",
+                  "    if (json.hits && json.hits.hits && json.hits.hits.length > 0) {",
+                  "        var source = json.hits.hits[0]._source;",
+                  "        console.log('_source fields:', Object.keys(source));",
+                  "        console.log('Expected: siglaTribunal, numeroProcesso, dataAjuizamento, classeProcessual');",
+                  "    } else {",
+                  "        console.log('No results found');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "APIKey {{DATAJUD_API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"query\": {\n        \"bool\": {\n            \"should\": [\n                { \"match\": { \"nomeParte\": \"{{TEST_NAME}}\" } }\n            ]\n        }\n    },\n    \"size\": 10\n}"
+            },
+            "url": {
+              "raw": "https://api-publica.datajud.cnj.jus.br/api_publica_trf1/_search",
+              "protocol": "https",
+              "host": ["api-publica", "datajud", "cnj", "jus", "br"],
+              "path": ["api_publica_trf1", "_search"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "APIFull",
+      "item": [
+        {
+          "name": "CPF Cadastral (ic-cpf-completo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "console.log('APIFull CPF Cadastral Response:', JSON.stringify(json, null, 2));",
+                  "",
+                  "pm.test('Check response structure', function() {",
+                  "    // Esperado: dados.CREDCADASTRAL",
+                  "    console.log('Root keys:', Object.keys(json));",
+                  "    if (json.dados) {",
+                  "        console.log('dados keys:', Object.keys(json.dados));",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{APIFULL_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cpf\": \"{{TEST_CPF}}\",\n    \"link\": \"ic-cpf-completo\"\n}"
+            },
+            "url": {
+              "raw": "https://api.apifull.com.br/api/ic-cpf-completo",
+              "protocol": "https",
+              "host": ["api", "apifull", "com", "br"],
+              "path": ["api", "ic-cpf-completo"]
+            }
+          }
+        },
+        {
+          "name": "CPF Boa Vista (e-boavista)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "console.log('APIFull Boa Vista Response:', JSON.stringify(json, null, 2));",
+                  "",
+                  "pm.test('Check response structure', function() {",
+                  "    // Esperado: dados.data.saida",
+                  "    console.log('Root keys:', Object.keys(json));",
+                  "    if (json.dados) {",
+                  "        console.log('dados keys:', Object.keys(json.dados));",
+                  "        if (json.dados.data) {",
+                  "            console.log('dados.data keys:', Object.keys(json.dados.data));",
+                  "        }",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{APIFULL_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"document\": \"{{TEST_CPF}}\",\n    \"link\": \"e-boavista\"\n}"
+            },
+            "url": {
+              "raw": "https://api.apifull.com.br/api/e-boavista",
+              "protocol": "https",
+              "host": ["api", "apifull", "com", "br"],
+              "path": ["api", "e-boavista"]
+            }
+          }
+        },
+        {
+          "name": "Ações e Processos Judiciais (CPF)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "console.log('APIFull Processos Judiciais Response:', JSON.stringify(json, null, 2));",
+                  "",
+                  "pm.test('Check response structure', function() {",
+                  "    console.log('Root keys:', Object.keys(json));",
+                  "    if (json.dados) {",
+                  "        console.log('dados keys:', Object.keys(json.dados));",
+                  "        if (json.dados.data && json.dados.data.acoesProcessos) {",
+                  "            console.log('acoesProcessos keys:', Object.keys(json.dados.data.acoesProcessos));",
+                  "            if (json.dados.data.acoesProcessos.acoes && json.dados.data.acoesProcessos.acoes.processos) {",
+                  "                console.log('Total processos:', json.dados.data.acoesProcessos.acoes.processos.length);",
+                  "            }",
+                  "        }",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{APIFULL_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cpf\": \"{{TEST_CPF}}\",\n    \"link\": \"r-acoes-e-processos-judiciais\"\n}"
+            },
+            "url": {
+              "raw": "https://api.apifull.com.br/api/r-acoes-e-processos-judiciais",
+              "protocol": "https",
+              "host": ["api", "apifull", "com", "br"],
+              "path": ["api", "r-acoes-e-processos-judiciais"]
+            }
+          }
+        },
+        {
+          "name": "Dossiê Jurídico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "console.log('APIFull Dossiê Jurídico Response:', JSON.stringify(json, null, 2));",
+                  "",
+                  "pm.test('Check response structure', function() {",
+                  "    console.log('Root keys:', Object.keys(json));",
+                  "    if (json.dados) {",
+                  "        console.log('dados keys:', Object.keys(json.dados));",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{APIFULL_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documento\": \"{{TEST_CPF}}\",\n    \"link\": \"ic-dossie-juridico\"\n}"
+            },
+            "url": {
+              "raw": "https://api.apifull.com.br/api/ic-dossie-juridico",
+              "protocol": "https",
+              "host": ["api", "apifull", "com", "br"],
+              "path": ["api", "ic-dossie-juridico"]
+            }
+          }
+        },
+        {
+          "name": "CNPJ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "console.log('APIFull CNPJ Response:', JSON.stringify(json, null, 2));",
+                  "",
+                  "pm.test('Check response structure', function() {",
+                  "    console.log('Root keys:', Object.keys(json));",
+                  "    if (json.dados) {",
+                  "        console.log('dados keys:', Object.keys(json.dados));",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{APIFULL_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cnpj\": \"{{TEST_CNPJ}}\",\n    \"link\": \"cnpj\"\n}"
+            },
+            "url": {
+              "raw": "https://api.apifull.com.br/api/cnpj",
+              "protocol": "https",
+              "host": ["api", "apifull", "com", "br"],
+              "path": ["api", "cnpj"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
