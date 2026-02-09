@@ -51,7 +51,7 @@ export async function createPixCharge(
     },
     body: JSON.stringify({
       name: params.description,
-      billingType: 'PIX',
+      billingType: 'UNDEFINED',
       chargeType: 'DETACHED', // cobrança avulsa
       value: params.amount / 100, // Asaas usa reais
       description: params.description,
