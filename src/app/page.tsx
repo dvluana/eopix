@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import Footer from '@/components/Footer';
+import { maskDocument, cleanDocument } from '@/lib/validators';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LandingPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [isValidating, setIsValidating] = React.useState(false);
   const [searchError, setSearchError] = React.useState('');
+  const [documentType, setDocumentType] = React.useState<'cpf' | 'cnpj' | 'unknown'>('unknown');
 
   const fullPlaceholder = 'Digite o CPF ou CNPJ';
 
@@ -53,6 +55,27 @@ export default function LandingPage() {
     return () => clearTimeout(timeout);
   }, []);
 
+  const detectTypeFromLength = (value: string): 'cpf' | 'cnpj' | 'unknown' => {
+    const digits = value.replace(/\D/g, '').length;
+    if (digits === 0) return 'unknown';
+    if (digits <= 11) return 'cpf';
+    return 'cnpj';
+  };
+
+  const getButtonText = () => {
+    if (isValidating) return 'Validando...';
+    if (documentType === 'cpf') return 'Verificar CPF';
+    if (documentType === 'cnpj') return 'Verificar CNPJ';
+    return 'Consultar';
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const masked = maskDocument(e.target.value);
+    setSearchTerm(masked);
+    setDocumentType(detectTypeFromLength(masked));
+    setSearchError('');
+  };
+
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
@@ -79,7 +102,7 @@ export default function LandingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          document: searchTerm,
+          document: cleanDocument(searchTerm),
         }),
       });
 
@@ -216,10 +239,7 @@ export default function LandingPage() {
                 placeholder={placeholderText}
                 aria-label="Consultar CNPJ ou nome da empresa"
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setSearchError('');
-                }}
+                onChange={handleInputChange}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -233,7 +253,7 @@ export default function LandingPage() {
                 onClick={handleSearch}
                 disabled={isValidating}
               >
-                {isValidating ? 'Validando...' : 'E o Pix? Consultar'}
+                {getButtonText()}
               </button>
             </div>
 
@@ -901,10 +921,7 @@ export default function LandingPage() {
                 placeholder={placeholderText}
                 aria-label="Consultar CNPJ ou nome da empresa"
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setSearchError('');
-                }}
+                onChange={handleInputChange}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -918,7 +935,7 @@ export default function LandingPage() {
                 onClick={handleSearch}
                 disabled={isValidating}
               >
-                {isValidating ? 'Validando...' : 'E o Pix? Consultar'}
+                {getButtonText()}
               </button>
             </div>
 
