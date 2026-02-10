@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/dev-banner.js && next dev",
+    "dev": "node scripts/dev-banner.js && next dev --turbo",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
@@ -50,7 +50,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.563.0",
     "motion": "^12.33.0",
-    "next": "14.2.35",
+    "next": "^14.2.35",
     "next-themes": "^0.4.6",
     "openai": "^6.18.0",
     "prisma": "^7.3.0",

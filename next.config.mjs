@@ -2,6 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  // Configuração para reduzir race conditions no dev mode
+  // Mantém mais páginas compiladas em memória, evitando o erro middleware-manifest.json
+  onDemandEntries: {
+    // Tempo que uma página fica em memória sem ser acessada (15 minutos)
+    maxInactiveAge: 15 * 60 * 1000,
+    // Número de páginas mantidas em buffer
+    pagesBufferLength: 4,
+  },
+
   // Configurações de imagens
   images: {
     domains: [],
