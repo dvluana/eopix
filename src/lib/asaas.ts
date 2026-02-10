@@ -65,6 +65,11 @@ export async function createPixCharge(
       externalReference: params.externalRef,
       dueDateLimitDays: 1, // expira em 1 dia
       notificationEnabled: true,
+      // Redirect após qualquer ação no checkout
+      callback: {
+        successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/compra/confirmacao?code=${params.externalRef}`,
+        autoRedirect: true,
+      },
     }),
   })
 

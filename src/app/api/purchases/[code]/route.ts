@@ -51,6 +51,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       term: maskedTerm,
       type: purchase.term.length === 11 ? 'CPF' : 'CNPJ',
       status: purchase.status,
+      processingStep: purchase.processingStep,
       email: maskedEmail,
       amount: purchase.amount,
       createdAt: purchase.createdAt,

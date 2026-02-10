@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/prisma'
 import { sendMagicCode } from '@/lib/resend'
 import { checkRateLimit } from '@/lib/rate-limit'
@@ -109,14 +110,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Fluxo normal: envia email via Resend
-    await sendMagicCode(normalizedEmail, code)
+    console.log('[Send-Code] Sending email to:', normalizedEmail)
+    try {
+      await sendMagicCode(normalizedEmail, code)
+      console.log('[Send-Code] Email sent successfully')
+    } catch (emailError) {
+      console.error('[Send-Code] Email failed:', emailError)
+      Sentry.captureException(emailError, {
+        tags: { service: 'resend', operation: 'send-magic-code' },
+        extra: { email: normalizedEmail },
+      })
+      throw emailError
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Codigo enviado para seu email.',
     })
   } catch (error) {
-    console.error('Send code error:', error)
+    console.error('[Send-Code] Error:', error)
+    Sentry.captureException(error, {
+      tags: { service: 'auth', operation: 'send-code' },
+    })
     return NextResponse.json(
       { error: 'Erro ao enviar codigo' },
       { status: 500 }
