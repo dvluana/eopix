@@ -12,19 +12,23 @@ interface SessionPayload {
   exp: number
 }
 
-// Simple base64url encoding/decoding
+// Simple base64url encoding/decoding using Web APIs (Edge Runtime compatible)
 function base64urlEncode(str: string): string {
-  return Buffer.from(str)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '')
+  const encoder = new TextEncoder()
+  const bytes = encoder.encode(str)
+  const base64 = btoa(String.fromCharCode.apply(null, Array.from(bytes)))
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
 function base64urlDecode(str: string): string {
-  str = str.replace(/-/g, '+').replace(/_/g, '/')
-  while (str.length % 4) str += '='
-  return Buffer.from(str, 'base64').toString()
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/')
+  while (base64.length % 4) base64 += '='
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  return new TextDecoder().decode(bytes)
 }
 
 // Simple HMAC-SHA256 using Web Crypto API
