@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/prisma'
-import { sendMagicCode } from '@/lib/resend'
+import { sendMagicCode } from '@/lib/email'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidEmail } from '@/lib/validators'
 import { generateMagicCode } from '@/lib/auth'
 
 // TEST_MODE: Loga código no console em vez de enviar email
-// TODO: Remover TEST_MODE=true quando Resend estiver configurado em produção
+// TODO: Remover TEST_MODE=true quando Brevo estiver configurado em produção
 const TEST_MODE = process.env.TEST_MODE === 'true'
 
 interface SendCodeRequest {
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Fluxo normal: envia email via Resend
+    // Fluxo normal: envia email via Brevo
     console.log('[Send-Code] Sending email to:', normalizedEmail)
     try {
       await sendMagicCode(normalizedEmail, code)
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error('[Send-Code] Email failed:', emailError)
       Sentry.captureException(emailError, {
-        tags: { service: 'resend', operation: 'send-magic-code' },
+        tags: { service: 'brevo', operation: 'send-magic-code' },
         extra: { email: normalizedEmail },
       })
       throw emailError

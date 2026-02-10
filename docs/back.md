@@ -81,7 +81,7 @@ cd eopix
 
 ```bash
 # Core
-npm i @prisma/client inngest resend jose openai zod
+npm i @prisma/client inngest brevo jose openai zod
 
 # Dev
 npm i -D prisma @types/node vitest
@@ -140,8 +140,8 @@ APIFULL_API_KEY=
 ESCAVADOR_API_KEY=
 SERPER_API_KEY=
 OPENAI_API_KEY=
-RESEND_API_KEY=
-EMAIL_FROM=E O PIX? <noreply@somoseopix.com.br>
+BREVO_API_KEY=
+EMAIL_FROM_ADDRESS=plataforma@somoseopix.com.br
 INNGEST_SIGNING_KEY=
 INNGEST_EVENT_KEY=
 SENTRY_DSN=
@@ -202,7 +202,7 @@ eopix/
 │   │   ├── google-search.ts        ← Serper: byDocument, byName, reclameAqui (3 queries)
 │   │   ├── openai.ts               ← 2 chamadas: analyzeProcessos + analyzeMentionsAndSummary
 │   │   ├── financial-summary.ts    ← Resumo financeiro sem IA
-│   │   ├── resend.ts               ← Mock = console.log
+│   │   ├── brevo.ts               ← Mock = console.log
 │   │   ├── auth.ts
 │   │   ├── rate-limit.ts
 │   │   ├── validators.ts
@@ -726,7 +726,7 @@ export async function consultCpf(cpf: string) {
 - `openai.ts` - 2 funções: `analyzeProcessos`, `analyzeMentionsAndSummary`
 - `financial-summary.ts` - Resumo financeiro sem IA
 
-### Passo 3.3 — Resend (mock = console.log)
+### Passo 3.3 — Brevo (mock = console.log)
 
 ```typescript
 export async function sendEmail(params) {
@@ -767,7 +767,7 @@ npx inngest-cli dev  # Dashboard local em localhost:8288, sem conta
    - Criar SearchResult (term, type, name, data JSON, summary)
    - Vincular Purchase.searchResultId → SearchResult.id
    - Purchase.status → COMPLETED
-   - Enviar email via Resend
+   - Enviar email via Brevo
 ```
 
 **Fluxo CNPJ (2 chamadas APIFull + 3 Serper + 2 IA = 7 total):**
@@ -1251,26 +1251,26 @@ git push -u origin main
 
 ---
 
-### 10.2 — Resend (grátis, email transacional)
+### 10.2 — Brevo (grátis, email transacional)
 
 **Custo:** Grátis até 3.000 emails/mês. **Cartão:** Não.
 
 **📋 O que VOCÊ faz:**
 
-1. Criar conta em [resend.com](https://resend.com)
-2. **API Keys** → Create API Key → copiar → `RESEND_API_KEY`
+1. Criar conta em [brevo.com](https://brevo.com)
+2. **API Keys** → Create API Key → copiar → `BREVO_API_KEY`
 3. **Domains** → Add Domain → digitar `somoseopix.com.br`
-4. **Resend mostra 3 registros DNS que você precisa adicionar:**
+4. **Brevo mostra 3 registros DNS que você precisa adicionar:**
 
    | Tipo  | Nome                             | Valor                  |
    | ----- | -------------------------------- | ---------------------- |
-   | MX    | `somoseopix.com.br`                   | (valor do Resend)      |
-   | TXT   | `somoseopix.com.br`                   | (valor SPF do Resend)  |
-   | CNAME | `resend._domainkey.somoseopix.com.br` | (valor DKIM do Resend) |
+   | MX    | `somoseopix.com.br`                   | (valor do Brevo)      |
+   | TXT   | `somoseopix.com.br`                   | (valor SPF do Brevo)  |
+   | CNAME | `brevo._domainkey.somoseopix.com.br` | (valor DKIM do Brevo) |
 
 5. **Adicionar esses registros no DNS** do seu provedor de domínio (Registro.br, Cloudflare, etc.)
-6. Voltar no Resend → clicar "Verify" → aguardar (geralmente minutos)
-7. Quando status ficar "Verified" ✅, adicionar `RESEND_API_KEY` na Vercel
+6. Voltar no Brevo → clicar "Verify" → aguardar (geralmente minutos)
+7. Quando status ficar "Verified" ✅, adicionar `BREVO_API_KEY` na Vercel
 8. Redesplegar
 
 **🤖 Claude Code faz:** Verificar envio real. Testar com seu email.
@@ -1513,8 +1513,8 @@ SERPER_API_KEY=
 OPENAI_API_KEY=
 
 # === EMAIL ===
-RESEND_API_KEY=
-EMAIL_FROM=E O PIX? <noreply@somoseopix.com.br>
+BREVO_API_KEY=
+EMAIL_FROM_ADDRESS=plataforma@somoseopix.com.br
 
 # === AUTH ===
 JWT_SECRET=dev-secret-trocar-em-producao
@@ -1542,7 +1542,7 @@ PRICE_CENTS=2990
 | `APIFULL_API_KEY`   | APIFull    | apifull.com.br           | Pré-paga       | Sim     |
 | `SERPER_API_KEY`    | Serper     | serper.dev               | ✅ 2.5k/mês    | Não     |
 | `OPENAI_API_KEY`    | OpenAI     | platform.openai.com      | Pay-per-use    | Sim     |
-| `RESEND_API_KEY`    | Resend     | resend.com               | ✅ 3k/mês      | Não     |
+| `BREVO_API_KEY`    | Brevo     | brevo.com               | ✅ 3k/mês      | Não     |
 | `INNGEST_*`         | Inngest    | inngest.com              | ✅ 25k/mês     | Não     |
 | `SENTRY_DSN`        | Sentry     | sentry.io                | ✅ 5k/mês      | Não     |
 
@@ -1624,7 +1624,7 @@ npx tsx scripts/test-flow.ts           # Teste E2E completo
 
 - [ ] `ASAAS_ENV=production` + chave de produção + webhook de produção
 - [ ] Asaas NFS-e configurada
-- [ ] Resend SPF/DKIM/DMARC verificado
+- [ ] Brevo SPF/DKIM/DMARC verificado
 - [ ] Inngest → URL de produção
 - [ ] Sentry → projeto ativo
 - [ ] Plausible → site ativo
@@ -1667,7 +1667,7 @@ npx tsx scripts/test-flow.ts           # Teste E2E completo
 | "Cannot read property 'payment' of undefined" | Payload Asaas inesperado  | Logar payload completo antes de parsear      |
 | Purchase fica PENDING                         | Webhook não chegou        | Verificar URL no Asaas + logs Vercel         |
 | Job Inngest não dispara                       | Chaves erradas            | Verificar `INNGEST_SIGNING_KEY` no dashboard |
-| Email não chega                               | SPF/DKIM não configurado  | Verificar DNS no Resend                      |
+| Email não chega                               | SPF/DKIM não configurado  | Verificar DNS no Brevo                      |
 | Relatório "Dados limitados"                   | CPF sem registros         | Comportamento normal                         |
 | 429 Too Many Requests                         | Rate limit                | Aguardar 1 hora                              |
 | "E-mail não encontrado"                       | Nunca comprou             | Correto — sem compra, sem conta              |

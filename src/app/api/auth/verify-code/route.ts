@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { createSession, isAdminEmail } from '@/lib/auth'
 import { isValidEmail } from '@/lib/validators'
 
-// TEST_MODE: Permite código fixo 123456 para testes sem Resend configurado
-// TODO: Remover TEST_MODE=true quando Resend estiver configurado em produção
+// TEST_MODE: Permite código fixo 123456 para testes sem Brevo configurado
+// TODO: Remover TEST_MODE=true quando Brevo estiver configurado em produção
 const TEST_MODE = process.env.TEST_MODE === 'true'
 const FIXED_TEST_CODE = '123456'
 

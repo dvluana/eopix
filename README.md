@@ -13,7 +13,7 @@
 - **Pagamentos**: Asaas
 - **APIs**: APIFull, Escavador, Google Custom Search, BrasilAPI
 - **IA**: OpenAI GPT-4o-mini (resumos e filtro de homônimos)
-- **Email**: Resend
+- **Email**: Brevo
 - **Analytics**: Plausible
 - **Error Tracking**: Sentry
 - **Background Jobs**: Inngest
@@ -104,7 +104,7 @@ npm run lint         # Executa ESLint
 ## 🔐 Fluxo de Autenticação
 
 1. Usuário digita email
-2. Sistema envia código de 6 dígitos via email (Resend)
+2. Sistema envia código de 6 dígitos via email (Brevo)
 3. Usuário insere código
 4. Sistema valida e cria sessão JWT
 5. Sessão expira em 7 dias

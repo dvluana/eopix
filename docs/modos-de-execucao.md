@@ -10,7 +10,7 @@ O sistema suporta três modos de execução, controlados pelas variáveis de amb
 |------|-----------|---------------|-----------|------|-------|
 | **Mock** | `MOCK_MODE=true` | Mockadas | Bypass | Fallback síncrono | Log only |
 | **Test** | `TEST_MODE=true` | **Reais** | Bypass | Fallback síncrono | Log only |
-| **Produção** | Ambas `false` | Reais | Asaas real | Inngest real | Resend real |
+| **Produção** | Ambas `false` | Reais | Asaas real | Inngest real | Brevo real |
 
 ---
 
@@ -33,7 +33,7 @@ TEST_MODE=false  # ou ausente
 | **Serper** (busca web) | Retorna resultados mockados |
 | **Asaas** (pagamento) | Bypass - redireciona direto para confirmação |
 | **Inngest** (jobs) | Fallback síncrono via `/api/process-search` |
-| **Resend** (email) | Apenas loga no console, não envia |
+| **Brevo** (email) | Apenas loga no console, não envia |
 
 ### Fluxo de Compra
 
@@ -83,7 +83,7 @@ TEST_MODE=true
 | **Serper** (busca web) | **Chamada REAL** - consome créditos |
 | **Asaas** (pagamento) | Bypass - redireciona direto para confirmação |
 | **Inngest** (jobs) | Fallback síncrono via `/api/process-search` |
-| **Resend** (email) | Apenas loga no console, não envia |
+| **Brevo** (email) | Apenas loga no console, não envia |
 
 ### Fluxo de Compra
 
@@ -138,7 +138,7 @@ TEST_MODE=false  # ou ausente
 | **Serper** (busca web) | Chamada real |
 | **Asaas** (pagamento) | Checkout real com Pix |
 | **Inngest** (jobs) | Processamento assíncrono real |
-| **Resend** (email) | Envio real de emails |
+| **Brevo** (email) | Envio real de emails |
 
 ### Fluxo de Compra
 
@@ -188,7 +188,7 @@ export const isBypassMode = isMockMode || isTestMode
 | `src/lib/openai.ts` | `isMockMode` | Mockar análises de IA |
 | `src/lib/google-search.ts` | `isMockMode` | Mockar busca web |
 | `src/lib/asaas.ts` | `isBypassMode` | Bypass do checkout |
-| `src/lib/resend.ts` | `isBypassMode` | Não enviar emails |
+| `src/lib/email.ts` | `isBypassMode` | Não enviar emails |
 | `src/app/api/purchases/route.ts` | `isBypassMode` | Criar purchase sem Asaas |
 | `src/app/api/admin/.../process/route.ts` | `isBypassMode` | Fallback síncrono |
 | `src/app/api/process-search/[code]/route.ts` | `isBypassMode` | Guard do endpoint |
@@ -258,12 +258,12 @@ Antes de testar com APIs reais, valide todos os fluxos:
 - [ ] Verificar que resumo da IA é gerado
 - [ ] Conferir relatório final com dados reais
 
-### Configuração de Email (Resend)
+### Configuração de Email (Brevo)
 
-**Infraestrutura (DNS + Resend Dashboard):**
+**Infraestrutura (DNS + Brevo Dashboard):**
 - [ ] DNS SPF configurado no provedor de domínio
 - [ ] DNS DKIM configurado no provedor de domínio
-- [ ] Domínio verificado no Resend Dashboard
+- [ ] Domínio verificado no Brevo Dashboard
 
 **Teste de envio (produção):**
 - [ ] Enviar código de login real para seu email pessoal
@@ -278,34 +278,34 @@ Antes de testar com APIs reais, valide todos os fluxos:
 - [ ] `ASAAS_WEBHOOK_TOKEN` está configurado
 - [ ] Webhook Asaas apontando para `https://www.somoseopix.com.br/api/webhooks/asaas`
 - [ ] `INNGEST_EVENT_KEY` e `INNGEST_SIGNING_KEY` são de produção
-- [ ] `RESEND_API_KEY` está configurada
-- [ ] `EMAIL_FROM` é um domínio verificado no Resend
+- [ ] `BREVO_API_KEY` está configurada
+- [ ] `EMAIL_FROM_ADDRESS` é um domínio verificado no Brevo
 
 ---
 
-## Configuração do Resend (Email)
+## Configuração do Brevo (Email)
 
 O sistema usa email **apenas para envio de código de login** (magic code).
 
 ### Variáveis de Ambiente
 
 ```bash
-RESEND_API_KEY=re_xxxxxxxx           # API key do Resend Dashboard
-EMAIL_FROM=E O PIX <plataforma@somoseopix.com.br>  # Formato: Nome <email>
+BREVO_API_KEY=re_xxxxxxxx           # API key do Brevo Dashboard
+EMAIL_FROM_ADDRESS=plataforma@somoseopix.com.br  # Apenas o email (nome do remetente é definido no código)
 ```
 
 ### Configuração de DNS (Obrigatório para Produção)
 
-No Resend Dashboard > Domains, adicione `somoseopix.com.br` e configure no seu provedor de DNS:
+No Brevo Dashboard > Domains, adicione `somoseopix.com.br` e configure no seu provedor de DNS:
 
-1. **SPF Record (TXT)** - Autoriza Resend a enviar em nome do domínio
+1. **SPF Record (TXT)** - Autoriza Brevo a enviar em nome do domínio
 2. **DKIM Record (TXT)** - Assina digitalmente os emails
 
-O Resend fornece os valores exatos. A verificação pode levar até 48h.
+O Brevo fornece os valores exatos. A verificação pode levar até 48h.
 
 ### Template de Email
 
-O template está em `src/lib/resend.ts`:
+O template está em `src/lib/email.ts`:
 
 | Função | Propósito |
 |--------|-----------|
@@ -313,8 +313,8 @@ O template está em `src/lib/resend.ts`:
 
 ### Monitoramento
 
-- **Resend Dashboard**: Taxa de entrega, bounces, spam reports (checar 1x/semana)
-- **Admin Health**: `/admin/health` mostra status do Resend
+- **Brevo Dashboard**: Taxa de entrega, bounces, spam reports (checar 1x/semana)
+- **Admin Health**: `/admin/health` mostra status do Brevo
 - **Sentry**: Captura erros quando `res.ok === false`
 - **Console (bypass mode)**: Emails logados localmente
 

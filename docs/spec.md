@@ -56,7 +56,7 @@ Fluxo assíncrono: o usuário paga e sai. O processamento roda em background. O 
 | ---                 | ---                                    | ---                                                                                                                                                                   |
 | 10\. Processamento  | Backend busca dados (assíncrono)       | Job Inngest. CPF: 3 chamadas APIFull (cadastral + processos + financeiro) + Serper. CNPJ: 2 chamadas APIFull (dossiê + financeiro) + Serper. GPT-4o-mini gera resumo (2 chamadas: processos + menções/resumo). |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
-| 11\. Notificação    | E-mail de conclusão                    | Resend envia: 'Sua consulta sobre CPF \*\*\*XXX\*\*\* foi finalizada. Acesse aqui.' Aviso: verifique o spam.                                                          |
+| 11\. Notificação    | E-mail de conclusão                    | Brevo envia: 'Sua consulta sobre CPF \*\*\*XXX\*\*\* foi finalizada. Acesse aqui.' Aviso: verifique o spam.                                                          |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
 | 12\. Acesso         | Usuário acessa relatório               | Login em /minhas-consultas com e-mail (magic link). Vê status: Processando / Concluído / Falhou.                                                                      |
 | ---                 | ---                                    | ---                                                                                                                                                                   |
@@ -236,7 +236,7 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 | ---                 | ---                                     | ---                   |
 | IA                  | GPT-4o-mini (OpenAI)                    | ~R\$ 0,03/consulta    |
 | ---                 | ---                                     | ---                   |
-| E-mail Transacional | Resend (SPF/DKIM configurado)           | Free Tier (3.000/mês) |
+| E-mail Transacional | Brevo (SPF/DKIM configurado)           | Free Tier (3.000/mês) |
 | ---                 | ---                                     | ---                   |
 | Monitoramento       | Sentry                                  | Free Tier             |
 | ---                 | ---                                     | ---                   |
@@ -259,7 +259,7 @@ Os cards variam conforme o tipo de input (CPF vs CNPJ). Cada card tem um empty s
 | ---                  | ---             | ---                                                                                              |
 | Asaas                | Taxa            | Checkout hospedado + Pix + Webhook + API de estorno + NFS-e                                      |
 | ---                  | ---             | ---                                                                                              |
-| Resend               | Free tier       | E-mail transacional: magic link (login de 6 dígitos) + notificação de conclusão. **NÃO usado para marketing.** |
+| Brevo               | Free tier       | E-mail transacional: magic link (login de 6 dígitos) + notificação de conclusão. **NÃO usado para marketing.** |
 | ---                  | ---             | ---                                                                                              |
 
 **Serper:** 2.500 queries/mês grátis. Com ~50 consultas/dia (CPF: 2q + CNPJ: 3q, média ~2.5q) = ~75 queries/dia = ~2.250/mês, dentro do free tier. Após 2.500: $50/mês (10k queries). Incluir no custo operacional.
@@ -314,7 +314,7 @@ O job é disparado pelo webhook do Asaas após confirmação do Pix. O fluxo dif
    - Serper (3 queries: byDocument, byName, reclameAqui)
 3. **IA 1 - Análise de Processos (se houver):** Classifica cada processo por relevância (alta/média/baixa/nenhuma).
 4. **IA 2 - Menções + Resumo:** Classifica menções web + gera resumo de 2-3 frases.
-5. **Salvar + Notificar:** Salva SearchResult. Atualiza Purchase.status para COMPLETED. Envia e-mail via Resend.
+5. **Salvar + Notificar:** Salva SearchResult. Atualiza Purchase.status para COMPLETED. Envia e-mail via Brevo.
 
 ### 3.5.2 Fluxo CNPJ (2 chamadas APIFull + Serper + 2 IAs)
 
@@ -349,7 +349,7 @@ O job é disparado pelo webhook do Asaas após confirmação do Pix. O fluxo dif
 
 Autenticação leve por e-mail, sem senha. O e-mail informado no pagamento é a identidade do usuário.
 
-- **Login:** Usuário acessa /minhas-consultas, digita e-mail, recebe código de 6 dígitos por e-mail (Resend). Insere o código. Sessão criada.
+- **Login:** Usuário acessa /minhas-consultas, digita e-mail, recebe código de 6 dígitos por e-mail (Brevo). Insere o código. Sessão criada.
 - **Aviso de spam:** Tela de login exibe: 'Não recebeu o código? Verifique o spam.'
 - **Sessão:** Cookie httpOnly com JWT. Expira em 30 dias.
 - **Sem cadastro:** O 'cadastro' acontece automaticamente na primeira compra. O e-mail vira a conta do usuário.
@@ -655,7 +655,7 @@ Implementar com Plausible (cookieless, free tier, sem banner de cookie consent L
 | ---                                 | ---                         |
 | Inngest Free Tier                   | R\$ 0                       |
 | ---                                 | ---                         |
-| Resend Free Tier (3.000 emails/mês) | R\$ 0                       |
+| Brevo Free Tier (3.000 emails/mês) | R\$ 0                       |
 | ---                                 | ---                         |
 | Sentry Free Tier                    | R\$ 0                       |
 | ---                                 | ---                         |
@@ -676,7 +676,7 @@ Implementar com Plausible (cookieless, free tier, sem banner de cookie consent L
 | ---                                         | ---                     |
 | Asaas (taxa Pix)                            | ~R\$ 0,99 + 1,99%       |
 | ---                                         | ---                     |
-| Resend (2 emails: magic link + notificação) | R\$ 0 (free tier)       |
+| Brevo (2 emails: magic link + notificação) | R\$ 0 (free tier)       |
 | ---                                         | ---                     |
 | TOTAL VARIÁVEL (estimado)                   | ~R\$ 2-4 por consulta   |
 | ---                                         | ---                     |
@@ -713,7 +713,7 @@ Implementar com Plausible (cookieless, free tier, sem banner de cookie consent L
 
 ## Sprint 3: Autenticação + Relatório
 
-- Resend: setup de e-mail transacional + configuração de domínio (SPF/DKIM).
+- Brevo: setup de e-mail transacional + configuração de domínio (SPF/DKIM).
 - Magic link: envio de código 6 dígitos + validação + sessão JWT + aviso de spam.
 - Área /minhas-consultas (lista de compras com status: Processando / Concluído / Falhou / Expirado).
 - E-mail de notificação quando consulta finaliza.
@@ -755,7 +755,7 @@ Riscos identificados para tratar em versões futuras.
 | ---                          | ---                                               | ---                                                   |
 | Uso indevido (stalking)      | CPF permite consultar qualquer PF                 | Limite de consultas por usuário + termos explícitos   |
 | ---                          | ---                                               | ---                                                   |
-| Resend free tier (3.000/mês) | ~1.500 consultas/mês no free tier (2 emails cada) | Migrar para plano pago se ultrapassar                 |
+| Brevo free tier (3.000/mês) | ~1.500 consultas/mês no free tier (2 emails cada) | Migrar para plano pago se ultrapassar                 |
 | ---                          | ---                                               | ---                                                   |
 | Múltiplos e-mails            | Mesma pessoa com 2 e-mails = 2 contas separadas   | Limitação documentada nos Termos. Unificação pós-MVP  |
 | ---                          | ---                                               | ---                                                   |

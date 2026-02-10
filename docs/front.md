@@ -45,290 +45,14 @@
 
 ---
 
-## 02 · Design System
-
-> Tokens do DS v1.1. Toda tela DEVE seguir estas especificações. Para componentes não documentados aqui, analisar a Home codada (T.1) como referência visual.
-
-> ⚠️ **REGRA FUNDAMENTAL:** Se o Design System não especifica um componente (ex: tabela, tooltip, stepper), analisar a Home (/) já codada do E O PIX? e seguir a mesma linha visual: proporções, espaçamentos, bordas, sombras, tipografia. A Home é a fonte da verdade visual.
-
-### Layout Base
-
-| Propriedade   | Desktop                                                      | Mobile              |
-| ------------- | ------------------------------------------------------------ | ------------------- |
-| Frame         | 1440 × 900 px                                                | 390 × 844 px        |
-| Container max | 1200px, centralizado                                         | 100% – 32px padding |
-| Background    | `#F0EFEB` (paper)                                            | Idem                |
-| Nav           | 64px altura, fundo `rgba(26,26,26,0.97)`, backdrop blur 12px | Idem, hambúrguer    |
-| Grid          | Base-4 (4, 8, 12, 16, 24, 32, 48, 64px)                      | Reduzir ~33%        |
-
-### Paleta de Cores
-
-#### Core
-
-| Swatch | Nome         | Hex       | Uso                                        |
-| ------ | ------------ | --------- | ------------------------------------------ |
-| ⬜     | Background   | `#F0EFEB` | Fundo de todas as páginas                  |
-| ⬜     | Surface      | `#FFFFFF` | Cards, inputs, modais                      |
-| ⬛     | Inverse      | `#1A1A1A` | Texto primário, nav, botão secundário      |
-| ⬛     | Inverse Soft | `#2A2A2A` | Hover botão secundário                     |
-| 🟨     | Accent       | `#FFD600` | CTAs, badges, sublinhados, destaques       |
-| 🟨     | Accent Hover | `#E6C000` | Hover de accent (raro, inversão preferida) |
-
-#### Status
-
-| Swatch | Nome      | Hex       | Uso                                    |
-| ------ | --------- | --------- | -------------------------------------- |
-| 🟩     | Success   | `#66CC66` | Pagamento confirmado, status concluído |
-| 🟥     | Danger    | `#CC3333` | Erros, falhas, CNPJ suspenso           |
-| 🟨     | Warning   | `#FFD600` | Alertas, reembolso pendente            |
-| 🟨     | Sol BG    | `#FFFDE6` | Card "tudo limpo" no relatório         |
-| 🟥     | Danger BG | `#FFF0F0` | Callout de erro, CNPJ baixado          |
-
-#### Texto e Bordas
-
-| Swatch | Nome           | Hex       | Uso                            |
-| ------ | -------------- | --------- | ------------------------------ |
-| ⬛     | Text Primary   | `#1A1A1A` | Títulos, labels                |
-| ⬜     | Text Secondary | `#666666` | Parágrafos, descrições         |
-| ⬜     | Text Dim       | `#888888` | Captions, placeholders, footer |
-| ⬜     | Text Muted     | `#BBBBBB` | Labels de seção, números       |
-| ⬜     | Border         | `#D5D4D0` | Bordas de cards, separadores   |
-| ⬜     | Border Light   | `#E8E7E3` | Dividers sutis, tabelas        |
-
-### Proporção Visual
-
-```
-[██████████████████████████████████████████████████] 70% PAPEL/BRANCO
-[████████████████████]                                25% PRETO
-[██]                                                   5% AMARELO
-```
-
-### Tipografia
-
-| Uso                 | Fonte         | Tamanho | Peso | Line-height |
-| ------------------- | ------------- | ------- | ---- | ----------- |
-| Display             | Zilla Slab    | 48–96px | 700  | 1.0         |
-| H1                  | Zilla Slab    | 40px    | 700  | 1.1         |
-| H2                  | Zilla Slab    | 28px    | 700  | 1.1         |
-| H3                  | Zilla Slab    | 18px    | 700  | 1.3         |
-| Body LG             | IBM Plex Mono | 16px    | 400  | 1.7         |
-| Body                | IBM Plex Mono | 14px    | 400  | 1.7         |
-| Body SM / Caption   | IBM Plex Mono | 12px    | 400  | 1.7         |
-| Label / Tag / Badge | IBM Plex Mono | 9px     | 700  | 1.0         |
-| Micro               | IBM Plex Mono | 10px    | 400  | 1.5         |
-
-### Componentes
-
-#### Botões
-
-| Variante      | Background  | Texto     | Border              | Hover                                    | Radius |
-| ------------- | ----------- | --------- | ------------------- | ---------------------------------------- | ------ |
-| **Primary**   | `#FFD600`   | `#1A1A1A` | –                   | BG `#1A1A1A`, texto `#FFD600` (inversão) | 8px    |
-| **Secondary** | `#1A1A1A`   | `#F0EFEB` | –                   | BG `#2A2A2A`                             | 8px    |
-| **Ghost**     | transparent | `#1A1A1A` | 2px solid `#1A1A1A` | BG `rgba(26,26,26,0.06)`                 | 8px    |
-| **Danger**    | `#CC3333`   | `#FFFFFF` | –                   | BG `#B82D2D`                             | 8px    |
-
-> Font: IBM Plex Mono 700 14px. Padding: 12px 24px. Transição: 200ms.
-
-#### Inputs
-
-| Estado  | Background | Border              | Texto     | Placeholder |
-| ------- | ---------- | ------------------- | --------- | ----------- |
-| Default | `#FFFFFF`  | 2px solid `#1A1A1A` | `#1A1A1A` | `#BBBBBB`   |
-| Focus   | `#FFFFFF`  | 2px solid `#FFD600` | `#1A1A1A` | –           |
-| Error   | `#FFFFFF`  | 2px solid `#CC3333` | `#1A1A1A` | –           |
-| Filled  | `#FFFFFF`  | 2px solid `#1A1A1A` | `#1A1A1A` | –           |
-
-> Radius: 8px. Padding: 12px 16px. Font: IBM Plex Mono 400 14px. Focus ring: `0 0 0 3px rgba(255,214,0,0.25)`.
-
-#### Search Bar (Landing)
-
-| Propriedade    | Valor                                                           |
-| -------------- | --------------------------------------------------------------- |
-| Background     | `#FFFFFF`                                                       |
-| Border         | 3px solid `#F0EFEB` (default) / 3px solid `#FFD600` (focus)     |
-| Radius         | 12px                                                            |
-| Shadow         | `0 8px 40px rgba(0,0,0,0.30), 0 0 0 1px rgba(240,239,235,0.10)` |
-| Botão embutido | Mesma inversão do Primary. Radius 8px.                          |
-
-#### Badges / Tags
-
-| Tipo             | Background               | Texto     |
-| ---------------- | ------------------------ | --------- |
-| Default / Accent | `#FFD600`                | `#1A1A1A` |
-| Danger           | `#CC3333`                | `#FFFFFF` |
-| Neutral          | `#E8E7E3`                | `#666666` |
-| Success (inline) | `rgba(102,204,102,0.15)` | `#339933` |
-| Error (inline)   | `rgba(204,51,51,0.15)`   | `#CC3333` |
-| Warning (inline) | `rgba(255,214,0,0.15)`   | `#B87700` |
-
-> Font: IBM Plex Mono 700 9px uppercase. Letter-spacing: 0.125em. Padding: 4px 8px. Radius: 2px.
-
-#### Cards
-
-| Propriedade      | Valor                         |
-| ---------------- | ----------------------------- |
-| Background       | `#FFFFFF`                     |
-| Border           | 1px solid `#E8E7E3`           |
-| Radius           | 6px                           |
-| Shadow           | `0 2px 8px rgba(0,0,0,0.10)`  |
-| Padding          | 24px                          |
-| Variante Inverse | BG `#1A1A1A`, texto `#F0EFEB` |
-| Variante Muted   | BG `#F0EFEB`                  |
-
-#### Ícones
-
-| Propriedade    | Valor                                |
-| -------------- | ------------------------------------ |
-| Biblioteca     | Lucide Icons                         |
-| Tamanho padrão | 20px (16px em contextos compactos)   |
-| Cor padrão     | `#1A1A1A` (light) / `#F0EFEB` (dark) |
-| Stroke         | 1.5px                                |
+> **Nota:** Para Design System completo, consultar `docs/legacy/DESIGN-SYSTEM.md` (v1.1 oficial).
 
 ---
 
-## 02-B · Mapa de Variantes
-
-> Componentes que são variantes de um mesmo Component Set. Cada set deve ser criado como um único componente com propriedades (properties), não como frames soltos.
-
-> ⚠️ **REGRA FIGMA:** Variantes vivem dentro de um mesmo Component Set. O Figma Make deve criar um frame master e variantes nomeadas com "/" (ex: `Teaser/Default`, `Teaser/Maintenance`).
-
-### Teaser
-
-**Page:** Fluxo Público / Component: Teaser
-
-- 🔵 T.2 Default
-- 🔴 T.8 Maintenance
-
-> Diferença: callout vermelho, botão desabilitado, campo de lead. Mesma estrutura base.
-
-### Login Magic Link
-
-**Page:** Fluxo Público / Component: Login
-
-- 🔵 T.4a Email
-- 🔵 T.4b Código
-
-> 2 estados do mesmo fluxo. Mesma estrutura: card centrado, muda conteúdo interno.
-
-### Relatório
-
-**Page:** Fluxo Público / Component: Relatorio
-
-- 🟢 T.6 Sol (0 ocorrências)
-- 🔴 T.7 Chuva (N ocorrências)
-
-> Mesmo header, mesmo nav, mesmo disclaimer. Muda: ícone clima, bloco principal.
-
-### Card Consulta (dentro de T.5)
-
-**Page:** Fluxo Público / Component: CardConsulta
-
-- 🟢 Concluído
-- 🟡 Processando
-- 🔴 Falhou
-- 🟠 Reembolso Pendente
-- ⚫ Expirado
-
-> 5 variantes de um mesmo card. Muda: badge, texto de ação, visibilidade do botão.
-
-### Input
-
-**Page:** Design System / Component: Input
-
-- 🔵 Default · 🟡 Focus · 🔴 Error · 🔵 Filled
-
-### Botão
-
-**Page:** Design System / Component: Button
-
-- 🟡 Primary · ⬛ Secondary · ⬜ Ghost · 🔴 Danger · ⚫ Disabled
-
-### Páginas de Erro
-
-**Page:** Erro / Component: ErrorPage
-
-- 🔵 E.1 404 · 🔵 E.2 500 · 🔵 E.3 Expirado · 🔵 E.4 Link Inválido
-
-> Mesma estrutura: ícone + título + mensagem + CTA. Só muda conteúdo.
-
-### Admin Sidebar
-
-**Page:** Design System / Component: AdminSidebar
-
-- ActiveItem=Dashboard · ActiveItem=Blocklist · ActiveItem=Health · ActiveItem=Compras · ActiveItem=Leads
-
-> Componente reutilizado em A.1-A.5. Cada tela usa instância com ActiveItem diferente.
-
-### Nav Pública
-
-**Page:** Design System / Component: NavPublica
-
-- State=Default (logo apenas)
-- State=Logged (logo + email + sair)
-
-> Usada em todas as telas públicas. Default para T.1-T.3, Logged para T.4-T.7.
-
----
-
-## 02-C · Organização Figma e Anotações
-
-### Estrutura de Pages
-
-| Page              | Conteúdo                                                                                                       |
-| ----------------- | -------------------------------------------------------------------------------------------------------------- |
-| 🎨 Design System  | Component sets: Button, Input, Badge, Card, SearchBar, CardConsulta, ErrorPage                                 |
-| 📄 Fluxo Público  | T.1 Home, T.2/T.8 Teaser, T.3 Confirmação, M.1 Modal Email, T.4 Login, T.5 Minhas Consultas, T.6/T.7 Relatório |
-| 🔒 Admin          | A.1 Dashboard, A.2 Blocklist, A.3 Health, A.4 Compras, A.5 Leads                                               |
-| 📝 Institucionais | P.1 Termos, P.2 Privacidade, P.3 Titular                                                                       |
-| ⚠️ Erro           | E.1-E.4 (Component Set único)                                                                                  |
-| 🔗 Protótipo      | Frames conectados para navegação (instâncias, não masters)                                                     |
-
-### Nomenclatura de Layers
-
-| Tipo              | Padrão                      | Exemplo                          |
-| ----------------- | --------------------------- | -------------------------------- |
-| Frame de tela     | `[ID] Nome / Variante`      | `T.2 Teaser / Default`           |
-| Component Set     | Nome                        | `CardConsulta`                   |
-| Variante          | `Property=Value`            | `Status=Concluido`               |
-| Seção de conteúdo | `Section / Nome`            | `Section / Financeiro`           |
-| Botão             | `Button / Variante / Label` | `Button / Primary / Desbloquear` |
-| Input             | `Input / Estado`            | `Input / Filled`                 |
-
-### Convenção de Anotações Dev
-
-Cada tela DEVE ter um bloco de anotações como comment fixado ou layer de texto no canto superior direito do frame, fora da área visível (x: 1460).
-
-```
-// ANOTAÇÕES DEV
-// Rota: /consulta/{term}
-// Modelo: Purchase, SearchResult
-// Endpoint: GET /api/search/{term}/teaser
-// Auth: Nenhuma (página pública)
-// Estados de loading: Skeleton nos cards
-// Erro inline: "CPF/CNPJ inválido" abaixo do input
-// Campos dinâmicos:
-//   - CPF mascarado → Purchase.searchTerm (masked)
-//   - E-mail → Purchase.email
-//   - Preço → fixo R$ 29,90 (config)
-// Integração: Asaas checkout (redirect externo)
-```
-
-| Prefixo        | Significado               | Exemplo                             |
-| -------------- | ------------------------- | ----------------------------------- |
-| `// ROTA:`     | URL da página             | `// ROTA: /relatorio/{id}`          |
-| `// MODELO:`   | Tabelas Prisma envolvidas | `// MODELO: Purchase, SearchResult` |
-| `// ENDPOINT:` | API chamada pela tela     | `// ENDPOINT: GET /api/report/{id}` |
-| `// AUTH:`     | Requisito de autenticação | `// AUTH: Magic link (session)`     |
-| `// CAMPO:`    | Origem do dado dinâmico   | `// CAMPO: badge → Purchase.status` |
-| `// LOADING:`  | Estado de carregamento    | `// LOADING: Skeleton cards`        |
-| `// ERRO:`     | Tratamento de erro inline | `// ERRO: "E-mail não encontrado"`  |
-
----
-
-## 03 · Ordem de Execução
+## 02 · Ordem de Execução
 
 > Rodadas agrupadas por dependência. Cada rodada só começa quando a anterior está validada.
+> Para Mapa de Variantes e Organização Figma, consultar `docs/legacy/DESIGN-SYSTEM.md`.
 
 ### Rodada 1 — Fluxo Principal (Input → Pagamento → Confirmação)
 
@@ -380,7 +104,7 @@ Páginas de suporte. Podem ser feitas em qualquer ordem.
 
 ---
 
-## 04 · Telas: Prompts para Claude
+## 03 · Telas: Prompts para Claude
 
 > **Fluxo de trabalho:**
 >
@@ -618,7 +342,7 @@ ANOTAÇÕES DEV (x:1460):
 // ROTA: Overlay sobre /compra/confirmacao
 // ENDPOINT: PATCH /api/purchase/{code}/email
 // BODY: { newEmail: string }
-// EFEITO: Atualiza User.email + Purchase.email, reenvia notificações via Resend
+// EFEITO: Atualiza User.email + Purchase.email, reenvia notificações via Brevo
 // VALIDAÇÃO: E-mail válido, não vazio
 // ERRO INLINE: "E-mail inválido" abaixo do input
 ```
@@ -658,7 +382,7 @@ ANOTAÇÕES DEV (x:1460):
 // ENDPOINT: PATCH /api/purchase/{code}/email
 // BODY: { newEmail: string }
 // VALIDAÇÃO: email format
-// EFEITO: Atualiza User.email + Purchase.email, reenvia via Resend
+// EFEITO: Atualiza User.email + Purchase.email, reenvia via Brevo
 // ERRO INLINE: "E-mail inválido"
 ```
 
@@ -780,7 +504,7 @@ ANOTAÇÕES DEV (x:1460):
 // ENDPOINT estado 2: POST /api/auth/verify-code { email, code }
 // MODELO: User (lookup by email)
 // AUTH: Nenhuma → cria session após código válido
-// INTEGRAÇÃO: Resend (envio do código 6 dígitos)
+// INTEGRAÇÃO: Brevo (envio do código 6 dígitos)
 // ERRO estado 1: "E-mail não encontrado" (sem compras)
 // ERRO estado 2: "Código inválido" | "Código expirado"
 // RATE LIMIT: Max 3 tentativas de código, depois "Solicite novo código"
@@ -1339,7 +1063,7 @@ SEÇÕES:
 1. Dados que Coletamos — E-mail, CPF/CNPJ consultado, dados pagamento Asaas
 2. Fontes de Dados Públicos Consultadas — APIFull, Escavador, BrasilAPI, Google Custom Search, OpenAI
 3. Base Legal — Legítimo Interesse (Art. 7 IX LGPD) + Consentimento (Art. 7 I)
-4. Compartilhamento com Terceiros — Asaas, Resend, Neon, Plausible
+4. Compartilhamento com Terceiros — Asaas, Brevo, Neon, Plausible
 5. Retenção de Dados — Tabela: SearchResult 7d, Purchase indefinido, LeadCapture 90d, MagicCode 10min, Blocklist indefinido
 6. Cookies e Rastreamento — "Não utilizamos cookies. Plausible cookieless."
 7. Seus Direitos — Acesso, correção, exclusão, portabilidade, revogação → Link para /privacidade/titular
@@ -1418,7 +1142,7 @@ E.4 — Link Inválido:
 
 ---
 
-## 05 · Lista de Ajustes (QA)
+## 04 · Lista de Ajustes (QA)
 
 > Preencher durante revisões após execução.
 
@@ -1432,7 +1156,7 @@ E.4 — Link Inválido:
 
 ---
 
-## 06 · Histórico de Execução
+## 05 · Histórico de Execução
 
 | Data       | Entrada                                                                                                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

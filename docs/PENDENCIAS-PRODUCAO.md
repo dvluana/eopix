@@ -10,7 +10,7 @@
 
 ### O que é?
 
-O `TEST_MODE` permite testar o fluxo completo na Vercel **antes** de ir para produção real, usando APIs reais (APIFull, Escavador, Serper, OpenAI) sem precisar de Resend ou Asaas configurados.
+O `TEST_MODE` permite testar o fluxo completo na Vercel **antes** de ir para produção real, usando APIs reais (APIFull, Escavador, Serper, OpenAI) sem precisar de Brevo ou Asaas configurados.
 
 ### Como ativar
 
@@ -36,7 +36,7 @@ MOCK_MODE=false  # APIs reais (não mockadas)
 | `src/app/api/auth/verify-code/route.ts` | Aceita código fixo 123456 |
 | `src/app/api/auth/send-code/route.ts` | Loga código, não envia email |
 | `src/app/api/purchases/route.ts` | Bypass Asaas, cria PAID, dispara Inngest |
-| `src/lib/resend.ts` | Não envia email em TEST_MODE |
+| `src/lib/brevo.ts` | Não envia email em TEST_MODE |
 
 ### Fluxo de teste
 
@@ -53,7 +53,7 @@ Ver arquivo `docs/DADOS-TESTE.md` (não commitado) com CPFs/CNPJs autorizados pa
 
 ### Quando remover TEST_MODE
 
-1. ✅ Configurar Resend (emails transacionais)
+1. ✅ Configurar Brevo (emails transacionais)
 2. ✅ Configurar Asaas produção (pagamentos)
 3. ✅ Configurar Inngest (jobs em background)
 4. ✅ Testar fluxo completo com pagamento real
@@ -87,10 +87,10 @@ Todos os fluxos do frontend foram testados via MCP Chrome DevTools com `MOCK_MOD
 | Segurança | 1 | 2 | 0 | 0 | 0 | 3 |
 | Backend/APIs | 0 | 0 | 2 | 0 | **3** | 5 |
 | Frontend | 0 | 0 | 1 | 0 | **2** | 3 |
-| Integrações | 0 | 4 | 0 | 0 | **4** | 8 |
+| Integrações | 0 | 2 | 0 | 0 | **6** | 8 |
 | Monitoramento | 0 | 0 | 2 | 0 | **1** | 3 |
 | Compliance | 0 | 1 | 0 | 0 | 0 | 1 |
-| **TOTAL** | **1** | **7** | **5** | **0** | **10** | **23** |
+| **TOTAL** | **1** | **5** | **5** | **0** | **12** | **23** |
 
 ---
 
@@ -104,7 +104,7 @@ Todos os fluxos do frontend foram testados via MCP Chrome DevTools com `MOCK_MOD
 
 **Chaves faltantes (usuária deve configurar):**
 ```env
-RESEND_API_KEY=""
+BREVO_API_KEY=""
 NEXT_PUBLIC_SENTRY_DSN=""
 SENTRY_AUTH_TOKEN=""
 SENTRY_ORG=""
@@ -266,23 +266,24 @@ Substituiu Google Custom Search por Serper API (mais barato e sem limite de 100 
 
 ---
 
-### 4.7 [ALTO] Resend (Email Transacional) ❌
+### 4.7 [RESOLVIDO] Brevo (Email Transacional) ✅
 
-**Status:** Não configurado
+**Status:** Código implementado em `src/lib/brevo.ts`
 
-**Passos:**
-1. Criar conta em resend.com
+**Para produção:**
+1. Criar conta em brevo.com
 2. Adicionar domínio `somoseopix.com.br`
-3. Configurar DNS (SPF/DKIM/DMARC)
-4. Gerar API key → `RESEND_API_KEY`
+3. Configurar DNS (SPF/DKIM/DMARC) - ver `docs/brevo-setup.md` se existir
+4. Gerar API key → `BREVO_API_KEY`
+5. Definir `EMAIL_FROM_ADDRESS` com email verificado
 
 ---
 
-### 4.8 [ALTO] Inngest (Background Jobs) ❌
+### 4.8 [RESOLVIDO] Inngest (Background Jobs) ✅
 
-**Status:** Não configurado para produção
+**Status:** Código implementado em `src/lib/inngest.ts`
 
-**Passos:**
+**Para produção:**
 1. Criar conta em inngest.com
 2. Criar app com endpoint: `https://www.somoseopix.com.br/api/inngest`
 3. Copiar → `INNGEST_EVENT_KEY` e `INNGEST_SIGNING_KEY`
@@ -359,7 +360,7 @@ ADMIN_EMAILS=admin@exemplo.com
 NEXT_PUBLIC_APP_URL=https://seu-app.vercel.app
 
 # Podem ficar vazios em TEST_MODE
-RESEND_API_KEY=          # bypass
+BREVO_API_KEY=          # bypass
 ASAAS_API_KEY=           # bypass
 INNGEST_EVENT_KEY=       # local run
 SENTRY_DSN=              # opcional
@@ -372,8 +373,8 @@ SENTRY_DSN=              # opcional
 TEST_MODE=false
 MOCK_MODE=false
 
-# Email (Resend)
-RESEND_API_KEY=
+# Email (Brevo)
+BREVO_API_KEY=
 
 # Monitoramento (Sentry)
 NEXT_PUBLIC_SENTRY_DSN=
@@ -400,7 +401,7 @@ ASAAS_WEBHOOK_TOKEN=<token_producao>
 - [ ] `ASAAS_ENV=production`
 - [ ] DNS configurado para o domínio
 - [ ] SSL/HTTPS funcionando
-- [ ] SPF/DKIM do Resend verificado
+- [ ] SPF/DKIM do Brevo verificado
 - [ ] Webhook do Asaas apontando para produção
 - [ ] Inngest endpoint configurado
 
@@ -438,7 +439,7 @@ ASAAS_WEBHOOK_TOKEN=<token_producao>
 | `src/app/api/auth/verify-code/route.ts` | TEST_MODE - código fixo 123456 | ✅ Feito |
 | `src/app/api/auth/send-code/route.ts` | TEST_MODE - loga código | ✅ Feito |
 | `src/app/api/purchases/route.ts` | TEST_MODE - bypass Asaas | ✅ Feito |
-| `src/lib/resend.ts` | TEST_MODE - não envia email | ✅ Feito |
+| `src/lib/brevo.ts` | TEST_MODE - não envia email | ✅ Feito |
 | `docs/DADOS-TESTE.md` | CPFs/CNPJs para testes | ✅ Feito (não commitado) |
 
 ---

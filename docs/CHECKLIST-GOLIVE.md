@@ -1,7 +1,7 @@
 # E O PIX - Checklist Go-Live
 
 > **Data:** 09/02/2026
-> **Status:** PRONTO PARA GO-LIVE (pendente DNS Resend)
+> **Status:** PRONTO PARA GO-LIVE (pendente DNS Brevo)
 
 ---
 
@@ -9,7 +9,7 @@
 
 O projeto esta **PRONTO** para go-live. Todas as 12 features implementadas, todas as integracoes configuradas.
 
-**Pendencia unica:** Configurar DNS do Resend (SPF) para envio de emails.
+**Pendencia unica:** Configurar DNS do Brevo (SPF) para envio de emails.
 
 ---
 
@@ -21,33 +21,27 @@ O projeto esta **PRONTO** para go-live. Todas as 12 features implementadas, toda
 | Serper API | OK | Retornou resultados de busca |
 | OpenAI API | OK | GPT-4o-mini respondeu corretamente |
 | Sentry | Configurado | Projeto uxnaut/eopix criado |
-| Resend | DNS Pendente | Precisa configurar SPF (ver abaixo) |
+| Brevo | DNS Pendente | Precisa configurar SPF (ver abaixo) |
 | APIFull | 403 via CLI | Normal - funciona do servidor Vercel |
 
 ---
 
-## ACAO NECESSARIA: Configurar DNS do Resend
+## ACAO NECESSARIA: Configurar DNS do Brevo
 
 Adicionar no provedor de DNS do dominio `somoseopix.com.br`:
 
-### Registro MX:
+### Registro TXT (SPF):
 ```
-Nome: send
-Tipo: MX
-Prioridade: 10
-Valor: feedback-smtp.sa-east-1.amazonses.com
-TTL: 60
-```
-
-### Registro TXT:
-```
-Nome: send
+Nome: @ (ou somoseopix.com.br)
 Tipo: TXT
-Valor: v=spf1 include:amazonses.com ~all
-TTL: 60
+Valor: v=spf1 include:sendinblue.com ~all
+TTL: 3600
 ```
 
-Apos configurar, verificar status em: https://resend.com/domains
+### Registro TXT (DKIM):
+Obter o valor exato no Brevo Dashboard > Settings > Senders & IPs > Domains
+
+Apos configurar, verificar status em: https://app.brevo.com/settings/senders
 
 ---
 
@@ -67,12 +61,12 @@ Todas as variaveis foram configuradas e verificadas:
 | `APIFULL_API_KEY` | Configurado | APIFull token |
 | `SERPER_API_KEY` | Configurado | Serper API |
 | `OPENAI_API_KEY` | Configurado | OpenAI GPT-4o-mini |
-| `RESEND_API_KEY` | Configurado | Email transacional |
+| `BREVO_API_KEY` | Configurado | Email transacional |
 | `INNGEST_EVENT_KEY` | Configurado | Background jobs |
 | `INNGEST_SIGNING_KEY` | Configurado | Background jobs |
 | `MOCK_MODE` | Configurado | "false" |
 | `NEXT_PUBLIC_APP_URL` | Configurado | https://www.somoseopix.com.br |
-| `EMAIL_FROM` | Configurado | plataforma@somoseopix.com.br |
+| `EMAIL_FROM_ADDRESS` | Configurado | plataforma@somoseopix.com.br |
 | `PRICE_CENTS` | Configurado | 2990 |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Configurado | somoseopix.com.br |
 | `NEXT_PUBLIC_SENTRY_DSN` | Configurado | Monitoramento de erros |

@@ -57,7 +57,7 @@ export async function GET() {
         { service: 'database', status: 'up', latency: 10 },
         { service: 'apifull', status: 'up', latency: 50, message: 'Mockado' },
         { service: 'asaas', status: 'up', latency: 30, message: 'Bypass' },
-        { service: 'resend', status: 'up', latency: 20, message: 'Console only' },
+        { service: 'brevo', status: 'up', latency: 20, message: 'Console only' },
         { service: 'openai', status: 'up', latency: 40, message: 'Mockado' },
       ],
     })
@@ -70,12 +70,12 @@ export async function GET() {
       await prisma.$queryRaw`SELECT 1`
     }),
 
-    // Resend check (list domains - leve e nao envia email)
-    checkService('resend', async () => {
-      const res = await fetch('https://api.resend.com/domains', {
+    // Brevo check (get account info - leve e nao envia email)
+    checkService('brevo', async () => {
+      const res = await fetch('https://api.brevo.com/v3/account', {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          'api-key': process.env.BREVO_API_KEY || '',
         },
       })
 

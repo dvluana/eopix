@@ -44,7 +44,7 @@ vercel --prod
 - [ ] **Escavador** - Processos judiciais (https://www.escavador.com/)
 - [ ] **Google CSE** - Busca customizada (https://programmablesearchengine.google.com/)
 - [ ] **OpenAI** - Resumos com IA (https://platform.openai.com/)
-- [ ] **Resend** - Emails transacionais (https://resend.com/)
+- [ ] **Brevo** - Emails transacionais (https://app.brevo.com/)
 - [ ] **Inngest** - Background jobs (https://app.inngest.com/)
 
 ### Domínio Próprio (Configurado)
@@ -62,7 +62,7 @@ vercel --prod
 2. Configurar API keys no Vercel Dashboard
 3. Mudar `MOCK_MODE` para `false`
 4. Configurar webhook Asaas: `https://www.somoseopix.com.br/api/webhooks/asaas`
-5. Verificar domínio no Resend e adicionar DNS
+5. Verificar domínio no Brevo e adicionar DNS
 
 ---
 

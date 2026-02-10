@@ -586,7 +586,7 @@ export default function Page() {
                     <td style={tableStyles.td}>Processamento de pagamento Pix e emissão de NFS-e</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}><strong>Resend</strong></td>
+                    <td style={tableStyles.td}><strong>Brevo</strong></td>
                     <td style={tableStyles.td}>E-mail do comprador</td>
                     <td style={tableStyles.td}>Envio de e-mails transacionais (magic link e notificação de conclusão)</td>
                   </tr>

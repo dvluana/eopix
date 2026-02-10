@@ -347,7 +347,7 @@ Documentação visual do fluxo completo do sistema, desde o input até a visuali
 
 ---
 
-## 8. Notificação (Resend)
+## 8. Notificação (Brevo)
 
 ```
               ┌───────────────────────────────────┐
@@ -356,7 +356,7 @@ Documentação visual do fluxo completo do sistema, desde o input até a visuali
                               │
                               ▼
               ┌───────────────────────────────────┐
-              │         Resend API                │
+              │         Brevo API                │
               │                                   │
               │  📧 Para: user@email.com          │
               │                                   │
@@ -369,7 +369,7 @@ Documentação visual do fluxo completo do sistema, desde o input até a visuali
 ```
 
 **APIs utilizadas:**
-- Resend (e-mail transacional)
+- Brevo (e-mail transacional)
 
 ---
 
@@ -392,7 +392,7 @@ Documentação visual do fluxo completo do sistema, desde o input até a visuali
 │                                                                     │
 │  Digite o código recebido:                                          │
 │  ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐                                │
-│  │   │ │   │ │   │ │   │ │   │ │   │  ◄── 6 dígitos via Resend      │
+│  │   │ │   │ │   │ │   │ │   │ │   │  ◄── 6 dígitos via Brevo      │
 │  └───┘ └───┘ └───┘ └───┘ └───┘ └───┘                                │
 │                                                                     │
 │  [ Entrar ]                                                         │
@@ -568,8 +568,8 @@ Documentação visual do fluxo completo do sistema, desde o input até a visuali
 | **6. Webhook** | Inngest (dispatch) |
 | **7. Processamento CPF** | APIFull (3), Serper (3), GPT-4o-mini (2) |
 | **7. Processamento CNPJ** | APIFull (2), Serper (3), GPT-4o-mini (2) |
-| **8. Notificação** | Resend |
-| **9. Login** | Resend (magic code) |
+| **8. Notificação** | Brevo |
+| **9. Login** | Brevo (magic code) |
 | **10. Reembolso** | Asaas (POST /payments/{id}/refund) |
 
 ---

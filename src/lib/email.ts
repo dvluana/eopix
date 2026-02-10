@@ -18,30 +18,35 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailRespo
     return { id: `bypass_${Date.now()}` }
   }
 
-  // === CHAMADA REAL (Parte B) ===
-  const res = await fetch('https://api.resend.com/emails', {
+  // === CHAMADA REAL (Brevo API) ===
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'accept': 'application/json',
+      'api-key': process.env.BREVO_API_KEY || '',
     },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM,
-      to: params.to,
+      sender: {
+        name: 'E O PIX',
+        email: process.env.EMAIL_FROM_ADDRESS || 'plataforma@somoseopix.com.br',
+      },
+      to: [{ email: params.to }],
       subject: params.subject,
-      html: params.html,
+      htmlContent: params.html,
     }),
   })
 
   if (!res.ok) {
     const errorBody = await res.text().catch(() => 'Unable to read error body')
-    const error = new Error(`Resend error: ${res.status} - ${errorBody}`)
-    // Sentry captura automaticamente via Next.js instrumentation
-    console.error('📧 Resend failed:', { status: res.status, to: params.to, subject: params.subject, error: errorBody })
+    const error = new Error(`Brevo error: ${res.status} - ${errorBody}`)
+    console.error('📧 Brevo failed:', { status: res.status, to: params.to, subject: params.subject, error: errorBody })
     throw error
   }
 
-  return res.json()
+  const data = await res.json()
+  // Brevo retorna { messageId: "..." }, convertemos para { id: "..." }
+  return { id: data.messageId }
 }
 
 export async function sendMagicCode(email: string, code: string): Promise<SendEmailResponse> {
@@ -65,4 +70,3 @@ export async function sendMagicCode(email: string, code: string): Promise<SendEm
     `,
   })
 }
-
