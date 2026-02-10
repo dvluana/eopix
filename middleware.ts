@@ -104,10 +104,10 @@ async function verifyAdminAuth(request: NextRequest): Promise<boolean> {
     const [, payloadB64] = cookie.split('.')
     if (!payloadB64) return false
 
-    // Base64url decode
-    let payload = payloadB64.replace(/-/g, '+').replace(/_/g, '/')
-    while (payload.length % 4) payload += '='
-    const decoded = JSON.parse(Buffer.from(payload, 'base64').toString())
+    // Base64url decode (Edge Runtime compatible - no Buffer)
+    let base64 = payloadB64.replace(/-/g, '+').replace(/_/g, '/')
+    while (base64.length % 4) base64 += '='
+    const decoded = JSON.parse(atob(base64))
 
     // Check expiration
     if (decoded.exp < Math.floor(Date.now() / 1000)) {

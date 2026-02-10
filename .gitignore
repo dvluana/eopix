@@ -31,6 +31,10 @@ yarn-error.log*
 # test data with personal information
 docs/DADOS-TESTE.md
 
+# API documentation with sensitive values
+docs/valores apis e dados.md
+docs/valores apis e dados.md.backup
+
 # vercel
 .vercel
 
