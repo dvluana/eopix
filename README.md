@@ -18,6 +18,26 @@
 - **Error Tracking**: Sentry
 - **Background Jobs**: Inngest
 
+## 📚 Documentação
+
+A documentação completa do projeto está organizada nos seguintes arquivos:
+
+### Documentação Canônica
+- **[spec.md](docs/spec.md)** - Especificação técnica completa (v3.2)
+- **[back.md](docs/back.md)** - Documentação do backend (API routes, jobs, webhooks)
+- **[front.md](docs/front.md)** - Documentação do frontend (componentes, páginas, fluxos)
+- **[fluxo-sistema.md](docs/fluxo-sistema.md)** - Diagrama de fluxo completo do sistema
+- **[cenarios.md](docs/cenarios.md)** - Cenários de uso e edge cases
+- **[uc/](docs/uc/)** - Casos de uso detalhados (19 UCs)
+
+### Documentação Operacional
+- **[CHECKLIST-GOLIVE.md](docs/CHECKLIST-GOLIVE.md)** - Checklist para deploy em produção
+- **[_meta/traceability.csv](docs/_meta/traceability.csv)** - Rastreabilidade de funcionalidades
+- **[CHANGELOG.md](CHANGELOG.md)** - Histórico de mudanças
+
+### Arquivos Históricos
+- **[archive/](docs/archive/)** - Versões anteriores arquivadas
+
 ## 📁 Estrutura do Projeto
 
 ```
