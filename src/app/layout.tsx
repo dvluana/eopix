@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Zilla_Slab, IBM_Plex_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import Script from "next/script";
 import "./globals.css";
 
 const zillaSlab = Zilla_Slab({
@@ -67,12 +68,13 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
-        {/* Plausible Analytics */}
-        <script
+        {/* Plausible Analytics (cookieless, LGPD compliant) */}
+        <Script
           defer
-          data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+          data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || 'localhost'}
           src="https://plausible.io/js/script.js"
-        ></script>
+          strategy="afterInteractive"
+        />
       </head>
       <body
         className={`${zillaSlab.variable} ${ibmPlexMono.variable} antialiased`}
