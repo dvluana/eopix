@@ -1,0 +1,20 @@
+UC,Nome,Status,Backend,Frontend,Database,Testes,Commit,PR,Deploy
+UC-01,Envio Magic Code,COMPLETED,src/app/api/auth/send-code/route.ts,src/app/(auth)/login/page.tsx,"MagicCode, User",0%,73a9815,N/A,v1.0.0
+UC-02,Verificação Magic Code,COMPLETED,src/app/api/auth/verify-code/route.ts,src/app/(auth)/login/page.tsx,"MagicCode, User, Session",0%,a4314d1,N/A,v1.0.0
+UC-03,Auto-login Código Compra,COMPLETED,src/app/api/auth/auto-login/route.ts,src/app/compra/confirmacao/page.tsx,Purchase,0%,8c94354,N/A,v1.0.0
+UC-04,Validação Documento,COMPLETED,src/app/api/search/validate/route.ts,src/app/page.tsx,Blocklist,0%,b0d9ec4,N/A,v1.0.0
+UC-05,Criação Compra + Checkout,COMPLETED,src/app/api/purchases/route.ts,src/app/consulta/[term]/page.tsx,"Purchase, User",0%,61fa8bf,N/A,v1.0.0
+UC-06,Webhook Asaas,COMPLETED,src/app/api/webhooks/asaas/route.ts,N/A,"Purchase, WebhookLog",0%,a0dcc84,N/A,v1.0.0
+UC-07,Processamento CPF,COMPLETED,src/lib/inngest.ts (processSearch),N/A,SearchResult,0%,f09e113,N/A,v1.0.0
+UC-08,Processamento CNPJ,COMPLETED,src/lib/inngest.ts (processSearch),N/A,SearchResult,0%,47f2912,N/A,v1.0.0
+UC-09,Acesso Relatório,COMPLETED,src/app/api/report/[id]/route.ts,src/app/relatorio/[id]/page.tsx,SearchResult,0%,b91a690,N/A,v1.0.0
+UC-10,Admin Gerenciar Compras,COMPLETED,src/app/api/admin/purchases/*,src/app/admin/compras/page.tsx,Purchase,0%,aba5f6a,N/A,v1.0.0
+UC-11,Admin Gerenciar Blocklist,COMPLETED,src/app/api/admin/blocklist/*,src/app/admin/blocklist/page.tsx,Blocklist,0%,8ce93b6,N/A,v1.0.0
+UC-12,LGPD Solicitação Direitos,COMPLETED,src/app/api/lgpd-requests/route.ts,N/A,LgpdRequest,0%,0a023f2,N/A,v1.0.0
+UC-13,Configurar Vitest,PENDING,vitest.config.ts,N/A,N/A,0%,N/A,N/A,v1.1.0
+UC-14,Configurar Playwright,PENDING,playwright.config.ts,N/A,N/A,0%,N/A,N/A,v1.1.0
+UC-15,Testes Críticos,PENDING,tests/*,N/A,N/A,0%,N/A,N/A,v1.1.0
+UC-16,Email Conclusão,PENDING,src/lib/inngest.ts (step 7),N/A,N/A,0%,N/A,N/A,v1.1.0
+UC-17,Analytics Plausible,PENDING,"src/app/layout.tsx, src/lib/analytics.ts",src/app/*,N/A,0%,N/A,N/A,v1.1.0
+UC-18,NFS-e Automática,PENDING,src/lib/asaas.ts,N/A,Purchase (add invoiceId),0%,N/A,N/A,v1.1.0
+UC-19,Anonimização LGPD,PENDING,src/lib/inngest.ts (anonymizePurchases),N/A,Purchase,0%,N/A,N/A,v1.1.0
