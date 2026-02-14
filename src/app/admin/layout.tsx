@@ -35,7 +35,7 @@ export default function AdminLayout({
     } catch {
       // Ignore error
     }
-    router.push('/')
+    router.push('/admin/login')
   }
 
   return (

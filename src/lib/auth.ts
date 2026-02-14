@@ -144,7 +144,8 @@ export async function requireAdmin(request: NextRequest): Promise<NextResponse |
     )
   }
 
-  if (!ADMIN_EMAILS.includes(session.email.toLowerCase())) {
+  const isAdmin = await isAdminEmail(session.email)
+  if (!isAdmin) {
     return NextResponse.json(
       { error: 'Forbidden' },
       { status: 403 }
@@ -164,9 +165,24 @@ export async function destroySession(): Promise<void> {
 
 /**
  * Check if an email is admin
+ * Verifica tanto em ADMIN_EMAILS quanto na tabela AdminUser
  */
-export function isAdminEmail(email: string): boolean {
-  return ADMIN_EMAILS.includes(email.toLowerCase())
+export async function isAdminEmail(email: string): Promise<boolean> {
+  // 1. Verificar em ADMIN_EMAILS (mantém compatibilidade)
+  if (ADMIN_EMAILS.includes(email.toLowerCase())) {
+    return true
+  }
+
+  // 2. Verificar na tabela AdminUser
+  try {
+    const { prisma } = await import('./prisma')
+    const admin = await prisma.adminUser.findUnique({
+      where: { email: email.toLowerCase(), active: true }
+    })
+    return !!admin
+  } catch {
+    return false
+  }
 }
 
 /**

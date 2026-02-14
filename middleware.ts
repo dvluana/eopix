@@ -114,9 +114,19 @@ async function verifyAdminAuth(request: NextRequest): Promise<boolean> {
       return false
     }
 
-    // Check admin emails
+    const email = decoded.email?.toLowerCase()
+    if (!email) return false
+
+    // 1. Check ADMIN_EMAILS (mantém compatibilidade)
     const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase())
-    return adminEmails.includes(decoded.email?.toLowerCase())
+    if (adminEmails.includes(email)) {
+      return true
+    }
+
+    // 2. Check AdminUser table (Edge Runtime não suporta Prisma diretamente)
+    // Para o middleware, vamos confiar apenas em ADMIN_EMAILS por questões de performance
+    // A verificação completa da tabela será feita nas API routes via requireAdmin()
+    return false
   } catch {
     return false
   }
@@ -159,8 +169,17 @@ export async function middleware(request: NextRequest) {
       )
     }
 
-    // Admin routes require authentication
+    // Admin routes require authentication (exceto /api/admin/login)
     if (path.startsWith('/api/admin/')) {
+      // Permitir acesso público a /api/admin/login
+      if (path === '/api/admin/login') {
+        const response = NextResponse.next()
+        response.headers.set('X-RateLimit-Limit', config.maxRequests.toString())
+        response.headers.set('X-RateLimit-Remaining', remaining.toString())
+        response.headers.set('X-RateLimit-Reset', Math.ceil(resetAt / 1000).toString())
+        return response
+      }
+
       const isAdmin = await verifyAdminAuth(request)
       if (!isAdmin) {
         return NextResponse.json(
@@ -181,10 +200,15 @@ export async function middleware(request: NextRequest) {
 
   // Admin pages require authentication
   if (path.startsWith('/admin')) {
+    // Permitir acesso público a /admin/login
+    if (path === '/admin/login') {
+      return NextResponse.next()
+    }
+
     const isAdmin = await verifyAdminAuth(request)
     if (!isAdmin) {
-      // Redirect to home page for non-admins
-      return NextResponse.redirect(new URL('/', request.url))
+      // Redirecionar para login do admin (não para home)
+      return NextResponse.redirect(new URL('/admin/login', request.url))
     }
   }
 
