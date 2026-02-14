@@ -528,6 +528,69 @@ export const autoRefundFailedPurchases = inngest.createFunction(
   }
 )
 
+// Anonymize purchases older than 2 years (LGPD Art. 16) - Monthly on 1st at midnight
+export const anonymizePurchases = inngest.createFunction(
+  {
+    id: 'anonymize-purchases',
+    name: 'Anonymize Purchases (LGPD Compliance)',
+  },
+  { cron: '0 0 1 * *' }, // Every 1st day of month at midnight
+  async ({ step }) => {
+    const twoYearsAgo = new Date()
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+
+    // Step 1: Find eligible purchases
+    const eligiblePurchases = await step.run('find-eligible', async () => {
+      return prisma.purchase.findMany({
+        where: {
+          createdAt: { lt: twoYearsAgo },
+          buyerName: { not: 'ANONIMIZADO' }, // Skip already anonymized
+          status: { in: ['COMPLETED', 'REFUNDED'] }, // Only anonymize finalized purchases
+        },
+        select: {
+          id: true,
+          code: true,
+          buyerName: true,
+          buyerCpfCnpj: true,
+          createdAt: true,
+        },
+      })
+    })
+
+    console.log(`[LGPD] Found ${eligiblePurchases.length} purchases to anonymize`)
+
+    if (eligiblePurchases.length === 0) {
+      return { anonymized: 0, message: 'No purchases to anonymize' }
+    }
+
+    // Step 2: Anonymize in batch
+    const result = await step.run('anonymize-data', async () => {
+      return prisma.purchase.updateMany({
+        where: { id: { in: eligiblePurchases.map((p) => p.id) } },
+        data: {
+          buyerName: 'ANONIMIZADO',
+          buyerCpfCnpj: 'ANONIMIZADO',
+        },
+      })
+    })
+
+    // Step 3: Log audit trail
+    await step.run('log-audit', async () => {
+      console.log(`[LGPD] Anonymized ${result.count} purchases`)
+      console.log(
+        `[LGPD] Purchase IDs: ${eligiblePurchases.map((p) => p.code).join(', ')}`
+      )
+      // TODO: Gravar em tabela AuditLog (futuro)
+      return { logged: true }
+    })
+
+    return {
+      anonymized: result.count,
+      purchaseIds: eligiblePurchases.map((p) => p.id),
+    }
+  }
+)
+
 // Export all functions
 export const functions = [
   processSearch,
@@ -536,4 +599,5 @@ export const functions = [
   cleanupMagicCodes,
   cleanupPendingPurchases,
   autoRefundFailedPurchases,
+  anonymizePurchases,
 ]
