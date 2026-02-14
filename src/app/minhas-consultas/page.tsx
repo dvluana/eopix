@@ -233,15 +233,28 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
               marginBottom: '8px',
             }}
           >
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '12px',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              {currentStepInfo ? currentStepInfo.label : 'Iniciando...'}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Spinner animado */}
+              <div
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  border: '2px solid var(--color-border-subtle)',
+                  borderTopColor: 'var(--primitive-yellow)',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
+                {currentStepInfo ? currentStepInfo.label : 'Iniciando processamento...'}
+              </span>
+            </div>
             <span
               style={{
                 fontFamily: 'var(--font-family-body)',
@@ -252,6 +265,11 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
               {currentStep}/6
             </span>
           </div>
+          <style jsx>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
 
           {/* Barra de progresso */}
           <div
@@ -361,7 +379,7 @@ export default function Page() {
     checkSession();
   }, []);
 
-  // Polling para atualizar progresso quando há purchases em processamento
+  // SSE para atualizações em tempo real
   React.useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -371,20 +389,55 @@ export default function Page() {
 
     if (!hasProcessing) return;
 
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch('/api/purchases');
-        if (res.ok) {
-          const data = await res.json();
-          setPurchases(data.purchases || []);
-        }
-      } catch {
-        // Ignore errors during polling
-      }
-    }, 3000); // Poll every 3 seconds
+    // Use Server-Sent Events for real-time updates
+    const eventSource = new EventSource('/api/purchases/stream');
 
-    return () => clearInterval(interval);
-  }, [isAuthenticated, purchases]);
+    eventSource.onmessage = (event) => {
+      try {
+        const updatedPurchases = JSON.parse(event.data);
+
+        // Merge updates with existing purchases
+        setPurchases((prev) => {
+          const updated = [...prev];
+
+          updatedPurchases.forEach((newP: Purchase) => {
+            const idx = updated.findIndex((p) => p.id === newP.id);
+            if (idx >= 0) {
+              // Update existing purchase
+              updated[idx] = { ...updated[idx], ...newP };
+            }
+          });
+
+          return updated;
+        });
+      } catch (err) {
+        console.error('Error parsing SSE message:', err);
+      }
+    };
+
+    eventSource.onerror = () => {
+      // On error, fall back to polling
+      eventSource.close();
+
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/purchases');
+          if (res.ok) {
+            const data = await res.json();
+            setPurchases(data.purchases || []);
+          }
+        } catch {
+          // Ignore errors during polling
+        }
+      }, 2000);
+
+      return () => clearInterval(interval);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [isAuthenticated, purchases.some(p => p.status === 'PROCESSING' || p.status === 'PAID')]);
 
   // ============================================
   // ESTADO 1: ENVIAR CÓDIGO
@@ -409,8 +462,19 @@ export default function Page() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Erro ao enviar código');
+        // Melhorado: Mostrar quantas tentativas restam se houver retryAfter
+        if (data.retryAfter) {
+          const minutes = Math.ceil(data.retryAfter / 60);
+          setError(`${data.error} Aguarde ${minutes} minuto(s).`);
+        } else {
+          setError(data.error || 'Erro ao enviar código');
+        }
         return;
+      }
+
+      // Novo: Mostrar aviso se poucas tentativas restantes
+      if (data.rateLimit && data.rateLimit.remaining <= 2) {
+        console.info(`⚠️ Você tem ${data.rateLimit.remaining} tentativas restantes`);
       }
 
       // Avança para o estado de código

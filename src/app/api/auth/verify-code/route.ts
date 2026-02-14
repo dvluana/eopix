@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createSession, isAdminEmail } from '@/lib/auth'
 import { isValidEmail } from '@/lib/validators'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 // TEST_MODE: Permite código fixo 123456 para testes sem Brevo configurado
 // TODO: Remover TEST_MODE=true quando Brevo estiver configurado em produção
@@ -34,6 +35,18 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim()
 
+    // Check rate limit for verification attempts
+    const rateLimit = await checkRateLimit(normalizedEmail, 'magic-code-verify')
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Muitas tentativas de verificação. Aguarde alguns minutos.',
+          retryAfter: Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 1000),
+        },
+        { status: 429 }
+      )
+    }
+
     // TEST_MODE: Aceita código fixo 123456 para bypass de validação
     if (TEST_MODE && code.trim() === FIXED_TEST_CODE) {
       console.log(`🧪 [TEST_MODE] Código fixo ${FIXED_TEST_CODE} aceito para: ${normalizedEmail}`)
@@ -54,6 +67,14 @@ export async function POST(request: NextRequest) {
       // Cria sessão normalmente
       await createSession(normalizedEmail)
       const isAdmin = isAdminEmail(normalizedEmail)
+
+      // Reset rate limit counters após login bem-sucedido
+      await prisma.rateLimit.deleteMany({
+        where: {
+          identifier: normalizedEmail,
+          action: { in: ['magic-code-send', 'magic-code-verify'] },
+        },
+      })
 
       return NextResponse.json({
         success: true,
@@ -91,6 +112,14 @@ export async function POST(request: NextRequest) {
 
     // Check if admin
     const isAdmin = isAdminEmail(normalizedEmail)
+
+    // Reset rate limit counters após login bem-sucedido
+    await prisma.rateLimit.deleteMany({
+      where: {
+        identifier: normalizedEmail,
+        action: { in: ['magic-code-send', 'magic-code-verify'] },
+      },
+    })
 
     return NextResponse.json({
       success: true,

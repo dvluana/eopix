@@ -8,7 +8,8 @@ interface RateLimitConfig {
 const RATE_LIMITS: Record<string, RateLimitConfig> = {
   search: { maxRequests: 10, windowMs: 60 * 60 * 1000 }, // 10/hora
   purchase: { maxRequests: 3, windowMs: 60 * 60 * 1000 }, // 3/hora
-  'magic-code': { maxRequests: 3, windowMs: 60 * 60 * 1000 }, // 3/hora por email
+  'magic-code-send': { maxRequests: 5, windowMs: 15 * 60 * 1000 }, // 5 envios a cada 15 min
+  'magic-code-verify': { maxRequests: 10, windowMs: 15 * 60 * 1000 }, // 10 verificações a cada 15 min
   'magic-link': { maxRequests: 20, windowMs: 60 * 60 * 1000 }, // 20/hora por IP
 }
 

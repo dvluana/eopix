@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = email.toLowerCase().trim()
 
     // Check rate limit by email
-    const rateLimit = await checkRateLimit(normalizedEmail, 'magic-code')
+    const rateLimit = await checkRateLimit(normalizedEmail, 'magic-code-send')
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
@@ -106,6 +106,10 @@ export async function POST(request: NextRequest) {
         message: 'Codigo enviado para seu email.',
         // Em TEST_MODE, retorna hint para usar código fixo
         _testHint: 'Use o código 123456 para login em modo de teste',
+        rateLimit: {
+          remaining: rateLimit.remaining,
+          resetAt: rateLimit.resetAt,
+        },
       })
     }
 
@@ -126,6 +130,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Codigo enviado para seu email.',
+      rateLimit: {
+        remaining: rateLimit.remaining,
+        resetAt: rateLimit.resetAt,
+      },
     })
   } catch (error) {
     console.error('[Send-Code] Error:', error)
