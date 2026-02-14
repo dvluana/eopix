@@ -129,3 +129,67 @@ export function validateWebhookToken(token: string | null): boolean {
   // NUNCA aceitar token mock - sempre validar com env var
   return token === process.env.ASAAS_WEBHOOK_TOKEN
 }
+
+export interface GenerateInvoiceParams {
+  paymentId: string
+  serviceDescription: string
+  observations?: string
+}
+
+export interface InvoiceResponse {
+  invoiceId: string
+  skipped?: boolean
+}
+
+export async function generateInvoice(
+  params: GenerateInvoiceParams
+): Promise<InvoiceResponse> {
+  const env = process.env.ASAAS_ENV || 'sandbox'
+
+  // Skip em sandbox/test/bypass (NFS-e não disponível em sandbox)
+  if (env === 'sandbox' || isBypassMode) {
+    console.log('[NFS-e] Skipping invoice generation (sandbox/bypass mode)')
+    return { invoiceId: '', skipped: true }
+  }
+
+  const baseUrl = getAsaasBaseUrl()
+
+  const res = await fetch(`${baseUrl}/payments/${params.paymentId}/invoices`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'access_token': process.env.ASAAS_API_KEY || '',
+    },
+    body: JSON.stringify({
+      serviceDescription: params.serviceDescription,
+      observations: params.observations,
+      municipalServiceCode: '17.23', // Processamento de dados
+      municipalServiceName: 'Processamento de dados e congêneres',
+      taxes: {
+        retainIss: false,
+        iss: 2.0,
+        cofins: 3.0,
+        csll: 1.0,
+        inss: 0.0,
+        ir: 0.0,
+        pis: 0.65,
+      },
+    }),
+  })
+
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => 'Unable to read error body')
+    console.error('[NFS-e] Invoice generation failed:', {
+      status: res.status,
+      paymentId: params.paymentId,
+      error: errorBody,
+    })
+    throw new Error(`Asaas invoice API error: ${res.status} - ${errorBody}`)
+  }
+
+  const data = await res.json()
+
+  return {
+    invoiceId: data.id,
+  }
+}

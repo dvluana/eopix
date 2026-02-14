@@ -131,8 +131,30 @@ export async function POST(request: NextRequest) {
 
       console.log(`Purchase ${purchase.code} updated to ${newStatus}`)
 
-      // If payment confirmed, trigger Inngest job to process search
+      // If payment confirmed, trigger Inngest job + NFS-e generation
       if (newStatus === 'PAID') {
+        // Generate NFS-e (non-blocking, errors are logged but don't block flow)
+        try {
+          const { generateInvoice } = await import('@/lib/asaas')
+          const invoiceResult = await generateInvoice({
+            paymentId: payment.id,
+            serviceDescription: 'Consulta de Processos Judiciais e Dados Públicos',
+            observations: `Código: ${purchase.code}`,
+          })
+
+          if (!invoiceResult.skipped && invoiceResult.invoiceId) {
+            await prisma.purchase.update({
+              where: { id: purchase.id },
+              data: { asaasInvoiceId: invoiceResult.invoiceId },
+            })
+            console.log(`NFS-e generated: ${invoiceResult.invoiceId}`)
+          }
+        } catch (invoiceErr) {
+          console.error('[NFS-e] Failed to generate invoice:', invoiceErr)
+          // Don't block flow - Sentry will capture this
+        }
+
+        // Trigger Inngest job to process search
         try {
           const { inngest } = await import('@/lib/inngest')
           await inngest.send({

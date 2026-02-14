@@ -42,6 +42,7 @@ model Purchase {
   processingStep  Int       @default(0) // 0=não iniciado, 1-6 = etapas do processamento
   refundAttempts  Int       @default(0) // Contador de tentativas de reembolso (max 3)
   asaasPaymentId  String?   @unique
+  asaasInvoiceId  String?   @unique // ID da NFS-e emitida pela Asaas
   buyerName       String?   // Nome do comprador (via webhook Asaas)
   buyerCpfCnpj    String?   // CPF/CNPJ do comprador (via webhook Asaas)
   termsAcceptedAt DateTime  // Timestamp aceite dos Termos
