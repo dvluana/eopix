@@ -38,6 +38,13 @@ export default function AdminLayout({
     router.push('/admin/login')
   }
 
+  // Página de login não deve mostrar sidebar
+  const isLoginPage = pathname === '/admin/login'
+
+  if (isLoginPage) {
+    return <>{children}</>
+  }
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--color-bg-secondary)' }}>
       {/* Sidebar */}

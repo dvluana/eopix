@@ -1,11 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Import Design System */
 @import '../styles/fonts.css';
 @import '../styles/tokens.css';
 @import '../styles/components.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ============================================
    Theme overrides (valores do HTML original)
