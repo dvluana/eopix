@@ -27,6 +27,11 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env.vercel
+
+# playwright
+/test-results/
+/playwright-report/
 
 # test data with personal information
 docs/DADOS-TESTE.md
