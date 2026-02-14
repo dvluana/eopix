@@ -21,7 +21,7 @@ function getAsaasBaseUrl(): string {
   const env = process.env.ASAAS_ENV || 'sandbox'
   return env === 'production'
     ? 'https://api.asaas.com/v3'
-    : 'https://sandbox.asaas.com/api/v3'
+    : 'https://api-sandbox.asaas.com/v3'
 }
 
 export async function createPixCharge(
