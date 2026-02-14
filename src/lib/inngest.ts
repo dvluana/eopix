@@ -300,6 +300,16 @@ export const processSearch = inngest.createFunction(
         })
       })
 
+      // Step 8: Enviar email de conclusão
+      await step.run('send-completion-email', async () => {
+        const { sendCompletionEmail } = await import('./email')
+        const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://somoseopix.com.br'
+        const reportUrl = `${baseUrl}/relatorio/${searchResult.id}`
+
+        await sendCompletionEmail(event.data.email, event.data.purchaseCode, reportUrl)
+        return { sent: true, to: event.data.email }
+      })
+
       return { success: true, searchResultId: searchResult.id }
     } catch (error) {
       console.error('Process search error:', error)
