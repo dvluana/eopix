@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
     // Map Asaas status to our status
     let newStatus: string | null = null
     let paidAt: Date | null = null
+    const updateData: Record<string, unknown> = {}
 
     switch (event) {
       case 'PAYMENT_CONFIRMED':
@@ -88,6 +89,12 @@ export async function POST(request: NextRequest) {
 
       case 'PAYMENT_REPROVED_BY_RISK_ANALYSIS':
         newStatus = 'FAILED'
+        updateData.failureReason = 'PAYMENT_RISK'
+        updateData.failureDetails = JSON.stringify({
+          event: event,
+          paymentId: payment.id,
+          timestamp: new Date().toISOString(),
+        })
         break
 
       case 'PAYMENT_REFUNDED':
@@ -103,9 +110,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (newStatus) {
-      const updateData: Record<string, unknown> = {
-        status: newStatus,
-      }
+      updateData.status = newStatus
 
       if (paidAt) {
         updateData.paidAt = paidAt

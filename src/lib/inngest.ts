@@ -134,31 +134,37 @@ export const processSearch = inngest.createFunction(
         name = cadastralData.nome
         region = cadastralData.enderecos?.[0]?.uf || ''
 
-        // Atualiza para step 2 - Dados financeiros
+        // Atualiza para step 2 - Paralelizando etapas 2 e 3
         await step.run('update-step-2', async () => updateStep(2))
 
-        // Step 2: Dados financeiros (srs-premium) - NAO bloqueia se falhar
-        cpfFinancialData = await step.run('fetch-cpf-financial', async () => {
-          try {
-            return await consultCpfFinancial(term)
-          } catch (err) {
-            console.error('CPF Financial (srs-premium) error:', err)
-            return null
-          }
-        })
+        // ========== OTIMIZAÇÃO: Paralelizar etapas 2 e 3 ==========
+        // Steps 2 e 3 podem rodar em paralelo pois são independentes
+        const [cpfFinancialResult, processosResult] = await Promise.all([
+          // Step 2: Dados financeiros (srs-premium) - NAO bloqueia se falhar
+          step.run('fetch-cpf-financial', async () => {
+            try {
+              return await consultCpfFinancial(term)
+            } catch (err) {
+              console.error('CPF Financial (srs-premium) error:', err)
+              return null
+            }
+          }),
+          // Step 3: Processos judiciais (r-acoes-e-processos-judiciais) - NAO bloqueia se falhar
+          step.run('fetch-cpf-processos', async () => {
+            try {
+              return await consultCpfProcessos(term)
+            } catch (err) {
+              console.error('CPF Processos error:', err)
+              return { processos: [], totalProcessos: 0 }
+            }
+          }),
+        ])
 
-        // Atualiza para step 3 - Processos judiciais
+        cpfFinancialData = cpfFinancialResult
+        processosData = processosResult
+
+        // Atualiza para step 3 (já completou steps 2 e 3 em paralelo)
         await step.run('update-step-3', async () => updateStep(3))
-
-        // Step 3: Processos judiciais (r-acoes-e-processos-judiciais) - NAO bloqueia se falhar
-        processosData = await step.run('fetch-cpf-processos', async () => {
-          try {
-            return await consultCpfProcessos(term)
-          } catch (err) {
-            console.error('CPF Processos error:', err)
-            return { processos: [], totalProcessos: 0 }
-          }
-        })
 
         // Calcular resumo financeiro (sem IA)
         financialSummary = calculateCpfFinancialSummary(cpfFinancialData)
@@ -314,10 +320,25 @@ export const processSearch = inngest.createFunction(
     } catch (error) {
       console.error('Process search error:', error)
 
-      // Update purchase to FAILED
+      // Get current purchase state to capture processingStep
+      const failedPurchase = await prisma.purchase.findUnique({
+        where: { id: purchaseId },
+        select: { processingStep: true },
+      })
+
+      // Update purchase to FAILED with error details
       await prisma.purchase.update({
         where: { id: purchaseId },
-        data: { status: 'FAILED' },
+        data: {
+          status: 'FAILED',
+          failureReason: 'PROCESSING_ERROR',
+          failureDetails: JSON.stringify({
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            currentStep: failedPurchase?.processingStep || 0,
+            timestamp: new Date().toISOString(),
+          }),
+        },
       })
 
       throw error // Re-throw to trigger retry
@@ -407,6 +428,11 @@ export const cleanupPendingPurchases = inngest.createFunction(
         },
         data: {
           status: 'FAILED',
+          failureReason: 'PAYMENT_EXPIRED',
+          failureDetails: JSON.stringify({
+            reason: 'Payment not confirmed within 30 minutes',
+            timestamp: new Date().toISOString(),
+          }),
         },
       })
     })
@@ -424,18 +450,19 @@ export const autoRefundFailedPurchases = inngest.createFunction(
   },
   { cron: '*/30 * * * *' },
   async ({ step }) => {
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000)
 
-    // Find purchases stuck in PROCESSING for more than 2 hours OR previously failed refunds
+    // Find purchases stuck in PROCESSING for more than 4 hours OR previously failed refunds
     const stuckPurchases = await step.run('find-stuck-purchases', async () => {
       return prisma.purchase.findMany({
         where: {
           OR: [
-            // Stuck in PROCESSING for 2+ hours
+            // Stuck in PROCESSING for 4+ hours (increased from 2h to avoid premature refunds)
             {
               status: 'PROCESSING',
-              updatedAt: { lt: twoHoursAgo },
+              updatedAt: { lt: fourHoursAgo },
               asaasPaymentId: { not: null },
+              processingStep: { gt: 0 }, // Only refund if processing actually started
             },
             // FAILED status that needs refund (already paid but processing failed)
             {
@@ -467,12 +494,22 @@ export const autoRefundFailedPurchases = inngest.createFunction(
     for (const purchase of stuckPurchases) {
       if (!purchase.asaasPaymentId) continue
 
+      // Log before refunding
+      console.warn(`[AUTO-REFUND] Purchase ${purchase.code} stuck in ${purchase.status} for >4h - initiating refund (attempt ${purchase.refundAttempts + 1}/3)`)
+
       // Check if already exceeded max retries
       if (purchase.refundAttempts >= 3) {
         await step.run(`mark-refund-failed-${purchase.id}`, async () => {
           await prisma.purchase.update({
             where: { id: purchase.id },
-            data: { status: 'REFUND_FAILED' },
+            data: {
+              status: 'REFUND_FAILED',
+              failureDetails: JSON.stringify({
+                reason: 'Exceeded maximum refund attempts',
+                attempts: purchase.refundAttempts,
+                timestamp: new Date().toISOString(),
+              }),
+            },
           })
           // TODO: Send Sentry alert for REFUND_FAILED
           console.error(`[ALERT] Purchase ${purchase.code} marked as REFUND_FAILED after 3 attempts`)
@@ -485,9 +522,19 @@ export const autoRefundFailedPurchases = inngest.createFunction(
         try {
           const result = await refundPayment(purchase.asaasPaymentId!)
           if (result.success) {
+            const refundReason = purchase.status === 'PROCESSING' ? 'AUTO_TIMEOUT' : 'AUTO_FAILED_PAYMENT'
             await prisma.purchase.update({
               where: { id: purchase.id },
-              data: { status: 'REFUNDED', refundAttempts: purchase.refundAttempts + 1 },
+              data: {
+                status: 'REFUNDED',
+                refundAttempts: purchase.refundAttempts + 1,
+                refundReason,
+                refundDetails: JSON.stringify({
+                  originalStatus: purchase.status,
+                  attemptNumber: purchase.refundAttempts + 1,
+                  timestamp: new Date().toISOString(),
+                }),
+              },
             })
             console.log(`Refunded purchase ${purchase.code}`)
             return 'success'
@@ -510,7 +557,14 @@ export const autoRefundFailedPurchases = inngest.createFunction(
           if (purchase.refundAttempts + 1 >= 3) {
             await prisma.purchase.update({
               where: { id: purchase.id },
-              data: { status: 'REFUND_FAILED' },
+              data: {
+                status: 'REFUND_FAILED',
+                failureDetails: JSON.stringify({
+                  error: error instanceof Error ? error.message : String(error),
+                  attempts: purchase.refundAttempts + 1,
+                  timestamp: new Date().toISOString(),
+                }),
+              },
             })
             // TODO: Send Sentry alert for REFUND_FAILED
             console.error(`[ALERT] Purchase ${purchase.code} marked as REFUND_FAILED after 3 attempts`)

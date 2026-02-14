@@ -55,7 +55,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       // Update status to REFUND_FAILED
       await prisma.purchase.update({
         where: { id },
-        data: { status: 'REFUND_FAILED' },
+        data: {
+          status: 'REFUND_FAILED',
+          failureDetails: JSON.stringify({
+            reason: 'Manual refund failed',
+            refundedBy: 'admin',
+            timestamp: new Date().toISOString(),
+          }),
+        },
       })
 
       return NextResponse.json(
@@ -67,7 +74,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Update status to REFUNDED
     await prisma.purchase.update({
       where: { id },
-      data: { status: 'REFUNDED' },
+      data: {
+        status: 'REFUNDED',
+        refundReason: 'MANUAL_ADMIN',
+        refundDetails: JSON.stringify({
+          refundedBy: 'admin',
+          timestamp: new Date().toISOString(),
+        }),
+      },
     })
 
     return NextResponse.json({

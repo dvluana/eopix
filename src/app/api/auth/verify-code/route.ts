@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
       // Cria sessão normalmente
       await createSession(normalizedEmail)
-      const isAdmin = isAdminEmail(normalizedEmail)
+      const isAdmin = await isAdminEmail(normalizedEmail)
 
       // Reset rate limit counters após login bem-sucedido
       await prisma.rateLimit.deleteMany({
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     await createSession(normalizedEmail)
 
     // Check if admin
-    const isAdmin = isAdminEmail(normalizedEmail)
+    const isAdmin = await isAdminEmail(normalizedEmail)
 
     // Reset rate limit counters após login bem-sucedido
     await prisma.rateLimit.deleteMany({

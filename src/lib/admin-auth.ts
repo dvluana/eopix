@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
-import { createSession } from './auth'
 
 /**
  * Cria um novo usuário admin no banco de dados
@@ -32,7 +31,7 @@ export async function createAdminUser(
       }
     })
     return true
-  } catch (error) {
+  } catch {
     // Email já existe (violação de constraint unique)
     return false
   }

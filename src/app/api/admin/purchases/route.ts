@@ -62,6 +62,10 @@ export async function GET(request: NextRequest) {
       hasReport: !!p.searchResult,
       reportId: p.searchResult?.id || null,
       asaasPaymentId: p.asaasPaymentId,
+      failureReason: p.failureReason,
+      failureDetails: p.failureDetails,
+      refundReason: p.refundReason,
+      refundDetails: p.refundDetails,
       createdAt: p.createdAt,
       paidAt: p.paidAt,
     }))

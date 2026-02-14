@@ -34,6 +34,10 @@ interface Purchase {
   hasReport: boolean
   reportId: string | null
   asaasPaymentId: string | null
+  failureReason: string | null
+  failureDetails: string | null
+  refundReason: string | null
+  refundDetails: string | null
   createdAt: string
   paidAt: string | null
 }
@@ -77,6 +81,25 @@ function formatDate(dateString: string | null): string {
   }).format(new Date(dateString))
 }
 
+function getFailureMessage(reason: string | null): string {
+  const messages: Record<string, string> = {
+    PAYMENT_RISK: 'Reprovado por análise de risco',
+    PROCESSING_ERROR: 'Erro durante processamento',
+    PROCESSING_TIMEOUT: 'Processamento excedeu 4 horas',
+    PAYMENT_EXPIRED: 'Pagamento não confirmado em 30min',
+  }
+  return reason ? (messages[reason] || reason) : 'Motivo não registrado'
+}
+
+function getRefundMessage(reason: string | null): string {
+  const messages: Record<string, string> = {
+    MANUAL_ADMIN: 'Reembolso manual (admin)',
+    AUTO_FAILED_PAYMENT: 'Reembolso automático (falha)',
+    AUTO_TIMEOUT: 'Reembolso automático (timeout)',
+  }
+  return reason ? (messages[reason] || reason) : 'Motivo não registrado'
+}
+
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
     COMPLETED: { variant: 'default', label: 'Concluido' },
@@ -110,6 +133,10 @@ export default function ComprasPage() {
   // Process dialog
   const [processPurchase, setProcessPurchase] = React.useState<Purchase | null>(null)
   const [processLoading, setProcessLoading] = React.useState(false)
+
+  // Process now (combined) dialog
+  const [processNowPurchase, setProcessNowPurchase] = React.useState<Purchase | null>(null)
+  const [processNowLoading, setProcessNowLoading] = React.useState(false)
 
   // Details dialog
   const [detailsPurchase, setDetailsPurchase] = React.useState<Purchase | null>(null)
@@ -250,6 +277,31 @@ export default function ComprasPage() {
     }
   }
 
+  const handleProcessNow = async () => {
+    if (!processNowPurchase) return
+
+    try {
+      setProcessNowLoading(true)
+      const res = await fetch(`/api/admin/purchases/${processNowPurchase.id}/mark-paid-and-process`, {
+        method: 'POST',
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        alert(error.error || 'Erro ao processar')
+        return
+      }
+
+      setProcessNowPurchase(null)
+      fetchData()
+    } catch (err) {
+      console.error('Error processing now:', err)
+      alert('Erro ao processar')
+    } finally {
+      setProcessNowLoading(false)
+    }
+  }
+
   // Handler para abrir detalhes
   const handleOpenDetails = async (purchase: Purchase) => {
     setDetailsPurchase(purchase)
@@ -265,7 +317,7 @@ export default function ComprasPage() {
     }
   }
 
-  // Polling para atualizar em tempo real
+  // Polling para atualizar em tempo real (reduzido de 2s para 1s para melhor UX)
   React.useEffect(() => {
     if (!detailsPurchase || detailsPurchase.status !== 'PROCESSING') return
 
@@ -280,7 +332,7 @@ export default function ComprasPage() {
           fetchData() // Atualizar lista
         }
       }
-    }, 2000)
+    }, 1000) // Reduzido para 1s para melhor feedback em tempo real
 
     return () => clearInterval(interval)
   }, [detailsPurchase?.id, detailsPurchase?.status, fetchData])
@@ -465,19 +517,34 @@ export default function ComprasPage() {
                 </button>
 
                 {purchase.status === 'PENDING' && (
-                  <button
-                    onClick={() => { setMarkPaidPurchase(purchase); setOpenMenuId(null) }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 'var(--primitive-space-2)',
-                      width: '100%', padding: 'var(--primitive-space-2) var(--primitive-space-3)',
-                      background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--primitive-size-sm)',
-                      textAlign: 'left', color: 'var(--color-text-primary)',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-subtle)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <CheckCircle2 size={14} /> Marcar como pago
-                  </button>
+                  <>
+                    <button
+                      onClick={() => { setProcessNowPurchase(purchase); setOpenMenuId(null) }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 'var(--primitive-space-2)',
+                        width: '100%', padding: 'var(--primitive-space-2) var(--primitive-space-3)',
+                        background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--primitive-size-sm)',
+                        textAlign: 'left', color: 'var(--color-text-primary)',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-subtle)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <Play size={14} /> Processar Agora
+                    </button>
+                    <button
+                      onClick={() => { setMarkPaidPurchase(purchase); setOpenMenuId(null) }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 'var(--primitive-space-2)',
+                        width: '100%', padding: 'var(--primitive-space-2) var(--primitive-space-3)',
+                        background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--primitive-size-sm)',
+                        textAlign: 'left', color: 'var(--color-text-tertiary)',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-bg-subtle)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <CheckCircle2 size={14} /> Marcar como pago
+                    </button>
+                  </>
                 )}
 
                 {purchase.status === 'PAID' && !purchase.hasReport && (
@@ -634,6 +701,26 @@ export default function ComprasPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Process Now Dialog */}
+      <Dialog open={!!processNowPurchase} onOpenChange={() => setProcessNowPurchase(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Processar Agora</DialogTitle>
+            <DialogDescription>
+              Marcar compra {processNowPurchase?.code} como paga e iniciar processamento imediatamente?
+              <br />
+              Isso vai disparar a geracao do relatorio automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProcessNowPurchase(null)}>Cancelar</Button>
+            <Button onClick={handleProcessNow} disabled={processNowLoading}>
+              {processNowLoading ? 'Processando...' : 'Confirmar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Details Dialog */}
       <Dialog open={!!detailsPurchase} onOpenChange={() => { setDetailsPurchase(null); setDetailsData(null); }}>
         <DialogContent style={{ maxWidth: 'var(--layout-max-width-narrow)' }}>
@@ -703,6 +790,68 @@ export default function ComprasPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Failure/Refund Reason Section */}
+              {(['FAILED', 'REFUNDED', 'REFUND_FAILED'].includes(detailsData.purchase.status)) && (
+                <div style={{
+                  marginTop: 'var(--primitive-space-4)',
+                  borderTop: '1px solid var(--color-border-subtle)',
+                  paddingTop: 'var(--primitive-space-3)',
+                  backgroundColor: 'var(--color-bg-subtle)',
+                  padding: 'var(--primitive-space-3)',
+                  borderRadius: 'var(--primitive-radius-md)',
+                }}>
+                  <p style={{ fontSize: 'var(--primitive-size-caption)', fontWeight: 600, marginBottom: 'var(--primitive-space-2)' }}>
+                    {detailsData.purchase.status === 'FAILED' && '⚠️ Motivo da Falha'}
+                    {detailsData.purchase.status === 'REFUNDED' && 'ℹ️ Motivo do Reembolso'}
+                    {detailsData.purchase.status === 'REFUND_FAILED' && '❌ Falha no Reembolso'}
+                  </p>
+
+                  {detailsData.purchase.failureReason && (
+                    <p style={{ fontSize: 'var(--primitive-size-sm)', fontWeight: 500, marginBottom: 'var(--primitive-space-2)' }}>
+                      {getFailureMessage(detailsData.purchase.failureReason)}
+                    </p>
+                  )}
+
+                  {detailsData.purchase.refundReason && (
+                    <p style={{ fontSize: 'var(--primitive-size-sm)', fontWeight: 500, marginBottom: 'var(--primitive-space-2)' }}>
+                      {getRefundMessage(detailsData.purchase.refundReason)}
+                    </p>
+                  )}
+
+                  {detailsData.purchase.failureDetails && (
+                    <details style={{ marginTop: 'var(--primitive-space-2)', fontSize: 'var(--primitive-size-caption)' }}>
+                      <summary style={{ cursor: 'pointer', color: 'var(--color-text-tertiary)' }}>Ver detalhes técnicos</summary>
+                      <pre style={{
+                        marginTop: 'var(--primitive-space-2)',
+                        padding: 'var(--primitive-space-2)',
+                        backgroundColor: 'var(--color-bg-primary)',
+                        borderRadius: 'var(--primitive-radius-sm)',
+                        overflow: 'auto',
+                        fontSize: 'var(--primitive-size-micro)',
+                      }}>
+                        {JSON.stringify(JSON.parse(detailsData.purchase.failureDetails), null, 2)}
+                      </pre>
+                    </details>
+                  )}
+
+                  {detailsData.purchase.refundDetails && (
+                    <details style={{ marginTop: 'var(--primitive-space-2)', fontSize: 'var(--primitive-size-caption)' }}>
+                      <summary style={{ cursor: 'pointer', color: 'var(--color-text-tertiary)' }}>Ver detalhes do reembolso</summary>
+                      <pre style={{
+                        marginTop: 'var(--primitive-space-2)',
+                        padding: 'var(--primitive-space-2)',
+                        backgroundColor: 'var(--color-bg-primary)',
+                        borderRadius: 'var(--primitive-radius-sm)',
+                        overflow: 'auto',
+                        fontSize: 'var(--primitive-size-micro)',
+                      }}>
+                        {JSON.stringify(JSON.parse(detailsData.purchase.refundDetails), null, 2)}
+                      </pre>
+                    </details>
+                  )}
                 </div>
               )}
 
