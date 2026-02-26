@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/prisma'
-import { createPixCharge } from '@/lib/asaas'
+import { createCheckoutSession } from '@/lib/stripe'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument } from '@/lib/validators'
@@ -103,9 +103,9 @@ export async function POST(request: NextRequest) {
     // Get price from env
     const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
 
-    // Bypass mode: cria purchase PENDING aguardando ação manual do admin (sem Asaas)
+    // Bypass mode: cria purchase PENDING aguardando ação manual do admin (sem Stripe)
     if (isBypassMode) {
-      console.log(`🧪 [BYPASS] Asaas bypass - criando purchase PENDING para: ${cleanedTerm}`)
+      console.log(`🧪 [BYPASS] Stripe bypass - criando purchase PENDING para: ${cleanedTerm}`)
 
       // Cria purchase com status PENDING - aguarda ação manual do admin
       const purchase = await prisma.purchase.create({
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
 
       console.log(`🧪 [BYPASS] Purchase criada PENDING: ${purchase.code} - aguardando ação manual no admin`)
 
-      // Retorna URL de confirmação direto (sem checkout Asaas)
+      // Retorna URL de confirmação direto (sem checkout Stripe)
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       return NextResponse.json({
         code: purchase.code,
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Fluxo normal: cria purchase PENDING e checkout Asaas
+    // Fluxo normal: cria purchase PENDING e checkout Stripe
     const purchase = await prisma.purchase.create({
       data: {
         userId: user.id,
@@ -142,31 +142,28 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create Asaas checkout (usando paymentLinks)
+    // Create Stripe checkout session
     try {
-      const { paymentId, checkoutUrl } = await createPixCharge({
-        amount: priceCents,
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      const { sessionId, checkoutUrl } = await createCheckoutSession({
         email,
         externalRef: code,
-        description: `Consulta E o Pix - ${isCpf ? 'CPF' : 'CNPJ'}`,
+        successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
+        cancelUrl: `${appUrl}/compra/confirmacao?code=${code}&cancelled=true`,
       })
 
-      // Update purchase with Asaas payment ID
-      await prisma.purchase.update({
-        where: { id: purchase.id },
-        data: { asaasPaymentId: paymentId },
-      })
+      console.log('[Stripe] Checkout session created:', { code, sessionId })
 
       return NextResponse.json({
         code: purchase.code,
         checkoutUrl,
       })
-    } catch (asaasError) {
-      Sentry.captureException(asaasError, {
-        tags: { service: 'asaas', operation: 'createPixCharge' },
+    } catch (stripeError) {
+      Sentry.captureException(stripeError, {
+        tags: { service: 'stripe', operation: 'createCheckoutSession' },
         extra: { code, term: cleanedTerm, email },
       })
-      console.error('[Asaas] Error:', asaasError)
+      console.error('[Stripe] Error:', stripeError)
       // Deletar purchase órfã (sem pagamento associado)
       await prisma.purchase.delete({ where: { id: purchase.id } })
       return NextResponse.json(

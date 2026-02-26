@@ -30,29 +30,28 @@ model SearchResult {
 }
 
 model Purchase {
-  id              String        @id @default(cuid())
-  userId          String
-  code            String        @unique
-  term            String
-  amount          Int
-  status          String        @default("PENDING")
-  asaasPaymentId  String?       @unique
-  buyerName       String?
-  buyerCpfCnpj    String?
-  termsAcceptedAt DateTime
-  paidAt          DateTime?
-  searchResultId  String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  processingStep  Int           @default(0)
-  refundAttempts  Int           @default(0)
-  asaasInvoiceId  String?       @unique
-  failureReason   String?
-  failureDetails  String?
-  refundReason    String?
-  refundDetails   String?
-  searchResult    SearchResult? @relation(fields: [searchResultId], references: [id])
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String        @id @default(cuid())
+  userId                String
+  code                  String        @unique
+  term                  String
+  amount                Int
+  status                String        @default("PENDING")
+  stripePaymentIntentId String?       @unique
+  buyerName             String?
+  buyerCpfCnpj          String?
+  termsAcceptedAt       DateTime
+  paidAt                DateTime?
+  searchResultId        String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  processingStep        Int           @default(0)
+  refundAttempts        Int           @default(0)
+  failureReason         String?
+  failureDetails        String?
+  refundReason          String?
+  refundDetails         String?
+  searchResult          SearchResult? @relation(fields: [searchResultId], references: [id])
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([term])

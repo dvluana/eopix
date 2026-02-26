@@ -54,7 +54,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         buyerName: purchase.buyerName,
         hasReport: !!purchase.searchResultId,
         reportId: purchase.searchResultId,
-        asaasPaymentId: purchase.asaasPaymentId,
+        stripePaymentIntentId: purchase.stripePaymentIntentId,
         failureReason: purchase.failureReason,
         failureDetails: purchase.failureDetails,
         refundReason: purchase.refundReason,

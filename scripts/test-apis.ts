@@ -92,42 +92,41 @@ async function testDatajud(): Promise<TestResult> {
   }
 }
 
-async function testAsaas(): Promise<TestResult> {
-  console.log("\n🧪 Testando ASAAS...");
-  const apiKey = process.env.ASAAS_API_KEY;
+async function testStripe(): Promise<TestResult> {
+  console.log("\n🧪 Testando Stripe...");
+  const apiKey = process.env.STRIPE_SECRET_KEY;
   if (!apiKey) {
-    return { api: "ASAAS", status: "skipped", message: "API key não configurada" };
+    return { api: "Stripe", status: "skipped", message: "API key não configurada" };
   }
 
   try {
-    // Testa endpoint de customers do sandbox
+    // Testa endpoint de balance para verificar conexão
     const response = await fetch(
-      "https://sandbox.asaas.com/api/v3/customers?limit=1",
+      "https://api.stripe.com/v1/balance",
       {
         headers: {
-          accept: "application/json",
-          access_token: apiKey,
+          Authorization: `Bearer ${apiKey}`,
         },
       }
     );
     const data = await response.json();
     if (response.ok) {
       return {
-        api: "ASAAS",
+        api: "Stripe",
         status: "success",
-        message: `Sandbox OK - ${data.totalCount ?? 0} customers encontrados`,
-        data: { totalCount: data.totalCount },
+        message: `Conectado - ${data.available?.[0]?.currency?.toUpperCase() || 'OK'}`,
+        data: { livemode: data.livemode },
       };
     }
     return {
-      api: "ASAAS",
+      api: "Stripe",
       status: "error",
-      message: data.errors?.[0]?.description || `HTTP ${response.status}`,
+      message: data.error?.message || `HTTP ${response.status}`,
       data,
     };
   } catch (error) {
     return {
-      api: "ASAAS",
+      api: "Stripe",
       status: "error",
       message: error instanceof Error ? error.message : "Erro desconhecido",
     };
@@ -290,7 +289,7 @@ async function main() {
   // Executa todos os testes
   results.push(await testBrasilAPI());
   results.push(await testDatajud());
-  results.push(await testAsaas());
+  results.push(await testStripe());
   results.push(await testAPIFull());
   results.push(await testSerper());
   results.push(await testOpenAI());

@@ -33,7 +33,7 @@ interface Purchase {
   buyerName: string | null
   hasReport: boolean
   reportId: string | null
-  asaasPaymentId: string | null
+  stripePaymentIntentId: string | null
   failureReason: string | null
   failureDetails: string | null
   refundReason: string | null

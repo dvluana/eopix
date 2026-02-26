@@ -56,7 +56,7 @@ export async function GET() {
       services: [
         { service: 'database', status: 'up', latency: 10 },
         { service: 'apifull', status: 'up', latency: 50, message: 'Mockado' },
-        { service: 'asaas', status: 'up', latency: 30, message: 'Bypass' },
+        { service: 'stripe', status: 'up', latency: 30, message: 'Bypass' },
         { service: 'brevo', status: 'up', latency: 20, message: 'Console only' },
         { service: 'openai', status: 'up', latency: 40, message: 'Mockado' },
       ],
@@ -85,19 +85,15 @@ export async function GET() {
     }),
   ]
 
-  // Asaas check only in live mode (not test mode which bypasses payment)
+  // Stripe check only in live mode (not test mode which bypasses payment)
   if (mode === 'live') {
     checks.push(
-      checkService('asaas', async () => {
-        const env = process.env.ASAAS_ENV || 'sandbox'
-        const baseUrl = env === 'production'
-          ? 'https://api.asaas.com'
-          : 'https://sandbox.asaas.com/api'
-
-        const res = await fetch(`${baseUrl}/v3/myAccount`, {
+      checkService('stripe', async () => {
+        // Simple API call to verify Stripe connection
+        const res = await fetch('https://api.stripe.com/v1/balance', {
           method: 'GET',
           headers: {
-            access_token: process.env.ASAAS_API_KEY || '',
+            Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY || ''}`,
           },
         })
 
@@ -112,7 +108,7 @@ export async function GET() {
 
   // In test mode, add info about bypassed services
   if (mode === 'test') {
-    results.push({ service: 'asaas', status: 'up', message: 'Bypass (TEST_MODE)' })
+    results.push({ service: 'stripe', status: 'up', message: 'Bypass (TEST_MODE)' })
   }
 
   const allUp = results.every((r) => r.status === 'up')

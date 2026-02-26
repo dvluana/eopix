@@ -258,9 +258,9 @@ export default function Page() {
                     <td style={tableStyles.td}>Execução contratual (Art. 7º, V)</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}>Nome e CPF do comprador</td>
-                    <td style={tableStyles.td}>Emissão de NFS-e (coletados pelo Asaas)</td>
-                    <td style={tableStyles.td}>Cumprimento de obrigação legal/fiscal (Art. 7º, II)</td>
+                    <td style={tableStyles.td}>Nome do comprador</td>
+                    <td style={tableStyles.td}>Identificação (coletado pelo Stripe)</td>
+                    <td style={tableStyles.td}>Execução contratual (Art. 7º, V)</td>
                   </tr>
                   <tr>
                     <td style={tableStyles.td}>Endereço IP</td>
@@ -581,9 +581,9 @@ export default function Page() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td style={tableStyles.td}><strong>Asaas</strong></td>
-                    <td style={tableStyles.td}>E-mail, nome e CPF do comprador</td>
-                    <td style={tableStyles.td}>Processamento de pagamento Pix e emissão de NFS-e</td>
+                    <td style={tableStyles.td}><strong>Stripe</strong></td>
+                    <td style={tableStyles.td}>E-mail e nome do comprador</td>
+                    <td style={tableStyles.td}>Processamento de pagamento (Pix e cartão)</td>
                   </tr>
                   <tr>
                     <td style={tableStyles.td}><strong>Brevo</strong></td>

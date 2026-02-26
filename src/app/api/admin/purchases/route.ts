@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       buyerName: p.buyerName,
       hasReport: !!p.searchResult,
       reportId: p.searchResult?.id || null,
-      asaasPaymentId: p.asaasPaymentId,
+      stripePaymentIntentId: p.stripePaymentIntentId,
       failureReason: p.failureReason,
       failureDetails: p.failureDetails,
       refundReason: p.refundReason,

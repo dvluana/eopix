@@ -418,7 +418,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Cada consulta custa R$ 29,90, pagos via Pix antes da geração do relatório. O pagamento é processado pelo Asaas, que coleta nome e CPF do comprador para fins de emissão de nota fiscal. O valor é cobrado por consulta, sem assinatura nem fidelidade.
+              Cada consulta custa R$ 29,90, pagos via Pix ou cartão de crédito antes da geração do relatório. O pagamento é processado pelo Stripe. O valor é cobrado por consulta, sem assinatura nem fidelidade.
             </p>
           </section>
 

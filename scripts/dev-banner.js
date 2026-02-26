@@ -15,18 +15,18 @@ console.log('╠═════════════════════�
 if (MOCK_MODE) {
   console.log('║  🧪 MOCK_MODE=true                                         ║')
   console.log('║     - APIs mockadas (dados ficticios)                      ║')
-  console.log('║     - Pagamento bypass (sem Asaas)                         ║')
+  console.log('║     - Pagamento bypass (sem Stripe)                        ║')
   console.log('║     - Email apenas no console                              ║')
 } else if (TEST_MODE) {
   console.log('║  🔬 TEST_MODE=true                                         ║')
   console.log('║     - APIs REAIS (consome creditos!)                       ║')
-  console.log('║     - Pagamento bypass (sem Asaas)                         ║')
+  console.log('║     - Pagamento bypass (sem Stripe)                        ║')
   console.log('║     - Email apenas no console                              ║')
 } else {
   console.log('║  🚀 PRODUCAO (APIs reais)                                  ║')
   console.log('║     - APIs reais                                           ║')
-  console.log('║     - Pagamento via Asaas                                  ║')
-  console.log('║     - Email via Resend                                     ║')
+  console.log('║     - Pagamento via Stripe                                 ║')
+  console.log('║     - Email via Brevo                                      ║')
 }
 
 console.log('╚════════════════════════════════════════════════════════════╝')

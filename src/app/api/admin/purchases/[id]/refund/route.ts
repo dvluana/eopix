@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { refundPayment } from '@/lib/asaas'
+import { refundPayment } from '@/lib/stripe'
 import { requireAdmin } from '@/lib/auth'
 
 interface RouteParams {
@@ -41,15 +41,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    if (!purchase.asaasPaymentId) {
+    if (!purchase.stripePaymentIntentId) {
       return NextResponse.json(
-        { error: 'Pagamento nao encontrado no Asaas' },
+        { error: 'Pagamento nao encontrado no Stripe' },
         { status: 400 }
       )
     }
 
     // Attempt refund
-    const refundResult = await refundPayment(purchase.asaasPaymentId)
+    const refundResult = await refundPayment(purchase.stripePaymentIntentId)
 
     if (!refundResult.success) {
       // Update status to REFUND_FAILED

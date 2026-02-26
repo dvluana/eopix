@@ -10,7 +10,7 @@ O sistema suporta três modos de execução, controlados pelas variáveis de amb
 |------|-----------|---------------|-----------|------|-------|
 | **Mock** | `MOCK_MODE=true` | Mockadas | Bypass | Fallback síncrono | Log only |
 | **Test** | `TEST_MODE=true` | **Reais** | Bypass | Fallback síncrono | Log only |
-| **Produção** | Ambas `false` | Reais | Asaas real | Inngest real | Brevo real |
+| **Produção** | Ambas `false` | Reais | Stripe real | Inngest real | Brevo real |
 
 ---
 
@@ -31,7 +31,7 @@ TEST_MODE=false  # ou ausente
 | **APIFull** (CPF/CNPJ) | Retorna dados fictícios hardcoded |
 | **OpenAI** (resumos) | Retorna análises mockadas |
 | **Serper** (busca web) | Retorna resultados mockados |
-| **Asaas** (pagamento) | Bypass - redireciona direto para confirmação |
+| **Stripe** (pagamento) | Bypass - redireciona direto para confirmação |
 | **Inngest** (jobs) | Fallback síncrono via `/api/process-search` |
 | **Brevo** (email) | Apenas loga no console, não envia |
 
@@ -39,7 +39,7 @@ TEST_MODE=false  # ou ausente
 
 ```
 1. Usuário submete CPF/CNPJ
-2. Purchase criada com status PENDING (sem checkout Asaas)
+2. Purchase criada com status PENDING (sem checkout Stripe)
 3. Redireciona para /compra/confirmacao
 4. Admin marca como PAID manualmente
 5. Admin clica "Processar"
@@ -52,7 +52,7 @@ TEST_MODE=false  # ou ausente
 [MOCK] APIFull consultCpfCadastral: 12345678901
 [MOCK] OpenAI analyzeProcessos: 3 processos
 [MOCK] Serper searchWeb: João Silva
-🧪 [BYPASS] Asaas bypass - criando fake checkout
+🧪 [BYPASS] Stripe bypass - criando fake checkout
 📧 [BYPASS] Para: user@example.com | Assunto: ...
 ```
 
@@ -66,7 +66,7 @@ TEST_MODE=false  # ou ausente
 
 ## 2. Test Mode (`TEST_MODE=true`)
 
-**Propósito:** Testar integração com APIs reais sem precisar de Asaas/Inngest.
+**Propósito:** Testar integração com APIs reais sem precisar de Stripe/Inngest.
 
 ### Configuração
 ```bash
@@ -81,7 +81,7 @@ TEST_MODE=true
 | **APIFull** (CPF/CNPJ) | **Chamada REAL** - consome créditos |
 | **OpenAI** (resumos) | **Chamada REAL** - consome tokens |
 | **Serper** (busca web) | **Chamada REAL** - consome créditos |
-| **Asaas** (pagamento) | Bypass - redireciona direto para confirmação |
+| **Stripe** (pagamento) | Bypass - redireciona direto para confirmação |
 | **Inngest** (jobs) | Fallback síncrono via `/api/process-search` |
 | **Brevo** (email) | Apenas loga no console, não envia |
 
@@ -89,7 +89,7 @@ TEST_MODE=true
 
 ```
 1. Usuário submete CPF/CNPJ
-2. Purchase criada com status PENDING (sem checkout Asaas)
+2. Purchase criada com status PENDING (sem checkout Stripe)
 3. Redireciona para /compra/confirmacao
 4. Admin marca como PAID manualmente
 5. Admin clica "Processar"
@@ -99,7 +99,7 @@ TEST_MODE=true
 
 ### Logs
 ```
-🧪 [BYPASS] Asaas bypass - criando purchase PENDING
+🧪 [BYPASS] Stripe bypass - criando purchase PENDING
 🧪 [BYPASS] Consultando APIFull CPF (cadastral)...
 🧪 [BYPASS] CPF Cadastral: nome=João da Silva, região=SP
 🧪 [BYPASS] Gerando resumo com IA...
@@ -136,7 +136,7 @@ TEST_MODE=false  # ou ausente
 | **APIFull** (CPF/CNPJ) | Chamada real |
 | **OpenAI** (resumos) | Chamada real |
 | **Serper** (busca web) | Chamada real |
-| **Asaas** (pagamento) | Checkout real com Pix |
+| **Stripe** (pagamento) | Checkout real com Pix |
 | **Inngest** (jobs) | Processamento assíncrono real |
 | **Brevo** (email) | Envio real de emails |
 
@@ -145,10 +145,10 @@ TEST_MODE=false  # ou ausente
 ```
 1. Usuário submete CPF/CNPJ
 2. Purchase criada com status PENDING
-3. Checkout Asaas gerado (Pix)
-4. Redireciona para página de pagamento Asaas
+3. Checkout Stripe gerado (Pix)
+4. Redireciona para página de pagamento Stripe
 5. Usuário paga via Pix
-6. Webhook Asaas notifica pagamento confirmado
+6. Webhook Stripe notifica pagamento confirmado
 7. Purchase atualizada para PAID
 8. Inngest dispara job de processamento
 9. APIs reais consultadas em background
@@ -173,10 +173,10 @@ TEST_MODE=false  # ou ausente
 // MOCK_MODE: todas as APIs mockadas
 export const isMockMode = process.env.MOCK_MODE === 'true'
 
-// TEST_MODE: APIs reais, mas bypass Asaas/Inngest
+// TEST_MODE: APIs reais, mas bypass Stripe/Inngest
 export const isTestMode = process.env.TEST_MODE === 'true'
 
-// Bypass mode: pula Asaas e usa fallback Inngest
+// Bypass mode: pula Stripe e usa fallback Inngest
 export const isBypassMode = isMockMode || isTestMode
 ```
 
@@ -187,9 +187,9 @@ export const isBypassMode = isMockMode || isTestMode
 | `src/lib/apifull.ts` | `isMockMode` | Mockar dados de CPF/CNPJ |
 | `src/lib/openai.ts` | `isMockMode` | Mockar análises de IA |
 | `src/lib/google-search.ts` | `isMockMode` | Mockar busca web |
-| `src/lib/asaas.ts` | `isBypassMode` | Bypass do checkout |
+| `src/lib/stripe.ts` | `isBypassMode` | Bypass do checkout |
 | `src/lib/email.ts` | `isBypassMode` | Não enviar emails |
-| `src/app/api/purchases/route.ts` | `isBypassMode` | Criar purchase sem Asaas |
+| `src/app/api/purchases/route.ts` | `isBypassMode` | Criar purchase sem Stripe |
 | `src/app/api/admin/.../process/route.ts` | `isBypassMode` | Fallback síncrono |
 | `src/app/api/process-search/[code]/route.ts` | `isBypassMode` | Guard do endpoint |
 
@@ -216,7 +216,7 @@ TEST_MODE=true
 # .env (Vercel/servidor)
 MOCK_MODE=false
 TEST_MODE=false
-# Usar Asaas sandbox se necessário: ASAAS_ENV=sandbox
+# Usar Stripe test mode: STRIPE_SECRET_KEY=sk_test_xxx
 ```
 
 ### Produção
@@ -224,7 +224,7 @@ TEST_MODE=false
 # .env (Vercel/servidor)
 MOCK_MODE=false
 TEST_MODE=false
-ASAAS_ENV=production
+# Usar Stripe live mode: STRIPE_SECRET_KEY=sk_live_xxx
 ```
 
 ---
@@ -273,10 +273,10 @@ Antes de testar com APIs reais, valide todos os fluxos:
 
 - [ ] `MOCK_MODE` está `false` ou ausente
 - [ ] `TEST_MODE` NÃO está configurado (ou `false`)
-- [ ] `ASAAS_ENV` está `production`
-- [ ] `ASAAS_API_KEY` é a chave de produção
-- [ ] `ASAAS_WEBHOOK_TOKEN` está configurado
-- [ ] Webhook Asaas apontando para `https://www.somoseopix.com.br/api/webhooks/asaas`
+- [ ] `STRIPE_SECRET_KEY` é a chave de produção (`sk_live_xxx`)
+- [ ] `STRIPE_WEBHOOK_SECRET` está configurado
+- [ ] `STRIPE_PRICE_ID` é o price ID de produção
+- [ ] Webhook Stripe apontando para `https://www.somoseopix.com.br/api/webhooks/stripe`
 - [ ] `INNGEST_EVENT_KEY` e `INNGEST_SIGNING_KEY` são de produção
 - [ ] `BREVO_API_KEY` está configurada
 - [ ] `EMAIL_FROM_ADDRESS` é um domínio verificado no Brevo
@@ -334,6 +334,6 @@ O template está em `src/lib/email.ts`:
 - Comportamento esperado - emails são apenas logados
 - Para testar envio real, desative ambos os modos
 
-### Asaas retornando erro mesmo com bypass
-- O bypass só afeta `createPixCharge` e `refundPayment`
-- Webhooks do Asaas sempre validam o token real
+### Stripe retornando erro mesmo com bypass
+- O bypass só afeta `createCheckoutSession` e `refundPayment`
+- Webhooks do Stripe sempre validam a assinatura real

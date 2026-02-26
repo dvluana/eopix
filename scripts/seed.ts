@@ -118,7 +118,7 @@ async function main() {
           termsAcceptedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
           paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
           searchResultId: searchResult1.id,
-          asaasPaymentId: 'pay_mock_1',
+          stripePaymentIntentId: 'pay_mock_1',
           buyerName: 'Cliente Teste',
         },
         {
@@ -130,7 +130,7 @@ async function main() {
           termsAcceptedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
           paidAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
           searchResultId: searchResult2.id,
-          asaasPaymentId: 'pay_mock_2',
+          stripePaymentIntentId: 'pay_mock_2',
         },
         {
           userId: user2.id,
@@ -140,7 +140,7 @@ async function main() {
           status: 'PROCESSING',
           termsAcceptedAt: new Date(),
           paidAt: new Date(),
-          asaasPaymentId: 'pay_mock_3',
+          stripePaymentIntentId: 'pay_mock_3',
         },
         {
           userId: user3.id,
@@ -149,7 +149,7 @@ async function main() {
           amount: 2990,
           status: 'PENDING',
           termsAcceptedAt: new Date(),
-          asaasPaymentId: 'pay_mock_4',
+          stripePaymentIntentId: 'pay_mock_4',
         },
         {
           userId: user3.id,
@@ -158,7 +158,7 @@ async function main() {
           amount: 2990,
           status: 'FAILED',
           termsAcceptedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-          asaasPaymentId: 'pay_mock_5',
+          stripePaymentIntentId: 'pay_mock_5',
         },
       ],
     })

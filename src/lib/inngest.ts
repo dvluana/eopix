@@ -11,7 +11,7 @@ import {
 import { searchWeb } from './google-search'
 import { analyzeProcessos, analyzeMentionsAndSummary } from './openai'
 import { calculateCpfFinancialSummary, calculateCnpjFinancialSummary } from './financial-summary'
-import { refundPayment } from './asaas'
+import { refundPayment } from './stripe'
 import type {
   CpfCadastralResponse,
   ProcessosCpfResponse,
@@ -461,21 +461,21 @@ export const autoRefundFailedPurchases = inngest.createFunction(
             {
               status: 'PROCESSING',
               updatedAt: { lt: fourHoursAgo },
-              asaasPaymentId: { not: null },
+              stripePaymentIntentId: { not: null },
               processingStep: { gt: 0 }, // Only refund if processing actually started
             },
             // FAILED status that needs refund (already paid but processing failed)
             {
               status: 'FAILED',
               paidAt: { not: null },
-              asaasPaymentId: { not: null },
+              stripePaymentIntentId: { not: null },
               refundAttempts: { lt: 3 },
             },
           ],
         },
         select: {
           id: true,
-          asaasPaymentId: true,
+          stripePaymentIntentId: true,
           code: true,
           refundAttempts: true,
           status: true,
@@ -492,7 +492,7 @@ export const autoRefundFailedPurchases = inngest.createFunction(
     let failedCount = 0
 
     for (const purchase of stuckPurchases) {
-      if (!purchase.asaasPaymentId) continue
+      if (!purchase.stripePaymentIntentId) continue
 
       // Log before refunding
       console.warn(`[AUTO-REFUND] Purchase ${purchase.code} stuck in ${purchase.status} for >4h - initiating refund (attempt ${purchase.refundAttempts + 1}/3)`)
@@ -520,7 +520,7 @@ export const autoRefundFailedPurchases = inngest.createFunction(
 
       const refundResult = await step.run(`refund-${purchase.id}`, async () => {
         try {
-          const result = await refundPayment(purchase.asaasPaymentId!)
+          const result = await refundPayment(purchase.stripePaymentIntentId!)
           if (result.success) {
             const refundReason = purchase.status === 'PROCESSING' ? 'AUTO_TIMEOUT' : 'AUTO_FAILED_PAYMENT'
             await prisma.purchase.update({
