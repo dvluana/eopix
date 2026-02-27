@@ -277,18 +277,21 @@ function mapCpfFinancialResponse(raw: any): SrsPremiumCpfResponse {
     uf: p.uf,
   }))
 
-  // Pendencias financeiras
+  // Pendencias financeiras — doc: tipoPendencia, informante, data (fallback nomes antigos)
   const pendenciasRaw = consultaCredito.pendenciasFinanceiras || []
   const pendenciasFinanceiras = (Array.isArray(pendenciasRaw) ? pendenciasRaw : []).map((p: {
+    tipoPendencia?: string
     tipo?: string
     valor?: number
+    informante?: string
     origem?: string
+    data?: string
     dataOcorrencia?: string
   }) => ({
-    tipo: p.tipo || '',
+    tipo: p.tipoPendencia || p.tipo || '',
     valor: p.valor || 0,
-    origem: p.origem || '',
-    dataOcorrencia: p.dataOcorrencia,
+    origem: p.informante || p.origem || '',
+    dataOcorrencia: p.data || p.dataOcorrencia,
   }))
 
   // Totais
@@ -353,24 +356,40 @@ function mapCnpjDossieResponse(raw: any, cnpj: string): DossieResponse {
   // Response path: dados.CREDCADASTRAL.RELATORIO_JURIDICO_EMPRESARIAL
   const credCadastral = raw.dados?.CREDCADASTRAL || {}
   const relatorioJuridico = credCadastral.RELATORIO_JURIDICO_EMPRESARIAL || {}
-  const identificacao = credCadastral.IDENTIFICACAO_EMPRESA || relatorioJuridico.IDENTIFICACAO || {}
+  // Doc: INFORMACOES_DA_EMPRESA (fallback DADOS_RECEITA_FEDERAL, antigo IDENTIFICACAO_EMPRESA)
+  const identificacao = credCadastral.INFORMACOES_DA_EMPRESA
+    || credCadastral.DADOS_RECEITA_FEDERAL
+    || credCadastral.IDENTIFICACAO_EMPRESA
+    || relatorioJuridico.IDENTIFICACAO
+    || {}
 
-  // Socios
-  const sociosRaw = credCadastral.SOCIOS?.OCORRENCIAS || relatorioJuridico.SOCIOS?.OCORRENCIAS || []
+  // Doc: QUADRO_SOCIETARIO.OCORRENCIAS[] (fallback antigo SOCIOS)
+  const sociosRaw = credCadastral.QUADRO_SOCIETARIO?.OCORRENCIAS
+    || credCadastral.SOCIOS?.OCORRENCIAS
+    || relatorioJuridico.SOCIOS?.OCORRENCIAS
+    || []
   const socios = (Array.isArray(sociosRaw) ? sociosRaw : []).map((s: {
     NOME?: string
+    CARGO?: string
     QUALIFICACAO?: string
+    CPF_CNPJ?: string
     DOCUMENTO?: string
+    PERCENTUAL_PARTICIPACAO?: string
   }) => ({
     nome: s.NOME || '',
-    qualificacao: s.QUALIFICACAO || '',
-    documento: s.DOCUMENTO || null,
+    qualificacao: s.CARGO || s.QUALIFICACAO || '',
+    documento: s.CPF_CNPJ || s.DOCUMENTO || null,
   }))
 
-  // Endereco
-  const enderecoRaw = credCadastral.ENDERECO || relatorioJuridico.ENDERECO || {}
-  const endereco = enderecoRaw.LOGRADOURO ? {
-    logradouro: enderecoRaw.LOGRADOURO || '',
+  // Doc: SOMENTE_ENDERECO.DADOS[0] (fallback antigo ENDERECO direto)
+  const enderecoArr = credCadastral.SOMENTE_ENDERECO?.DADOS || []
+  const enderecoRaw = (Array.isArray(enderecoArr) && enderecoArr.length > 0)
+    ? enderecoArr[0]
+    : (credCadastral.ENDERECO || relatorioJuridico.ENDERECO || {})
+  // Doc usa ENDERECO pro logradouro, código antigo usava LOGRADOURO
+  const logradouro = enderecoRaw.ENDERECO || enderecoRaw.LOGRADOURO || ''
+  const endereco = logradouro ? {
+    logradouro,
     numero: enderecoRaw.NUMERO || '',
     complemento: enderecoRaw.COMPLEMENTO || '',
     bairro: enderecoRaw.BAIRRO || '',
@@ -379,12 +398,14 @@ function mapCnpjDossieResponse(raw: any, cnpj: string): DossieResponse {
     cep: enderecoRaw.CEP || '',
   } : null
 
-  // CNAE
+  // Doc: INFORMACOES_DA_EMPRESA.CNAE_PRIMARIO (string) ou CNAE_PRINCIPAL.CODIGO/.DESCRICAO
+  const cnaePrimario = identificacao.CNAE_PRIMARIO
   const cnaeRaw = credCadastral.CNAE_PRINCIPAL || relatorioJuridico.CNAE_PRINCIPAL || {}
-  const cnaePrincipal = cnaeRaw.CODIGO ? {
-    codigo: cnaeRaw.CODIGO || '',
-    descricao: cnaeRaw.DESCRICAO || '',
-  } : null
+  const cnaePrincipal = cnaePrimario
+    ? { codigo: '', descricao: cnaePrimario }
+    : cnaeRaw.CODIGO
+      ? { codigo: cnaeRaw.CODIGO || '', descricao: cnaeRaw.DESCRICAO || '' }
+      : null
 
   // Acoes ativas
   const acoesRaw = relatorioJuridico.ACOES || {}
@@ -414,8 +435,8 @@ function mapCnpjDossieResponse(raw: any, cnpj: string): DossieResponse {
   return {
     razaoSocial: identificacao.RAZAO_SOCIAL || identificacao.NOME || '',
     cnpj: cnpj,
-    situacao: identificacao.SITUACAO || identificacao.SITUACAO_CADASTRAL || null,
-    dataAbertura: identificacao.DATA_ABERTURA || identificacao.DATA_FUNDACAO || null,
+    situacao: identificacao.SITUACAO_RECEITA || identificacao.SITUACAO || identificacao.SITUACAO_CADASTRAL || null,
+    dataAbertura: identificacao.DATA_FUNDACAO || identificacao.DATA_NASCIMENTO_FUNDACAO || identificacao.DATA_ABERTURA || null,
     naturezaJuridica: identificacao.NATUREZA_JURIDICA || null,
     capitalSocial: identificacao.CAPITAL_SOCIAL ? parseFloat(identificacao.CAPITAL_SOCIAL) : null,
     endereco: endereco,
@@ -503,26 +524,29 @@ function mapCnpjFinancialResponse(raw: any, cnpj: string): SrsPremiumCnpjRespons
     uf: p.uf,
   }))
 
-  // Pendencias financeiras
+  // Pendencias financeiras — doc: tipoPendencia, informante, data (fallback nomes antigos)
   const pendenciasRaw = consultaCredito.pendenciasFinanceiras || resumoConsulta.pendenciasFinanceiras?.detalhes || []
   const pendenciasFinanceiras = (Array.isArray(pendenciasRaw) ? pendenciasRaw : []).map((p: {
+    tipoPendencia?: string
     tipo?: string
     valor?: number
+    informante?: string
     origem?: string
+    data?: string
     dataOcorrencia?: string
   }) => ({
-    tipo: p.tipo || '',
+    tipo: p.tipoPendencia || p.tipo || '',
     valor: p.valor || 0,
-    origem: p.origem || '',
-    dataOcorrencia: p.dataOcorrencia,
+    origem: p.informante || p.origem || '',
+    dataOcorrencia: p.data || p.dataOcorrencia,
   }))
 
-  // Totais from resumoConsulta or calculated
-  const totalProtestos = resumoConsulta.protestos?.quantidade || protestos.length
+  // Totais from resumoConsulta or calculated — doc: quantidadeTotal (fallback quantidade)
+  const totalProtestos = resumoConsulta.protestos?.quantidadeTotal || resumoConsulta.protestos?.quantidade || protestos.length
   const valorTotalProtestos = resumoConsulta.protestos?.valorTotal || protestos.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
-  const totalPendencias = resumoConsulta.pendenciasFinanceiras?.quantidade || pendenciasFinanceiras.length
+  const totalPendencias = resumoConsulta.pendenciasFinanceiras?.quantidadeTotal || resumoConsulta.pendenciasFinanceiras?.quantidade || pendenciasFinanceiras.length
   const valorTotalPendencias = resumoConsulta.pendenciasFinanceiras?.valorTotal || pendenciasFinanceiras.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
-  const chequesSemFundo = resumoConsulta.chequesSemFundo?.quantidade || consultaCredito.chequesSemFundo || 0
+  const chequesSemFundo = resumoConsulta.chequesSemFundo?.quantidadeTotal || resumoConsulta.chequesSemFundo?.quantidade || consultaCredito.chequesSemFundo || 0
 
   // Score - buscado mas NAO exibido
   const scoreRating = raw.dados?.data?.scoreRating || {}
