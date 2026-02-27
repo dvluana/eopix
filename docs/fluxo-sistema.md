@@ -1,677 +1,99 @@
-# E O PIX? - Fluxo do Sistema
+# Fluxo Do Sistema (Atual)
 
-Documentação visual do fluxo completo do sistema, desde o input até a visualização do relatório.
+Documento enxuto com o fluxo real em producao/staging.
 
-## Visão Geral
+## 1. Entrada E Validacao
 
-```
-┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│  Input  │───►│ Teaser  │───►│  Asaas  │───►│ Inngest │───►│Relatório│
-│ CPF/CNPJ│    │  Blur   │    │Checkout │    │   Job   │    │  Final  │
-└─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
-```
+1. Usuario informa CPF/CNPJ e email.
+2. Backend valida documento, email, termos e rate limit.
+3. Backend verifica blocklist.
 
----
+Endpoint principal:
+- `POST /api/purchases`
 
-## 1. Input (Home `/`)
+## 2. Criacao De Compra
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         HOME - INPUT                                │
-│                                                                     │
-│  ┌─────────────────┐                                                │
-│  │ CPF ou CNPJ     │ ──► Máscara automática                         │
-│  │ [___.___.__-__] │     + Validação dígitos verificadores          │
-│  └────────┬────────┘                                                │
-│           │                                                         │
-│           ▼                                                         │
-│  [ Consultar ]                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-```
+A compra sempre nasce `PENDING`.
 
----
+### Modo Live
 
-## 2. Validações (Backend)
+1. Backend cria `Purchase`.
+2. Cria checkout Stripe via `createCheckoutSession`.
+3. Retorna `checkoutUrl`.
 
-```
-                              INPUT
-                                │
-                                ▼
-                    ┌───────────────────────┐
-                    │   Formato válido?     │
-                    │   (dígitos verific.)  │
-                    └───────────┬───────────┘
-                                │
-                   ┌────────────┴────────────┐
-                   │                         │
-                   ▼                         ▼
-              ❌ INVÁLIDO               ✅ VÁLIDO
-              Erro inline                    │
-                                             ▼
-                                ┌───────────────────────┐
-                                │   Blocklist?          │
-                                │   (CPF/CNPJ bloqueado)│
-                                └───────────┬───────────┘
-                                            │
-                               ┌────────────┴────────────┐
-                               │                         │
-                               ▼                         ▼
-                          ❌ BLOQUEADO             ✅ LIBERADO
-                          "Dados indisponíveis         │
-                          por solicitação              │
-                          do titular."                 │
-                                                       ▼
-                                          ┌───────────────────────┐
-                                          │   Health Check        │
-                                          │   (APIFull UP?)       │
-                                          └───────────┬───────────┘
-                                                      │
-                                         ┌────────────┴────────────┐
-                                         │                         │
-                                         ▼                         ▼
-                                    ❌ API DOWN              ✅ API UP
-                                    "Manutenção"             ──► TEASER
-                                    + LeadCapture
-```
+### Modo Bypass (`MOCK_MODE` ou `TEST_MODE`)
 
-**APIs utilizadas:**
-- APIFull (ping a cada 60s para Health Check)
+1. Backend cria `Purchase` em `PENDING`.
+2. Retorna URL de confirmacao local (sem checkout real).
+3. Admin pode marcar como paga e disparar processamento.
 
----
+## 3. Confirmacao De Pagamento (Live)
 
-## 3. Teaser (`/consulta/{term}`)
+Webhook:
+- `POST /api/webhooks/stripe`
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    TEASER - PRÉ-PAGAMENTO                           │
-│                                                                     │
-│  Consulta para CPF: ***.456.789-**                                  │
-│                                                                     │
-│  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐              │
-│  │ ░░░░░░░░░░░░░ │ │ ░░░░░░░░░░░░░ │ │ ░░░░░░░░░░░░░ │              │
-│  │ XX protestos  │ │ XX processos  │ │ XX menções    │  ◄── BLUR    │
-│  │ ░░░░░░░░░░░░░ │ │ ░░░░░░░░░░░░░ │ │ ░░░░░░░░░░░░░ │              │
-│  └───────────────┘ └───────────────┘ └───────────────┘              │
-│                                                                     │
-│  "Exemplo de dados que serão desbloqueados"                         │
-│                                                                     │
-│  ─────────────────────────────────────────────────────────────────  │
-│                                                                     │
-│  Para onde enviamos o relatório?                                    │
-│  ┌─────────────────────────────────────────┐                        │
-│  │ seu@email.com                           │                        │
-│  └─────────────────────────────────────────┘                        │
-│                                                                     │
-│  ☑ Li e aceito os Termos de Uso e Política de Privacidade           │
-│                                                                     │
-│  ┌─────────────────────────────────────────┐                        │
-│  │   Desbloquear Relatório - R$ 29,90      │                        │
-│  └─────────────────────────────────────────┘                        │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
+Eventos tratados:
+- `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `charge.refunded`
 
-**Comportamento:**
-- Se usuário logado (sessão JWT): e-mail pré-preenchido
-- Botão desabilitado até: e-mail válido + checkbox marcado
-- Botão desabilitado se Health Check falhar
+Regras:
+- Valida assinatura Stripe.
+- Aplica idempotencia por `WebhookLog.eventKey`.
+- Em sucesso: `PENDING -> PAID` e dispara `inngest.send('search/process')`.
 
----
+## 4. Processamento
 
-## 4. Criação da Compra (Backend)
+Pipeline principal em `src/lib/inngest.ts`:
+- Step 1: `check-cache`
+- Step 2: `process-all`
 
-```
-                        CLIQUE NO BOTÃO
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │         Criar Purchase            │
-              │                                   │
-              │  status: PENDING                  │
-              │  email: "user@email.com"          │
-              │  term: "12345678901"              │
-              │  termsAcceptedAt: timestamp       │
-              └───────────────┬───────────────────┘
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │      Asaas API: POST /payments    │
-              │                                   │
-              │  customerData.email (preenchido)  │
-              │  successUrl: /compra/confirmacao  │
-              │            ?id={purchaseId}       │
-              └───────────────┬───────────────────┘
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │  Recebe:                          │
-              │  - asaasPaymentId                 │
-              │  - checkoutUrl                    │
-              └───────────────┬───────────────────┘
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │  Grava asaasPaymentId no Purchase │
-              │  Redireciona para checkoutUrl     │
-              └───────────────────────────────────┘
-```
+Etapas de progresso (`processingStep`):
+- 1 dados cadastrais
+- 2 dados financeiros
+- 3 processos
+- 4 mencoes web
+- 5 resumo IA
+- 6 finalizacao
 
-**APIs utilizadas:**
-- Asaas (POST /api/v3/payments)
+Resultado:
+- cria `SearchResult`
+- atualiza compra para `COMPLETED`
 
----
+## 5. Fallback E Operacao Manual
 
-## 5. Checkout Asaas (Página Externa)
+Admin endpoints:
+- `POST /api/admin/purchases/[id]/mark-paid-and-process`
+- `POST /api/admin/purchases/[id]/process`
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    ASAAS CHECKOUT (EXTERNO)                         │
-│                                                                     │
-│   ┌─────────────┐                                                   │
-│   │   QR CODE   │     Pague R$ 29,90 via Pix                        │
-│   │             │                                                   │
-│   │     PIX     │     E-mail: seu@email.com ✓ (pré-preenchido)      │
-│   │             │                                                   │
-│   └─────────────┘     Nome: [________________]                      │
-│                       CPF:  [___.___.___-__]                        │
-│   [ Copiar código ]                                                 │
-│                       ⏱ Expira em 30 minutos                        │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
+Fallback sincrono (bypass/dev):
+- `POST /api/process-search/[code]`
 
-**Importante:**
-- Asaas coleta nome e CPF do **comprador** (não nós)
-- Esses dados chegam via webhook após pagamento
+## 6. Consulta E Acesso
 
----
+- Lista do usuario: `GET /api/purchases`
+- Atualizacao em tempo real: `GET /api/purchases/stream` (SSE)
+- Auth/session:
+  - `POST /api/auth/google`
+  - `POST /api/auth/auto-login`
+  - `GET /api/auth/me`
+  - `POST /api/auth/logout`
 
-## 6. Webhook Asaas (`/api/webhooks/asaas`)
+## 7. Estados Da Compra
 
-```
-                     💰 PIX CONFIRMADO
-                           │
-                           ▼
-              ┌────────────────────────────┐
-              │  Evento: PAYMENT_RECEIVED  │
-              └────────────┬───────────────┘
-                           │
-                           ▼
-              ┌────────────────────────────┐
-              │ 1. Validar assinatura      │
-              │    (header Asaas)          │
-              └────────────┬───────────────┘
-                           │
-                           ▼
-              ┌────────────────────────────┐
-              │ 2. Verificar idempotência  │
-              │    (já processou?)         │
-              └────────────┬───────────────┘
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-              ▼                         ▼
-         JÁ PROCESSADO            NOVO PAGAMENTO
-         Ignora (return)                │
-                                        ▼
-                           ┌────────────────────────────┐
-                           │ 3. Extrair do payload:     │
-                           │    - buyerName             │
-                           │    - buyerCpfCnpj          │
-                           └────────────┬───────────────┘
-                                        │
-                                        ▼
-                           ┌────────────────────────────┐
-                           │ 4. Atualizar Purchase:     │
-                           │    PENDING → PAID →        │
-                           │    PROCESSING              │
-                           └────────────┬───────────────┘
-                                        │
-                                        ▼
-                           ┌────────────────────────────┐
-                           │ 5. Dispara job Inngest     │
-                           └────────────────────────────┘
-```
+Estados usados no fluxo:
+- `PENDING`
+- `PAID`
+- `PROCESSING`
+- `COMPLETED`
+- `FAILED`
+- `REFUNDED`
+- `REFUND_FAILED`
 
-**APIs utilizadas:**
-- Inngest (dispatch job)
+## 8. Observacoes De Governanca
 
----
-
-## 7. Processamento Assíncrono (Inngest Job)
-
-### Fluxo CPF (8 chamadas total)
-
-```
-                         JOB INICIADO
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │  1. APIFull: r-cpf-completo       │
-              │     (cadastral + descobre nome)   │
-              └───────────────┬───────────────────┘
-                              │
-                              ▼
-                        NOME DESCOBERTO
-                              │
-         ┌────────────────────┼────────────────────┐
-         │                    │                    │
-         ▼                    ▼                    ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ 2. APIFull      │  │ 3. APIFull      │  │ 4-6. Serper     │
-│ r-acoes-e-      │  │ srs-premium     │  │ (3 queries)     │
-│ processos-      │  │ (financeiro)    │  │                 │
-│ judiciais       │  │                 │  │ - byDocument    │
-│                 │  │ - protestos     │  │ - byName+termos │
-│ - processos     │  │ - dívidas       │  │ - reclameAqui   │
-└────────┬────────┘  └────────┬────────┘  └────────┬────────┘
-         │                    │                    │
-         └────────────────────┼────────────────────┘
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │  7. GPT-4o-mini: Análise processos│
-              │     (relevância: alta/média/baixa)│
-              └───────────────┬───────────────────┘
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │  8. GPT-4o-mini: Menções + Resumo │
-              │     - Classifica menções          │
-              │     - Filtra homônimos por região │
-              │     - Gera resumo 2-3 frases      │
-              └───────────────┬───────────────────┘
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │  Salvar SearchResult              │
-              │  Purchase.status → COMPLETED      │
-              └───────────────────────────────────┘
-```
-
-### Fluxo CNPJ (7 chamadas total)
-
-```
-                         JOB INICIADO
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │  1. APIFull: ic-dossie-juridico   │
-              │     (cadastral + processos juntos)│
-              │     (descobre razão social)       │
-              └───────────────┬───────────────────┘
-                              │
-                              ▼
-                      RAZÃO SOCIAL DESCOBERTA
-                              │
-         ┌────────────────────┴────────────────────┐
-         │                                         │
-         ▼                                         ▼
-┌─────────────────────────┐            ┌─────────────────────────┐
-│ 2. APIFull              │            │ 3-5. Serper             │
-│ srs-premium             │            │ (3 queries)             │
-│ (financeiro)            │            │                         │
-│                         │            │ - byDocument            │
-│ - protestos             │            │ - byName + termos       │
-│ - dívidas               │            │ - reclameAqui           │
-└───────────┬─────────────┘            └───────────┬─────────────┘
-            │                                      │
-            └──────────────────┬───────────────────┘
-                               │
-                               ▼
-               ┌───────────────────────────────────┐
-               │  6. GPT-4o-mini: Análise processos│
-               └───────────────┬───────────────────┘
-                               │
-                               ▼
-               ┌───────────────────────────────────┐
-               │  7. GPT-4o-mini: Menções + Resumo │
-               └───────────────┬───────────────────┘
-                               │
-                               ▼
-               ┌───────────────────────────────────┐
-               │  Salvar SearchResult              │
-               │  Purchase.status → COMPLETED      │
-               └───────────────────────────────────┘
-```
-
-**APIs utilizadas:**
-| API | CPF | CNPJ |
-|-----|-----|------|
-| APIFull r-cpf-completo | ✅ | - |
-| APIFull r-acoes-e-processos-judiciais | ✅ | - |
-| APIFull ic-dossie-juridico | - | ✅ |
-| APIFull srs-premium | ✅ | ✅ |
-| Serper (3 queries) | ✅ | ✅ |
-| GPT-4o-mini (2 chamadas) | ✅ | ✅ |
-
----
-
-## 8. Notificação (Brevo)
-
-```
-              ┌───────────────────────────────────┐
-              │  Purchase.status = COMPLETED      │
-              └───────────────┬───────────────────┘
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │         Brevo API                │
-              │                                   │
-              │  📧 Para: user@email.com          │
-              │                                   │
-              │  "Sua consulta sobre CPF          │
-              │   ***XXX*** foi finalizada.       │
-              │   Acesse aqui."                   │
-              │                                   │
-              │  + Aviso: verifique o spam        │
-              └───────────────────────────────────┘
-```
-
-**APIs utilizadas:**
-- Brevo (e-mail transacional)
-
----
-
-## 9. Acesso (`/minhas-consultas`)
-
-### Login Magic Link
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         LOGIN                                       │
-│                                                                     │
-│  Digite seu e-mail:                                                 │
-│  ┌─────────────────────────────────────────┐                        │
-│  │ seu@email.com                           │                        │
-│  └─────────────────────────────────────────┘                        │
-│                                                                     │
-│  [ Enviar código ]                                                  │
-│                                                                     │
-│  ─────────────────────────────────────────────────────────────────  │
-│                                                                     │
-│  Digite o código recebido:                                          │
-│  ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐                                │
-│  │   │ │   │ │   │ │   │ │   │ │   │  ◄── 6 dígitos via Brevo      │
-│  └───┘ └───┘ └───┘ └───┘ └───┘ └───┘                                │
-│                                                                     │
-│  [ Entrar ]                                                         │
-│                                                                     │
-│  ⚠️ Não recebeu? Verifique o spam.                                  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### Painel Minhas Consultas
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  Minhas Consultas                           [ Nova Consulta ]       │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │ ⏳ CPF ***.456.***-**                                         │  │
-│  │    Processando...                                             │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │ ✅ CNPJ **.567.***/0001-**                  [ Ver Relatório ] │  │
-│  │    Concluído em 05/02/2026                                    │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │ ❌ CPF ***.789.***-**                                         │  │
-│  │    Falhou - Reembolso automático processado                   │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │ 📅 CPF ***.123.***-**                                         │  │
-│  │    Expirado (dados removidos após 7 dias)                     │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**Status possíveis:**
-| Status | Ícone | Descrição |
-|--------|-------|-----------|
-| PROCESSING | ⏳ | Consulta em andamento |
-| COMPLETED | ✅ | Relatório pronto |
-| FAILED | ❌ | Falha técnica + reembolso |
-| REFUND_FAILED | ⚠️ | Reembolso falhou (admin notificado) |
-| Expirado | 📅 | Após 7 dias |
-
----
-
-## 10. Relatório (`/relatorio/{id}`)
-
-### Cenário Sol (0 ocorrências)
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          ☀️ CÉU LIMPO                               │
-│         Nenhuma ocorrência encontrada.                              │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  ✅ CHECKLIST                                                 │  │
-│  │                                                               │  │
-│  │  ✅ Situação financeira                                       │  │
-│  │     Nome limpo há 5 anos - 0 protestos, 0 dívidas ativas      │  │
-│  │                                                               │  │
-│  │  ✅ Processos judiciais                                       │  │
-│  │     Nenhum encontrado nos tribunais consultados               │  │
-│  │                                                               │  │
-│  │  ✅ Menções na web                                            │  │
-│  │     3 menções encontradas, todas neutras ou positivas         │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  📋 CADASTRO EMPRESARIAL (CNPJ)                               │  │
-│  │                                                               │  │
-│  │  Razão Social: Empresa Exemplo LTDA                           │  │
-│  │  Situação: Ativa                                              │  │
-│  │  Empresa ativa há 8 anos (desde 2018)                         │  │
-│  │  CNAE: 6201-5/00 - Desenvolvimento de software                │  │
-│  │  Capital Social: R$ 100.000,00                                │  │
-│  │  Sócios: João Silva (50%), Maria Santos (50%)                 │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  💬 RESUMO                                                    │  │
-│  │                                                               │  │
-│  │  "Empresa ativa há 8 anos, sem ocorrências financeiras ou     │  │
-│  │   judiciais. 2 menções positivas encontradas na web."         │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  🏷️ SELO DE VERIFICAÇÃO                                       │  │
-│  │                                                               │  │
-│  │  Data da consulta: 05/02/2026                                 │  │
-│  │  Fontes: cartórios, tribunais, Receita Federal,               │  │
-│  │          Reclame Aqui, notícias e registros públicos          │  │
-│  │  Validade: 7 dias                                             │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  "Pelo que encontramos, o céu está limpo. Boa parceria!"            │
-│                                                                     │
-│  ⚠️ Ícones representam volume de registros públicos, não            │
-│     avaliação de risco de crédito.                                  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### Cenário Chuva (1+ ocorrências)
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        🌧️ CLIMA INSTÁVEL                            │
-│         5 ocorrências encontradas.                                  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  CHECKLIST RESUMIDO                                           │  │
-│  │  ✅ Menções na web: sem ocorrências negativas                 │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  ⚠️ SITUAÇÃO FINANCEIRA                        [Relatar erro] │  │
-│  │                                                               │  │
-│  │  3 protestos encontrados                                      │  │
-│  │  Valor total: R$ 15.420,00                                    │  │
-│  │                                                               │  │
-│  │  • Cartório 1º Ofício - R$ 5.200,00 - 15/01/2026              │  │
-│  │  • Cartório 3º Ofício - R$ 8.000,00 - 10/12/2025              │  │
-│  │  • Cartório 2º Ofício - R$ 2.220,00 - 05/11/2025              │  │
-│  │                                                               │  │
-│  │  [Consultar Serasa/SPC →]                                     │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  ⚠️ PROCESSOS JUDICIAIS                        [Relatar erro] │  │
-│  │                                                               │  │
-│  │  2 processos encontrados                                      │  │
-│  │                                                               │  │
-│  │  TRABALHISTA (Empresa Ré)                                     │  │
-│  │  • TRT-4 - Reclamação Trabalhista - Réu                       │  │
-│  │    Data: 20/10/2025 [Ver no tribunal →]                       │  │
-│  │                                                               │  │
-│  │  CÍVEL                                                        │  │
-│  │  • TJRS - Execução de Título - Réu                            │  │
-│  │    Data: 05/08/2025 [Ver no tribunal →]                       │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  💬 RESUMO                                                    │  │
-│  │                                                               │  │
-│  │  "Atenção: 3 protestos totalizando R$ 15.420,00 e 2           │  │
-│  │   processos judiciais encontrados. 1 processo trabalhista    │  │
-│  │   como réu e 1 execução de título."                           │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  "Encontramos alguns pontos de atenção. Avalie com cuidado."        │
-│                                                                     │
-│  ⚠️ Ícones representam volume de registros públicos, não            │
-│     avaliação de risco de crédito.                                  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Mapa de APIs por Etapa
-
-| Etapa | APIs Utilizadas |
-|-------|-----------------|
-| **1. Input** | - |
-| **2. Validações** | - |
-| **3. Health Check** | APIFull (ping) |
-| **4. Criação Compra** | Asaas (POST /payments) |
-| **5. Checkout** | Asaas (hospedado) |
-| **6. Webhook** | Inngest (dispatch) |
-| **7. Processamento CPF** | APIFull (3), Serper (3), GPT-4o-mini (2) |
-| **7. Processamento CNPJ** | APIFull (2), Serper (3), GPT-4o-mini (2) |
-| **8. Notificação** | Brevo |
-| **9. Login** | Brevo (magic code) |
-| **10. Reembolso** | Asaas (POST /payments/{id}/refund) |
-
----
-
-## Fluxo de Falhas
-
-```
-                    API 5xx / Connection Refused / Timeout 120s
-                                      │
-                                      ▼
-                          ┌───────────────────────┐
-                          │      Retry 1x         │
-                          └───────────┬───────────┘
-                                      │
-                         ┌────────────┴────────────┐
-                         │                         │
-                         ▼                         ▼
-                    ✅ SUCESSO                ❌ FALHOU
-                    Continua                       │
-                                                   ▼
-                                   ┌───────────────────────────────┐
-                                   │  Reembolso Automático         │
-                                   │  Asaas POST /payments/refund  │
-                                   └───────────────┬───────────────┘
-                                                   │
-                                      ┌────────────┴────────────┐
-                                      │                         │
-                                      ▼                         ▼
-                                 ✅ SUCESSO              ❌ FALHOU
-                                 status: REFUNDED             │
-                                                              ▼
-                                              ┌───────────────────────────┐
-                                              │  Retry 3x (backoff exp.)  │
-                                              └───────────────┬───────────┘
-                                                              │
-                                                 ┌────────────┴────────────┐
-                                                 │                         │
-                                                 ▼                         ▼
-                                            ✅ SUCESSO              ❌ FALHOU 3x
-                                            status: REFUNDED             │
-                                                                         ▼
-                                                         ┌────────────────────────┐
-                                                         │ status: REFUND_FAILED  │
-                                                         │ Alerta admin (Sentry)  │
-                                                         └────────────────────────┘
-```
-
-### Falhas Não-Críticas (não geram reembolso)
-
-| Serviço | Comportamento |
-|---------|---------------|
-| Serper (Google) | Card de notícias fica vazio |
-| GPT-4o-mini | Relatório sem resumo IA |
-| CPF sem dados | Resultado válido com aviso "Dados limitados" |
-
----
-
-## Cache
-
-```
-                     NOVA CONSULTA CPF/CNPJ
-                              │
-                              ▼
-              ┌───────────────────────────────────┐
-              │  Buscar SearchResult existente    │
-              │  WHERE term = X                   │
-              │  AND createdAt > NOW() - 24h      │
-              └───────────────┬───────────────────┘
-                              │
-                 ┌────────────┴────────────┐
-                 │                         │
-                 ▼                         ▼
-            ENCONTROU                 NÃO ENCONTROU
-            (cache hit)               (cache miss)
-                 │                         │
-                 ▼                         ▼
-        Cria nova Purchase         Chama todas as APIs
-        apontando para o           Cria novo SearchResult
-        SearchResult existente     Cria nova Purchase
-                 │                         │
-                 └────────────┬────────────┘
-                              │
-                              ▼
-                    Usuário recebe seu
-                    próprio acesso ao
-                    relatório
-```
-
-**Regras:**
-- Cache válido por 24 horas
-- Usuário B paga R$ 29,90 mesmo usando cache (custo de API = zero)
-- Cada usuário tem seu próprio registro em "Minhas Consultas"
-- Dados compartilhados por trás
-
----
-
-## Retenção de Dados (LGPD)
-
-| Dado | Retenção | Ação |
-|------|----------|------|
-| SearchResult | 7 dias | Purgar completo |
-| Purchase | Indefinido (fiscal) | Anonimizar após 2 anos |
-| LeadCapture | 90 dias | Purgar |
-| MagicCode | 10 minutos | Purgar diariamente |
-| Blocklist | Indefinido | Manter (proteção) |
+- API docs canonica: `docs/valores apis e dados.md`
+- Operacao obrigatoria: `AGENTS.md`
+- Branch de trabalho: `develop`
+- Neon dev/teste: branch `develop`

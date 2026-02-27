@@ -202,20 +202,9 @@ async function main() {
       ],
     })
 
-    // Criar magic code de teste
-    console.log('Criando magic code...')
-    await prisma.magicCode.create({
-      data: {
-        email: 'teste@eopix.com.br',
-        code: '123456',
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutos
-        used: false,
-      },
-    })
-
     console.log('\nDados de teste criados com sucesso!')
     console.log('\nUsuarios:')
-    console.log('  - teste@eopix.com.br (magic code: 123456)')
+    console.log('  - teste@eopix.com.br')
     console.log('  - admin@test.com (admin)')
     console.log('  - cliente@exemplo.com')
     console.log('\nCompras:')
