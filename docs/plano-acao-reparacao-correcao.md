@@ -23,8 +23,10 @@ Corrigir inconsistencias funcionais e de arquitetura identificadas na investigac
 - P2.6 Exibir `processAnalysis` no frontend (`ProcessAnalysisCard`)
 - Parte da Fase 4: teste unitario para TTL (`tests/unit/report-ttl.test.ts`)
 - P1.4 Consolidar guardas de transicao nos endpoints admin/manual
+- Parte da Fase 4: matriz unitaria de transicoes (`tests/unit/purchase-workflow.test.ts`)
+- Parte da Fase 4: novo smoke e2e de contrato admin/manual (`tests/e2e/admin-status-contract.spec.ts`)
 - **Proximo (em andamento)**
-- Fase 4: ampliar testes de fluxo admin/manual e smoke e2e do contrato de status
+- Fase 4: executar smoke e2e em ambiente com porta/liberacao de webserver (sandbox atual bloqueia bind em `:3000`)
 
 ---
 

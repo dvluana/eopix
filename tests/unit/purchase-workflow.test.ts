@@ -32,4 +32,29 @@ describe('purchase workflow validations', () => {
     expect(validateCanMarkPaidAndProcess('PENDING', false).ok).toBe(true)
     expect(validateCanMarkPaidAndProcess('PAID', false).ok).toBe(false)
   })
+
+  it('blocks mark-paid when report already exists regardless of status', () => {
+    const statuses = ['PENDING', 'PAID', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED']
+    for (const status of statuses) {
+      const result = validateCanMarkPaid(status, true)
+      expect(result.ok).toBe(false)
+      expect(result.status).toBe(400)
+    }
+  })
+
+  it('blocks process transitions for invalid states', () => {
+    const invalidStatuses = ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED', 'REFUND_FAILED']
+    for (const status of invalidStatuses) {
+      const result = validateCanProcess(status, false)
+      expect(result.ok).toBe(false)
+    }
+  })
+
+  it('blocks mark-paid-and-process transitions for invalid states', () => {
+    const invalidStatuses = ['PAID', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED', 'REFUND_FAILED']
+    for (const status of invalidStatuses) {
+      const result = validateCanMarkPaidAndProcess(status, false)
+      expect(result.ok).toBe(false)
+    }
+  })
 })
