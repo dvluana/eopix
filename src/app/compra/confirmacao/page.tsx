@@ -3,7 +3,7 @@
 import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { X, Clock, CheckCircle, Loader2 } from 'lucide-react';
+import { Clock, CheckCircle, Loader2 } from 'lucide-react';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 
 type PageState =
@@ -30,12 +30,6 @@ function ConfirmacaoContent() {
   const [pageState, setPageState] = React.useState<PageState>('loading');
   const [purchaseData, setPurchaseData] = React.useState<PurchaseData | null>(null);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-
-  // Estados para edição de email
-  const [isEditingEmail, setIsEditingEmail] = React.useState(false);
-  const [newEmail, setNewEmail] = React.useState('');
-  const [emailError, setEmailError] = React.useState('');
-  const [isSavingEmail, setIsSavingEmail] = React.useState(false);
 
   // Buscar dados e processar estado
   React.useEffect(() => {
@@ -90,63 +84,6 @@ function ConfirmacaoContent() {
 
     fetchAndProcess();
   }, [purchaseCode]);
-
-  const handleCorrectEmailClick = () => {
-    setIsEditingEmail(true);
-    setNewEmail('');
-    setEmailError('');
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingEmail(false);
-    setNewEmail('');
-    setEmailError('');
-  };
-
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleSaveEmail = async () => {
-    if (!newEmail) {
-      setEmailError('E-mail nao pode estar vazio');
-      return;
-    }
-
-    if (!validateEmail(newEmail)) {
-      setEmailError('E-mail invalido');
-      return;
-    }
-
-    setIsSavingEmail(true);
-    setEmailError('');
-
-    try {
-      const res = await fetch(`/api/purchases/${purchaseCode}/email`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: newEmail }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setEmailError(data.error || 'Erro ao atualizar e-mail');
-        return;
-      }
-
-      if (purchaseData) {
-        setPurchaseData({ ...purchaseData, email: data.email || newEmail });
-      }
-      setIsEditingEmail(false);
-      setNewEmail('');
-    } catch {
-      setEmailError('Erro ao atualizar e-mail. Tente novamente.');
-    } finally {
-      setIsSavingEmail(false);
-    }
-  };
 
   const handleGoToConsultas = () => {
     router.push('/minhas-consultas');
@@ -346,8 +283,24 @@ function ConfirmacaoContent() {
               </div>
             </div>
 
-            {/* Email Block */}
-            {renderEmailBlock()}
+            {/* Email */}
+            <div style={{
+              marginTop: 'var(--primitive-space-5)',
+              background: 'var(--color-bg-secondary)',
+              borderRadius: 'var(--primitive-radius-md)',
+              padding: 'var(--primitive-space-4)',
+              textAlign: 'left'
+            }}>
+              <p style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '13px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.6,
+                margin: 0
+              }}>
+                Enviamos para <strong style={{ color: 'var(--color-text-primary)' }}>{purchaseData?.email}</strong>
+              </p>
+            </div>
 
             {/* Código */}
             <div style={{
@@ -469,172 +422,6 @@ function ConfirmacaoContent() {
         return null;
     }
   };
-
-  const renderEmailBlock = () => (
-    <div style={{
-      marginTop: 'var(--primitive-space-5)',
-      fontFamily: 'var(--font-family-body)'
-    }}>
-      <p style={{
-        fontSize: '14px',
-        color: 'var(--color-text-secondary)',
-        marginBottom: 'var(--primitive-space-2)'
-      }}>
-        Enviamos para
-      </p>
-
-      <div style={{
-        display: 'inline-block',
-        background: 'var(--color-bg-accent-light)',
-        padding: '8px 12px',
-        borderRadius: 'var(--primitive-radius-sm)',
-        fontSize: '16px',
-        fontWeight: 'var(--primitive-weight-bold)',
-        color: 'var(--color-text-primary)',
-        marginBottom: 'var(--primitive-space-2)'
-      }}>
-        {purchaseData?.email}
-      </div>
-
-      <p style={{
-        fontSize: '14px',
-        color: 'var(--color-text-secondary)',
-        marginBottom: 'var(--primitive-space-1)'
-      }}>
-        Esta correto?
-      </p>
-
-      <button
-        onClick={handleCorrectEmailClick}
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          fontFamily: 'var(--font-family-body)',
-          fontSize: '14px',
-          color: 'var(--color-text-primary)',
-          textDecoration: 'underline',
-          cursor: 'pointer'
-        }}
-      >
-        Corrigir e-mail
-      </button>
-
-      {isEditingEmail && (
-        <div style={{
-          marginTop: 'var(--primitive-space-4)',
-          textAlign: 'left'
-        }}>
-          <label style={{
-            display: 'block',
-            fontFamily: 'var(--font-family-body)',
-            fontSize: 'var(--primitive-size-caption)',
-            color: 'var(--color-text-secondary)',
-            marginBottom: 'var(--primitive-space-2)'
-          }}>
-            Novo e-mail:
-          </label>
-
-          <div style={{
-            position: 'relative',
-            display: 'flex',
-            gap: 'var(--primitive-space-2)',
-            alignItems: 'flex-start'
-          }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <input
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveEmail();
-                  if (e.key === 'Escape') handleCancelEdit();
-                }}
-                placeholder="seu.email@gmail.com"
-                autoFocus
-                style={{
-                  width: '100%',
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: 'var(--primitive-size-sm)',
-                  padding: 'var(--primitive-space-3)',
-                  paddingRight: '70px',
-                  borderRadius: 'var(--primitive-radius-md)',
-                  border: '2px solid var(--primitive-black)',
-                  background: 'var(--color-bg-primary)',
-                  outline: 'none'
-                }}
-              />
-
-              <button
-                onClick={handleSaveEmail}
-                disabled={isSavingEmail}
-                style={{
-                  position: 'absolute',
-                  right: '4px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'var(--primitive-yellow)',
-                  border: 'none',
-                  borderRadius: 'var(--primitive-radius-sm)',
-                  padding: '6px 12px',
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '12px',
-                  fontWeight: 'var(--primitive-weight-bold)',
-                  color: 'var(--primitive-black)',
-                  cursor: isSavingEmail ? 'not-allowed' : 'pointer',
-                  opacity: isSavingEmail ? 0.7 : 1,
-                  transition: 'var(--transition-fast)'
-                }}
-              >
-                {isSavingEmail ? 'Salvando...' : 'Salvar'}
-              </button>
-            </div>
-
-            <button
-              onClick={handleCancelEdit}
-              aria-label="Cancelar"
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: '8px',
-                cursor: 'pointer',
-                color: 'var(--color-text-secondary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginTop: '2px'
-              }}
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          {emailError && (
-            <p style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: 'var(--primitive-size-caption)',
-              color: 'var(--color-text-danger)',
-              marginTop: 'var(--primitive-space-2)',
-              marginBottom: 0
-            }}>
-              {emailError}
-            </p>
-          )}
-
-          <p style={{
-            fontFamily: 'var(--font-family-body)',
-            fontSize: 'var(--primitive-size-caption)',
-            color: 'var(--color-text-secondary)',
-            marginTop: 'var(--primitive-space-2)',
-            marginBottom: 0,
-            lineHeight: 1.5
-          }}>
-            O e-mail sera atualizado e as notificacoes serao reenviadas.
-          </p>
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>

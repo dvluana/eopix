@@ -40,19 +40,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       ? purchase.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
       : purchase.term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')
 
-    // Mask email: m***@e***.com
-    const emailParts = purchase.user.email.split('@')
-    const maskedEmail = emailParts[0].charAt(0) + '***@' +
-      emailParts[1].charAt(0) + '***.' +
-      emailParts[1].split('.').pop()
-
     return NextResponse.json({
       code: purchase.code,
       term: maskedTerm,
       type: purchase.term.length === 11 ? 'CPF' : 'CNPJ',
       status: purchase.status,
       processingStep: purchase.processingStep,
-      email: maskedEmail,
+      email: purchase.user.email,
       amount: purchase.amount,
       createdAt: purchase.createdAt,
       paidAt: purchase.paidAt,

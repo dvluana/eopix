@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import Footer from '@/components/Footer';
 
@@ -10,7 +11,6 @@ import Footer from '@/components/Footer';
 // TIPOS
 // ============================================
 type PurchaseStatus = 'COMPLETED' | 'PROCESSING' | 'FAILED' | 'REFUND_PENDING' | 'EXPIRED' | 'PENDING' | 'PAID';
-type LoginStep = 'email' | 'codigo';
 
 interface Purchase {
   id: string;
@@ -332,12 +332,6 @@ export default function Page() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState('');
 
-  // Estados do Login
-  const [step, setStep] = React.useState<LoginStep>('email');
-  const [email, setEmail] = React.useState('');
-  const [code, setCode] = React.useState(['', '', '', '', '', '']);
-  const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
-
   // Fetch purchases when authenticated
   const fetchPurchases = React.useCallback(async () => {
     try {
@@ -440,128 +434,32 @@ export default function Page() {
   }, [isAuthenticated, purchases.some(p => p.status === 'PROCESSING' || p.status === 'PAID')]);
 
   // ============================================
-  // ESTADO 1: ENVIAR CÓDIGO
+  // GOOGLE LOGIN
   // ============================================
-  const handleSendCode = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleSuccess = async (response: CredentialResponse) => {
     setError('');
-
-    if (!email) {
-      setError('Por favor, informe seu e-mail');
-      return;
-    }
-
     setIsLoading(true);
+
     try {
-      const res = await fetch('/api/auth/send-code', {
+      const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ credential: response.credential }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        // Melhorado: Mostrar quantas tentativas restam se houver retryAfter
-        if (data.retryAfter) {
-          const minutes = Math.ceil(data.retryAfter / 60);
-          setError(`${data.error} Aguarde ${minutes} minuto(s).`);
-        } else {
-          setError(data.error || 'Erro ao enviar código');
-        }
+        setError(data.error || 'Erro ao autenticar com Google');
         return;
       }
 
-      // Novo: Mostrar aviso se poucas tentativas restantes
-      if (data.rateLimit && data.rateLimit.remaining <= 2) {
-        console.info(`⚠️ Você tem ${data.rateLimit.remaining} tentativas restantes`);
-      }
-
-      // Avança para o estado de código
-      setStep('codigo');
-    } catch {
-      setError('Erro ao enviar código. Tente novamente.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // ============================================
-  // ESTADO 2: VERIFICAR CÓDIGO
-  // ============================================
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    const fullCode = code.join('');
-
-    if (fullCode.length !== 6) {
-      setError('Por favor, digite o código completo');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/auth/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code: fullCode }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Código inválido');
-        return;
-      }
-
-      // Autenticação bem sucedida
-      setUserEmail(email);
       setIsAuthenticated(true);
       await fetchPurchases();
     } catch {
-      setError('Erro ao verificar código. Tente novamente.');
+      setError('Erro ao autenticar com Google. Tente novamente.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // ============================================
-  // LÓGICA DOS 6 INPUTS DE CÓDIGO
-  // ============================================
-  const handleCodeChange = (index: number, value: string) => {
-    // Aceita apenas números
-    const numericValue = value.replace(/[^0-9]/g, '');
-
-    if (numericValue.length > 1) {
-      return; // Não aceita mais de 1 dígito
-    }
-
-    const newCode = [...code];
-    newCode[index] = numericValue;
-    setCode(newCode);
-
-    // Auto-focus no próximo input
-    if (numericValue && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent) => {
-    // Backspace: volta para o input anterior
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleCodePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
-
-    if (pastedData.length === 6) {
-      const newCode = pastedData.split('');
-      setCode(newCode);
-      inputRefs.current[5]?.focus(); // Foca no último input
     }
   };
 
@@ -574,9 +472,6 @@ export default function Page() {
     setIsAuthenticated(false);
     setPurchases([]);
     setUserEmail('');
-    setStep('email');
-    setEmail('');
-    setCode(['', '', '', '', '', '']);
   };
 
   const handleNovaConsulta = () => {
@@ -592,277 +487,124 @@ export default function Page() {
   // ============================================
   if (!isAuthenticated) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)' }}>
-        {/* NAV */}
-        <nav className="nav" aria-label="Menu principal">
-          <div className="nav__inner">
-            <Link href="/" className="nav__logo" aria-label="E o Pix? — Página inicial">
-              <LogoFundoPreto />
-            </Link>
-          </div>
-        </nav>
+      <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
+        <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)' }}>
+          {/* NAV */}
+          <nav className="nav" aria-label="Menu principal">
+            <div className="nav__inner">
+              <Link href="/" className="nav__logo" aria-label="E o Pix? — Página inicial">
+                <LogoFundoPreto />
+              </Link>
+            </div>
+          </nav>
 
-        {/* MAIN CONTENT */}
-        <main style={{
-          paddingTop: 'calc(64px + var(--primitive-space-10))',
-          paddingBottom: 'var(--primitive-space-12)',
-          minHeight: 'calc(100vh - 64px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-
-          {/* ============================================ */}
-          {/* CARD CENTRALIZADO */}
-          {/* ============================================ */}
-          <div style={{
-            maxWidth: '440px',
-            width: '100%',
-            margin: '0 var(--primitive-space-6)',
-            background: 'var(--primitive-white)',
-            border: '1px solid var(--color-border-subtle)',
-            borderRadius: 'var(--primitive-radius-md)',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-            padding: '40px'
+          {/* MAIN CONTENT */}
+          <main style={{
+            paddingTop: 'calc(64px + var(--primitive-space-10))',
+            paddingBottom: 'var(--primitive-space-12)',
+            minHeight: 'calc(100vh - 64px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
 
-            {/* ============================================ */}
-            {/* ESTADO 1: EMAIL */}
-            {/* ============================================ */}
-            {step === 'email' && (
-              <>
-                <h1 style={{
-                  fontFamily: 'var(--font-family-heading)',
-                  fontSize: '28px',
-                  fontWeight: 700,
-                  color: 'var(--primitive-black)',
-                  textAlign: 'center',
-                  margin: '0 0 8px 0'
-                }}>
-                  Minhas Consultas
-                </h1>
+            {/* CARD CENTRALIZADO */}
+            <div style={{
+              maxWidth: '440px',
+              width: '100%',
+              margin: '0 var(--primitive-space-6)',
+              background: 'var(--primitive-white)',
+              border: '1px solid var(--color-border-subtle)',
+              borderRadius: 'var(--primitive-radius-md)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
+              padding: '40px'
+            }}>
+              <h1 style={{
+                fontFamily: 'var(--font-family-heading)',
+                fontSize: '28px',
+                fontWeight: 700,
+                color: 'var(--primitive-black)',
+                textAlign: 'center',
+                margin: '0 0 8px 0'
+              }}>
+                Minhas Consultas
+              </h1>
 
-                <p style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '14px',
-                  color: 'var(--color-text-secondary)',
-                  textAlign: 'center',
-                  margin: '0 0 24px 0'
-                }}>
-                  Digite seu e-mail para acessar suas consultas.
-                </p>
+              <p style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                textAlign: 'center',
+                margin: '0 0 24px 0'
+              }}>
+                Entre com sua conta Google para acessar suas consultas.
+              </p>
 
-                <form onSubmit={handleSendCode}>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    autoFocus
-                    disabled={isLoading}
-                    style={{
-                      width: '100%',
-                      padding: '14px 16px',
-                      border: '2px solid var(--primitive-black)',
-                      borderRadius: 'var(--primitive-radius-md)',
-                      background: 'var(--primitive-white)',
-                      color: 'var(--primitive-black)',
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '13px',
-                      outline: 'none',
-                      marginBottom: '16px'
-                    }}
-                  />
-
-                  {error && (
-                    <div style={{
-                      color: '#CC3333',
-                      fontSize: '13px',
-                      marginBottom: '12px',
-                      textAlign: 'center'
-                    }}>
-                      {error}
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    className="btn btn--primary btn--lg"
-                    disabled={isLoading}
-                    style={{
-                      width: '100%',
-                      padding: '16px',
-                      fontSize: '14px',
-                      opacity: isLoading ? 0.7 : 1,
-                    }}
-                  >
-                    {isLoading ? 'Enviando...' : 'Enviar código'}
-                  </button>
-                </form>
-              </>
-            )}
-
-            {/* ============================================ */}
-            {/* ESTADO 2: CÓDIGO */}
-            {/* ============================================ */}
-            {step === 'codigo' && (
-              <>
-                <h1 style={{
-                  fontFamily: 'var(--font-family-heading)',
-                  fontSize: '28px',
-                  fontWeight: 700,
-                  color: 'var(--primitive-black)',
-                  textAlign: 'center',
-                  margin: '0 0 8px 0'
-                }}>
-                  Código enviado!
-                </h1>
-
-                <p style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '14px',
-                  color: 'var(--color-text-secondary)',
-                  textAlign: 'center',
-                  margin: '0 0 24px 0'
-                }}>
-                  Enviamos um código de 6 dígitos para <strong>{email}</strong>
-                </p>
-
-                <form onSubmit={handleVerifyCode}>
-                  {/* 6 caixinhas de código */}
-                  <div style={{
-                    display: 'flex',
-                    gap: '8px',
-                    justifyContent: 'center',
-                    marginBottom: '24px'
-                  }}>
-                    {code.map((digit, index) => (
-                      <input
-                        key={index}
-                        ref={(el) => { inputRefs.current[index] = el; }}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleCodeChange(index, e.target.value)}
-                        onKeyDown={(e) => handleCodeKeyDown(index, e)}
-                        onPaste={index === 0 ? handleCodePaste : undefined}
-                        autoFocus={index === 0}
-                        disabled={isLoading}
-                        style={{
-                          width: '48px',
-                          height: '56px',
-                          border: '2px solid var(--primitive-black)',
-                          borderRadius: 'var(--primitive-radius-md)',
-                          background: 'var(--primitive-white)',
-                          color: 'var(--primitive-black)',
-                          fontFamily: 'var(--font-family-body)',
-                          fontSize: '24px',
-                          fontWeight: 700,
-                          textAlign: 'center',
-                          outline: 'none'
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  {error && (
-                    <div style={{
-                      color: '#CC3333',
-                      fontSize: '13px',
-                      marginBottom: '12px',
-                      textAlign: 'center'
-                    }}>
-                      {error}
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    className="btn btn--primary btn--lg"
-                    disabled={isLoading}
-                    style={{
-                      width: '100%',
-                      padding: '16px',
-                      fontSize: '14px',
-                      marginBottom: '20px',
-                      opacity: isLoading ? 0.7 : 1,
-                    }}
-                  >
-                    {isLoading ? 'Verificando...' : 'Entrar'}
-                  </button>
-                </form>
-
-                {/* Callout spam */}
+              {error && (
                 <div style={{
-                  background: 'var(--color-bg-primary)',
-                  borderLeft: '3px solid var(--primitive-yellow)',
-                  borderRadius: '0 6px 6px 0',
-                  padding: '12px 16px',
-                  marginBottom: '12px'
+                  color: '#CC3333',
+                  fontSize: '13px',
+                  marginBottom: '16px',
+                  textAlign: 'center'
                 }}>
-                  <p style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '13px',
-                    color: 'var(--color-text-secondary)',
-                    margin: 0
-                  }}>
-                    Não recebeu o código? Verifique o spam.
-                  </p>
+                  {error}
                 </div>
+              )}
 
-                {/* Link voltar */}
-                <div style={{ textAlign: 'center' }}>
-                  <button
-                    type="button"
-                    onClick={() => setStep('email')}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '12px',
-                      color: 'var(--color-text-tertiary)',
-                      textDecoration: 'underline',
-                      cursor: 'pointer',
-                      padding: 0
-                    }}
-                  >
-                    Usar outro e-mail
-                  </button>
+              {isLoading ? (
+                <div style={{
+                  textAlign: 'center',
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '14px',
+                  color: 'var(--color-text-secondary)',
+                  padding: '16px 0',
+                }}>
+                  Entrando...
                 </div>
-              </>
-            )}
-          </div>
-        </main>
-
-        {/* FOOTER */}
-        <footer className="footer">
-          <div className="footer__inner">
-            <div className="footer__logo">
-              <LogoFundoPreto />
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setError('Erro ao autenticar com Google. Tente novamente.')}
+                    size="large"
+                    width="360"
+                    text="signin_with"
+                    shape="rectangular"
+                  />
+                </div>
+              )}
             </div>
+          </main>
 
-            <div className="footer__links">
-              <a href="/sobre" className="footer__link">
-                Sobre
-              </a>
-              <a href="/privacidade" className="footer__link">
-                Privacidade
-              </a>
-              <a href="/termos" className="footer__link">
-                Termos
-              </a>
-              <a href="/contato" className="footer__link">
-                Contato
-              </a>
-            </div>
+          {/* FOOTER */}
+          <footer className="footer">
+            <div className="footer__inner">
+              <div className="footer__logo">
+                <LogoFundoPreto />
+              </div>
 
-            <div className="footer__copyright">
-              © 2026 E o Pix? Todos os direitos reservados.
+              <div className="footer__links">
+                <a href="/sobre" className="footer__link">
+                  Sobre
+                </a>
+                <a href="/privacidade" className="footer__link">
+                  Privacidade
+                </a>
+                <a href="/termos" className="footer__link">
+                  Termos
+                </a>
+                <a href="/contato" className="footer__link">
+                  Contato
+                </a>
+              </div>
+
+              <div className="footer__copyright">
+                &copy; 2026 E o Pix? Todos os direitos reservados.
+              </div>
             </div>
-          </div>
-        </footer>
-      </div>
+          </footer>
+        </div>
+      </GoogleOAuthProvider>
     );
   }
 

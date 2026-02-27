@@ -76,7 +76,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       console.error('Failed to trigger Inngest job:', err)
 
       // In bypass mode, use sync fallback instead of failing
-      if (isBypassMode) {
+      if (isBypassMode || process.env.INNGEST_DEV === 'true') {
         console.log(`🧪 [BYPASS] Inngest indisponível, usando fallback síncrono`)
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
         fetch(`${appUrl}/api/process-search/${purchase.code}`, { method: 'POST' })
