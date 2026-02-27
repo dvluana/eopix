@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { validateCanMarkPaid } from '@/lib/purchase-workflow'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -33,11 +34,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Only allow marking PENDING purchases as paid
-    if (purchase.status !== 'PENDING') {
+    const validation = validateCanMarkPaid(purchase.status, !!purchase.searchResultId)
+    if (!validation.ok) {
       return NextResponse.json(
-        { error: 'Apenas compras pendentes podem ser marcadas como pagas' },
-        { status: 400 }
+        { error: validation.error },
+        { status: validation.status }
       )
     }
 

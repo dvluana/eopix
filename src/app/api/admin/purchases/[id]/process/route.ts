@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 import { inngest } from '@/lib/inngest'
 import { isBypassMode } from '@/lib/mock-mode'
+import { validateCanProcess } from '@/lib/purchase-workflow'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -35,18 +36,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Only allow processing PAID purchases without report
-    if (purchase.status !== 'PAID') {
+    const validation = validateCanProcess(purchase.status, !!purchase.searchResultId)
+    if (!validation.ok) {
       return NextResponse.json(
-        { error: 'Apenas compras pagas podem ser processadas' },
-        { status: 400 }
-      )
-    }
-
-    if (purchase.searchResultId) {
-      return NextResponse.json(
-        { error: 'Esta compra ja possui relatorio' },
-        { status: 400 }
+        { error: validation.error },
+        { status: validation.status }
       )
     }
 

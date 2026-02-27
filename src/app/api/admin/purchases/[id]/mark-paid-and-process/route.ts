@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { validateCanMarkPaidAndProcess } from '@/lib/purchase-workflow'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -33,11 +34,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Check if purchase is PENDING
-    if (purchase.status !== 'PENDING') {
+    const validation = validateCanMarkPaidAndProcess(purchase.status, !!purchase.searchResultId)
+    if (!validation.ok) {
       return NextResponse.json(
-        { error: 'Apenas compras PENDING podem ser processadas' },
-        { status: 400 }
+        { error: validation.error },
+        { status: validation.status }
       )
     }
 
@@ -65,6 +66,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       })
     } catch (err) {
       console.error('Failed to trigger Inngest job:', err)
+      // Keep as PAID so admin can retry processing
+      await prisma.purchase.update({
+        where: { id },
+        data: {
+          status: 'PAID',
+          processingStep: 0,
+        },
+      })
       return NextResponse.json(
         { error: 'Falha ao disparar processamento' },
         { status: 500 }

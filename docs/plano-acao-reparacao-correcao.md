@@ -22,8 +22,9 @@ Corrigir inconsistencias funcionais e de arquitetura identificadas na investigac
 - P2.5 Compatibilidade de nomenclatura (`src/inngest/index.ts`, `src/lib/ai-analysis.ts`) + docs alinhadas
 - P2.6 Exibir `processAnalysis` no frontend (`ProcessAnalysisCard`)
 - Parte da Fase 4: teste unitario para TTL (`tests/unit/report-ttl.test.ts`)
+- P1.4 Consolidar guardas de transicao nos endpoints admin/manual
 - **Proximo (em andamento)**
-- P1.4 Consolidar contrato de processamento manual/admin (maquina de estados e guardas de transicao)
+- Fase 4: ampliar testes de fluxo admin/manual e smoke e2e do contrato de status
 
 ---
 
