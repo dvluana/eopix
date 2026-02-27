@@ -57,7 +57,10 @@ type AllEvents = SearchProcessEvent | CleanupEvent
 // 5 = Gerando resumo
 // 6 = Finalizando
 
-// Process search job
+// Process search job — 2 steps: check-cache, process-all
+// Previous version had 14-16 Inngest steps, each causing a full HTTP replay.
+// Collapsing to 3 eliminates ~2-3 min of orchestration overhead.
+// Progress bar still works via direct prisma.purchase.update() inside process-all.
 export const processSearch = inngest.createFunction(
   {
     id: 'process-search',
@@ -67,10 +70,11 @@ export const processSearch = inngest.createFunction(
   async ({ event, step }) => {
     const { purchaseId, term, type } = event.data
 
-    // ========== CACHE: Verificar se ja existe SearchResult valido (24h) ==========
-    const existingResult = await step.run('check-cache', async () => {
+    // ========== Step 1: check-cache ==========
+    // Verifica cache 24h. Se existir, completa direto e retorna.
+    const cacheResult = await step.run('check-cache', async () => {
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-      return prisma.searchResult.findFirst({
+      const existing = await prisma.searchResult.findFirst({
         where: {
           term,
           type,
@@ -78,25 +82,27 @@ export const processSearch = inngest.createFunction(
         },
         orderBy: { createdAt: 'desc' },
       })
-    })
 
-    // Se encontrou cache valido, reutiliza
-    if (existingResult) {
-      await step.run('use-cached-result', async () => {
+      if (existing) {
         await prisma.purchase.update({
           where: { id: purchaseId },
           data: {
             status: 'COMPLETED',
-            searchResultId: existingResult.id,
+            searchResultId: existing.id,
             processingStep: 0,
           },
         })
-      })
+        return { cached: true, searchResultId: existing.id }
+      }
 
-      return { success: true, cached: true, searchResultId: existingResult.id }
+      return { cached: false, searchResultId: null }
+    })
+
+    if (cacheResult.cached) {
+      return { success: true, cached: true, searchResultId: cacheResult.searchResultId }
     }
 
-    // Helper para atualizar step
+    // Helper para atualizar step (DB direto, sem step.run)
     const updateStep = async (stepNum: number) => {
       await prisma.purchase.update({
         where: { id: purchaseId },
@@ -104,163 +110,123 @@ export const processSearch = inngest.createFunction(
       })
     }
 
-    // Update purchase to PROCESSING
-    await step.run('set-processing', async () => {
+    // ========== Step 2: process-all ==========
+    // TODO o trabalho: fetch APIs, AI analysis, save result, complete purchase.
+    // Atualiza processingStep internamente para barra de progresso.
+    const searchResult = await step.run('process-all', async () => {
+      // Set PROCESSING
       await prisma.purchase.update({
         where: { id: purchaseId },
         data: { status: 'PROCESSING', processingStep: 1 },
       })
-    })
 
-    // Variables para armazenar dados
-    let cadastralData: CpfCadastralResponse | null = null
-    let processosData: ProcessosCpfResponse | null = null
-    let cpfFinancialData: SrsPremiumCpfResponse | null = null
-    let dossieData: DossieResponse | null = null
-    let cnpjFinancialData: SrsPremiumCnpjResponse | null = null
-    let googleData: GoogleSearchResponse | null = null
-    let processAnalysis: ProcessAnalysis[] = []
-    let financialSummary: FinancialSummary
-    let name = ''
-    let region = ''
+      let cadastralData: CpfCadastralResponse | null = null
+      let processosData: ProcessosCpfResponse | null = null
+      let cpfFinancialData: SrsPremiumCpfResponse | null = null
+      let dossieData: DossieResponse | null = null
+      let cnpjFinancialData: SrsPremiumCnpjResponse | null = null
+      let googleData: GoogleSearchResponse | null = null
+      let processAnalysis: ProcessAnalysis[] = []
+      let financialSummary: FinancialSummary
+      let name = ''
+      let region = ''
 
-    try {
-      // ========== CPF: 3 chamadas APIFull + Serper ==========
-      if (type === 'CPF') {
-        // Step 1: Dados cadastrais (r-cpf-completo)
-        cadastralData = await step.run('fetch-cpf-cadastral', async () => {
-          return consultCpfCadastral(term)
-        })
-        name = cadastralData.nome
-        region = cadastralData.enderecos?.[0]?.uf || ''
+      try {
+        // ========== CPF: 3 chamadas APIFull + Serper ==========
+        if (type === 'CPF') {
+          // Dados cadastrais (r-cpf-completo)
+          cadastralData = await consultCpfCadastral(term)
+          name = cadastralData.nome
+          region = cadastralData.enderecos?.[0]?.uf || ''
+          await updateStep(2)
 
-        // Atualiza para step 2 - Paralelizando etapas 2 e 3
-        await step.run('update-step-2', async () => updateStep(2))
-
-        // ========== OTIMIZAÇÃO: Paralelizar etapas 2 e 3 ==========
-        // Steps 2 e 3 podem rodar em paralelo pois são independentes
-        const [cpfFinancialResult, processosResult] = await Promise.all([
-          // Step 2: Dados financeiros (srs-premium) - NAO bloqueia se falhar
-          step.run('fetch-cpf-financial', async () => {
-            try {
-              return await consultCpfFinancial(term)
-            } catch (err) {
+          // Dados financeiros + processos em paralelo
+          const [cpfFinancialResult, processosResult] = await Promise.all([
+            consultCpfFinancial(term).catch((err) => {
               console.error('CPF Financial (srs-premium) error:', err)
               return null
-            }
-          }),
-          // Step 3: Processos judiciais (r-acoes-e-processos-judiciais) - NAO bloqueia se falhar
-          step.run('fetch-cpf-processos', async () => {
-            try {
-              return await consultCpfProcessos(term)
-            } catch (err) {
+            }),
+            consultCpfProcessos(term).catch((err) => {
               console.error('CPF Processos error:', err)
-              return { processos: [], totalProcessos: 0 }
-            }
-          }),
-        ])
+              return { processos: [], totalProcessos: 0 } as ProcessosCpfResponse
+            }),
+          ])
 
-        cpfFinancialData = cpfFinancialResult
-        processosData = processosResult
+          cpfFinancialData = cpfFinancialResult
+          processosData = processosResult
+          await updateStep(3)
 
-        // Atualiza para step 3 (já completou steps 2 e 3 em paralelo)
-        await step.run('update-step-3', async () => updateStep(3))
+          // Calcular resumo financeiro (sem IA)
+          financialSummary = calculateCpfFinancialSummary(cpfFinancialData)
+        }
+        // ========== CNPJ: 2 chamadas APIFull + Serper ==========
+        else {
+          // Dados cadastrais + processos (ic-dossie-juridico)
+          dossieData = await consultCnpjDossie(term)
+          name = dossieData.razaoSocial
+          region = dossieData.endereco?.uf || ''
+          await updateStep(2)
 
-        // Calcular resumo financeiro (sem IA)
-        financialSummary = calculateCpfFinancialSummary(cpfFinancialData)
-      }
-      // ========== CNPJ: 2 chamadas APIFull + Serper ==========
-      else {
-        // Step 1: Dados cadastrais + processos em 1 chamada (ic-dossie-juridico)
-        dossieData = await step.run('fetch-cnpj-dossie', async () => {
-          return consultCnpjDossie(term)
-        })
-        name = dossieData.razaoSocial
-        region = dossieData.endereco?.uf || ''
-
-        // Atualiza para step 2 - Dados financeiros
-        await step.run('update-step-2', async () => updateStep(2))
-
-        // Step 2: Dados financeiros (srs-premium) - NAO bloqueia se falhar
-        cnpjFinancialData = await step.run('fetch-cnpj-financial', async () => {
-          try {
-            return await consultCnpjFinancial(term)
-          } catch (err) {
+          // Dados financeiros (srs-premium) - NAO bloqueia se falhar
+          cnpjFinancialData = await consultCnpjFinancial(term).catch((err) => {
             console.error('CNPJ Financial (srs-premium) error:', err)
             return null
-          }
-        })
+          })
+          await updateStep(3)
 
-        // Processos ja vem no dossie - nao precisa de step separado
-        await step.run('update-step-3', async () => updateStep(3))
-
-        // Calcular resumo financeiro (sem IA)
-        financialSummary = calculateCnpjFinancialSummary(cnpjFinancialData)
-      }
-
-      // Atualiza para step 4 - Menções na web
-      await step.run('update-step-4', async () => updateStep(4))
-
-      // Step 4: Busca na web (Serper) - 3 queries paralelas
-      googleData = await step.run('fetch-google', async () => {
-        try {
-          return await searchWeb(name, term, type)
-        } catch (err) {
-          console.error('Google/Serper error:', err)
-          return { byDocument: [], byName: [], reclameAqui: [] }
+          // Calcular resumo financeiro (sem IA)
+          financialSummary = calculateCnpjFinancialSummary(cnpjFinancialData)
         }
-      })
 
-      // Atualiza para step 5 - Gerando resumo
-      await step.run('update-step-5', async () => updateStep(5))
-
-      // ========== IA 1: Analisar processos (se houver) ==========
-      if (type === 'CPF' && processosData && processosData.processos.length > 0) {
-        const processosResult = await step.run('analyze-processos', async () => {
-          return analyzeProcessos(processosData!.processos, term)
+        // Menções na web (Serper)
+        await updateStep(4)
+        googleData = await searchWeb(name, term, type).catch((err) => {
+          console.error('Google/Serper error:', err)
+          return { byDocument: [], byName: [], reclameAqui: [] } as GoogleSearchResponse
         })
-        processAnalysis = processosResult.processAnalysis
-      }
-      // Para CNPJ, os processos vem no dossie - converter para formato ProcessoRaw se necessario
-      // Por ora, nao analisamos processos do dossie CNPJ com IA (ja vem categorizado)
 
-      // ========== IA 2: Analisar menções e gerar resumo ==========
-      const mentions = [
-        ...(googleData?.byDocument || []),
-        ...(googleData?.byName || []),
-        ...(googleData?.reclameAqui || []),
-      ]
+        // IA: Gerando resumo
+        await updateStep(5)
 
-      const summaryResult = await step.run('analyze-mentions-summary', async () => {
-        return analyzeMentionsAndSummary({
+        // IA 1: Analisar processos (se houver)
+        if (type === 'CPF' && processosData && processosData.processos.length > 0) {
+          const processosResult = await analyzeProcessos(processosData.processos, term)
+          processAnalysis = processosResult.processAnalysis
+        }
+
+        // IA 2: Analisar menções e gerar resumo
+        const mentions = [
+          ...(googleData?.byDocument || []),
+          ...(googleData?.byName || []),
+          ...(googleData?.reclameAqui || []),
+        ]
+
+        const summaryResult = await analyzeMentionsAndSummary({
           mentions,
           financialSummary,
           processAnalysis,
           type,
           region,
         }, term)
-      })
 
-      // Aplicar classificacoes nos resultados do Google
-      if (googleData && summaryResult.mentionClassifications) {
-        for (const classification of summaryResult.mentionClassifications) {
-          const matchByDoc = googleData.byDocument.find((r) => r.url === classification.url)
-          if (matchByDoc) matchByDoc.classification = classification.classification
+        // Aplicar classificacoes nos resultados do Google
+        if (googleData && summaryResult.mentionClassifications) {
+          for (const classification of summaryResult.mentionClassifications) {
+            const matchByDoc = googleData.byDocument.find((r) => r.url === classification.url)
+            if (matchByDoc) matchByDoc.classification = classification.classification
 
-          const matchByName = googleData.byName.find((r) => r.url === classification.url)
-          if (matchByName) matchByName.classification = classification.classification
+            const matchByName = googleData.byName.find((r) => r.url === classification.url)
+            if (matchByName) matchByName.classification = classification.classification
 
-          const matchRA = googleData.reclameAqui.find((r) => r.url === classification.url)
-          if (matchRA) matchRA.classification = classification.classification
+            const matchRA = googleData.reclameAqui.find((r) => r.url === classification.url)
+            if (matchRA) matchRA.classification = classification.classification
+          }
         }
-      }
 
-      // Atualiza para step 6 - Finalizando
-      await step.run('update-step-6', async () => updateStep(6))
+        // Finalizando
+        await updateStep(6)
 
-      // Step 6: Salvar SearchResult
-      const searchResult = await step.run('save-result', async () => {
-        // Preparar dados para salvar
+        // Salvar SearchResult
         const dataToSave = type === 'CPF'
           ? {
               cadastral: cadastralData,
@@ -279,10 +245,9 @@ export const processSearch = inngest.createFunction(
               reclameAqui: summaryResult.reclameAqui || null,
             }
 
-        // Convert to plain JSON
         const jsonData = JSON.parse(JSON.stringify(dataToSave)) as Prisma.InputJsonValue
 
-        return prisma.searchResult.create({
+        const result = await prisma.searchResult.create({
           data: {
             term,
             type,
@@ -292,57 +257,47 @@ export const processSearch = inngest.createFunction(
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
           },
         })
-      })
 
-      // Step 7: Atualizar purchase para COMPLETED
-      await step.run('complete-purchase', async () => {
+        // Complete purchase
         await prisma.purchase.update({
           where: { id: purchaseId },
           data: {
             status: 'COMPLETED',
-            searchResultId: searchResult.id,
-            processingStep: 0, // Reset step on completion
+            searchResultId: result.id,
+            processingStep: 0,
           },
         })
-      })
 
-      // Step 8: Enviar email de conclusão
-      await step.run('send-completion-email', async () => {
-        const { sendCompletionEmail } = await import('./email')
-        const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://somoseopix.com.br'
-        const reportUrl = `${baseUrl}/relatorio/${searchResult.id}`
+        return { id: result.id }
+      } catch (error) {
+        console.error('Process search error:', error)
 
-        await sendCompletionEmail(event.data.email, event.data.purchaseCode, reportUrl)
-        return { sent: true, to: event.data.email }
-      })
+        // Get current purchase state to capture processingStep
+        const failedPurchase = await prisma.purchase.findUnique({
+          where: { id: purchaseId },
+          select: { processingStep: true },
+        })
 
-      return { success: true, searchResultId: searchResult.id }
-    } catch (error) {
-      console.error('Process search error:', error)
+        // Update purchase to FAILED with error details
+        await prisma.purchase.update({
+          where: { id: purchaseId },
+          data: {
+            status: 'FAILED',
+            failureReason: 'PROCESSING_ERROR',
+            failureDetails: JSON.stringify({
+              error: error instanceof Error ? error.message : String(error),
+              stack: error instanceof Error ? error.stack : undefined,
+              currentStep: failedPurchase?.processingStep || 0,
+              timestamp: new Date().toISOString(),
+            }),
+          },
+        })
 
-      // Get current purchase state to capture processingStep
-      const failedPurchase = await prisma.purchase.findUnique({
-        where: { id: purchaseId },
-        select: { processingStep: true },
-      })
+        throw error // Re-throw to trigger Inngest retry
+      }
+    })
 
-      // Update purchase to FAILED with error details
-      await prisma.purchase.update({
-        where: { id: purchaseId },
-        data: {
-          status: 'FAILED',
-          failureReason: 'PROCESSING_ERROR',
-          failureDetails: JSON.stringify({
-            error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined,
-            currentStep: failedPurchase?.processingStep || 0,
-            timestamp: new Date().toISOString(),
-          }),
-        },
-      })
-
-      throw error // Re-throw to trigger retry
-    }
+    return { success: true, searchResultId: searchResult.id }
   }
 )
 

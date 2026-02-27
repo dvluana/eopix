@@ -50,7 +50,7 @@ export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResp
   if (!res.ok) {
     const errorText = await res.text().catch(() => '')
     console.error(`APIFull CPF Cadastral error: ${res.status}`, errorText)
-    throw new Error(`APIFull CPF Cadastral error: ${res.status}`)
+    throw new Error(`APIFull CPF Cadastral error: ${res.status} - ${errorText.slice(0, 200)}`)
   }
 
   const rawData = await res.json()
@@ -173,7 +173,7 @@ export async function consultCpfProcessos(cpf: string): Promise<ProcessosCpfResp
   if (!res.ok) {
     const errorText = await res.text().catch(() => '')
     console.error(`APIFull CPF Processos error: ${res.status}`, errorText)
-    throw new Error(`APIFull CPF Processos error: ${res.status}`)
+    throw new Error(`APIFull CPF Processos error: ${res.status} - ${errorText.slice(0, 200)}`)
   }
 
   const rawData = await res.json()
@@ -245,7 +245,7 @@ export async function consultCpfFinancial(cpf: string): Promise<SrsPremiumCpfRes
   if (!res.ok) {
     const errorText = await res.text().catch(() => '')
     console.error(`APIFull CPF Financial error: ${res.status}`, errorText)
-    throw new Error(`APIFull CPF Financial error: ${res.status}`)
+    throw new Error(`APIFull CPF Financial error: ${res.status} - ${errorText.slice(0, 200)}`)
   }
 
   const rawData = await res.json()
@@ -339,7 +339,7 @@ export async function consultCnpjDossie(cnpj: string): Promise<DossieResponse> {
   if (!res.ok) {
     const errorText = await res.text().catch(() => '')
     console.error(`APIFull CNPJ Dossie error: ${res.status}`, errorText)
-    throw new Error(`APIFull CNPJ Dossie error: ${res.status}`)
+    throw new Error(`APIFull CNPJ Dossie error: ${res.status} - ${errorText.slice(0, 200)}`)
   }
 
   const rawData = await res.json()
@@ -470,7 +470,7 @@ export async function consultCnpjFinancial(cnpj: string): Promise<SrsPremiumCnpj
   if (!res.ok) {
     const errorText = await res.text().catch(() => '')
     console.error(`APIFull CNPJ Financial error: ${res.status}`, errorText)
-    throw new Error(`APIFull CNPJ Financial error: ${res.status}`)
+    throw new Error(`APIFull CNPJ Financial error: ${res.status} - ${errorText.slice(0, 200)}`)
   }
 
   const rawData = await res.json()

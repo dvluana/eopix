@@ -30,9 +30,9 @@ export async function POST(
   const { code } = await params
 
   // Só funciona em bypass mode (MOCK_MODE ou TEST_MODE)
-  if (!isBypassMode) {
+  if (!isBypassMode && process.env.INNGEST_DEV !== 'true') {
     return NextResponse.json(
-      { error: 'Endpoint apenas para bypass mode' },
+      { error: 'Endpoint apenas para bypass/dev mode' },
       { status: 403 }
     )
   }
