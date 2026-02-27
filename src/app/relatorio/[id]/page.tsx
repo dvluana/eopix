@@ -13,6 +13,7 @@ import {
   JudicialCard,
   WebMentionsCard,
   AiSummary,
+  ProcessAnalysisCard,
   ReportFooter,
   ReportError,
   CompanyInfoCard,
@@ -379,7 +380,7 @@ export default function Page() {
   const financial = report.data.financial;
   const financialSummary = report.data.financialSummary;
   const processos = report.data.processos;
-  // processAnalysis disponível em report.data.processAnalysis para uso futuro
+  const processAnalysis = report.data.processAnalysis || [];
   const google = report.data.google;
   const dossie = report.data.dossie;
   const reclameAqui = report.data.reclameAqui;
@@ -742,6 +743,7 @@ export default function Page() {
               />
             )}
             {processosCard.length > 0 && <JudicialCard processos={processosCard} />}
+            {processAnalysis.length > 0 && <ProcessAnalysisCard analyses={processAnalysis} />}
             {negativeMentions.length > 0 && <WebMentionsCard mentions={negativeMentions} variant="chuva" />}
           </>
         )}

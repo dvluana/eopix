@@ -95,7 +95,7 @@ function cleanupRateLimitStore() {
   }
 }
 
-async function verifyAdminAuth(request: NextRequest): Promise<boolean> {
+async function hasValidSession(request: NextRequest): Promise<boolean> {
   const cookie = request.cookies.get('eopix_session')?.value
   if (!cookie) return false
 
@@ -117,16 +117,7 @@ async function verifyAdminAuth(request: NextRequest): Promise<boolean> {
     const email = decoded.email?.toLowerCase()
     if (!email) return false
 
-    // 1. Check ADMIN_EMAILS (mantém compatibilidade)
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase())
-    if (adminEmails.includes(email)) {
-      return true
-    }
-
-    // 2. Check AdminUser table (Edge Runtime não suporta Prisma diretamente)
-    // Para o middleware, vamos confiar apenas em ADMIN_EMAILS por questões de performance
-    // A verificação completa da tabela será feita nas API routes via requireAdmin()
-    return false
+    return true
   } catch {
     return false
   }
@@ -180,8 +171,8 @@ export async function middleware(request: NextRequest) {
         return response
       }
 
-      const isAdmin = await verifyAdminAuth(request)
-      if (!isAdmin) {
+      const isAuthenticated = await hasValidSession(request)
+      if (!isAuthenticated) {
         return NextResponse.json(
           { error: 'Unauthorized' },
           { status: 401 }
@@ -205,8 +196,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next()
     }
 
-    const isAdmin = await verifyAdminAuth(request)
-    if (!isAdmin) {
+    const isAuthenticated = await hasValidSession(request)
+    if (!isAuthenticated) {
       // Redirecionar para login do admin (não para home)
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }

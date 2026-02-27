@@ -11,6 +11,7 @@ import {
 import { searchWeb } from './google-search'
 import { analyzeProcessos, analyzeMentionsAndSummary } from './openai'
 import { calculateCpfFinancialSummary, calculateCnpjFinancialSummary } from './financial-summary'
+import { getReportExpiresAt } from './report-ttl'
 import { refundPayment } from './stripe'
 import type {
   CpfCadastralResponse,
@@ -254,7 +255,7 @@ export const processSearch = inngest.createFunction(
             name,
             data: jsonData,
             summary: summaryResult.summary,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            expiresAt: getReportExpiresAt(),
           },
         })
 

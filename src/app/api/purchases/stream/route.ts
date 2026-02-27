@@ -1,24 +1,15 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { cookies } from 'next/headers'
+import { getSession } from '@/lib/auth'
 
 // Server-Sent Events (SSE) endpoint for real-time purchase updates
 export async function GET(request: NextRequest) {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('session')
-
-  if (!sessionCookie?.value) {
+  const session = await getSession(request)
+  if (!session) {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  // Parse session to get email
-  let userEmail: string
-  try {
-    const sessionData = JSON.parse(sessionCookie.value)
-    userEmail = sessionData.email
-  } catch {
-    return new Response('Invalid session', { status: 401 })
-  }
+  const userEmail = session.email
 
   // Create SSE stream
   const encoder = new TextEncoder()

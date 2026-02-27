@@ -6,6 +6,7 @@ export { default as FinancialCard } from './FinancialCard';
 export { default as JudicialCard } from './JudicialCard';
 export { default as WebMentionsCard } from './WebMentionsCard';
 export { default as AiSummary } from './AiSummary';
+export { default as ProcessAnalysisCard } from './ProcessAnalysisCard';
 export { default as ReportFooter } from './ReportFooter';
 export { default as ReportError } from './ReportError';
 export { default as CompanyInfoCard } from './CompanyInfoCard';

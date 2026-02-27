@@ -12,6 +12,7 @@ import { searchWeb } from '@/lib/google-search'
 import { analyzeProcessos, analyzeMentionsAndSummary } from '@/lib/openai'
 import { calculateCpfFinancialSummary, calculateCnpjFinancialSummary } from '@/lib/financial-summary'
 import { isBypassMode } from '@/lib/mock-mode'
+import { getReportExpiresAt } from '@/lib/report-ttl'
 import type {
   CpfCadastralResponse,
   ProcessosCpfResponse,
@@ -215,7 +216,7 @@ export async function POST(
         name,
         data: jsonData,
         summary: summaryResult.summary,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        expiresAt: getReportExpiresAt(),
       },
     })
 
