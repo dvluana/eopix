@@ -32,6 +32,7 @@ yarn-error.log*
 # local assistant/config files
 CLAUDE.md
 .cursorrules
+prompt-base.md
 
 # playwright
 /test-results/
