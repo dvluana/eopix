@@ -4,9 +4,6 @@
 cd "$(dirname "$0")/.."
 source .env.local
 
-# API Key pública do Datajud (CNJ) - pode mudar, verificar Wiki
-DATAJUD_API_KEY="${DATAJUD_API_KEY:-cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnZKZGRQdw==}"
-
 cat > postman/eopix-env.postman_environment.json << EOF
 {
   "id": "eopix-env",
@@ -21,12 +18,6 @@ cat > postman/eopix-env.postman_environment.json << EOF
     {
       "key": "APIFULL_API_KEY",
       "value": "${APIFULL_API_KEY}",
-      "type": "secret",
-      "enabled": true
-    },
-    {
-      "key": "DATAJUD_API_KEY",
-      "value": "${DATAJUD_API_KEY}",
       "type": "secret",
       "enabled": true
     },

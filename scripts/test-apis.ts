@@ -18,80 +18,6 @@ interface TestResult {
 
 const results: TestResult[] = [];
 
-async function testBrasilAPI(): Promise<TestResult> {
-  console.log("\n🧪 Testando BrasilAPI...");
-  try {
-    const response = await fetch(
-      "https://brasilapi.com.br/api/cnpj/v1/00000000000191",
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; EOPIX/1.0)",
-        },
-      }
-    );
-    const data = await response.json();
-    if (response.ok && data.razao_social) {
-      return {
-        api: "BrasilAPI",
-        status: "success",
-        message: `Empresa: ${data.razao_social}`,
-        data: { cnpj: data.cnpj, razao_social: data.razao_social },
-      };
-    }
-    return {
-      api: "BrasilAPI",
-      status: "error",
-      message: `HTTP ${response.status}`,
-      data,
-    };
-  } catch (error) {
-    return {
-      api: "BrasilAPI",
-      status: "error",
-      message: error instanceof Error ? error.message : "Erro desconhecido",
-    };
-  }
-}
-
-async function testDatajud(): Promise<TestResult> {
-  console.log("\n🧪 Testando Datajud...");
-  try {
-    const response = await fetch(
-      "https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization:
-            "APIKey cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==",
-        },
-        body: JSON.stringify({ size: 1 }),
-      }
-    );
-    const data = await response.json();
-    if (response.ok && data.hits) {
-      return {
-        api: "Datajud",
-        status: "success",
-        message: `Total de processos disponíveis: ${data.hits.total.value}+`,
-        data: { total: data.hits.total },
-      };
-    }
-    return {
-      api: "Datajud",
-      status: "error",
-      message: `HTTP ${response.status}`,
-      data,
-    };
-  } catch (error) {
-    return {
-      api: "Datajud",
-      status: "error",
-      message: error instanceof Error ? error.message : "Erro desconhecido",
-    };
-  }
-}
-
 async function testStripe(): Promise<TestResult> {
   console.log("\n🧪 Testando Stripe...");
   const apiKey = process.env.STRIPE_SECRET_KEY;
@@ -286,9 +212,7 @@ async function main() {
   console.log("           TESTE DE APIs EXTERNAS - EOPIX");
   console.log("═══════════════════════════════════════════════════════════");
 
-  // Executa todos os testes
-  results.push(await testBrasilAPI());
-  results.push(await testDatajud());
+  // Executa somente integrações ativas no pipeline atual
   results.push(await testStripe());
   results.push(await testAPIFull());
   results.push(await testSerper());

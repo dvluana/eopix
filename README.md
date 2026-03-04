@@ -50,6 +50,6 @@ Scripts ativos e suportados:
 - `npm run lint`
 - `npx tsx scripts/create-admin.ts`
 - `npx tsx scripts/seed.ts`
-- `npx tsx scripts/test-apis.ts`
+- `npx tsx scripts/test-apis.ts` (smoke de `Stripe`, `APIFull`, `Serper`, `OpenAI`)
 
 Detalhes: [scripts/README.md](scripts/README.md)

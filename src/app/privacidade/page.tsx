@@ -295,7 +295,7 @@ export default function Page() {
                 <tbody>
                   <tr>
                     <td style={tableStyles.td}>Dados cadastrais de CNPJ</td>
-                    <td style={tableStyles.td}>Receita Federal via BrasilAPI</td>
+                    <td style={tableStyles.td}>APIFull</td>
                     <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX) — dados manifestamente públicos</td>
                   </tr>
                   <tr>
@@ -305,7 +305,7 @@ export default function Page() {
                   </tr>
                   <tr>
                     <td style={tableStyles.td}>Processos judiciais</td>
-                    <td style={tableStyles.td}>APIFull, Datajud/CNJ</td>
+                    <td style={tableStyles.td}>APIFull</td>
                     <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX) — dados públicos de tribunais</td>
                   </tr>
                   <tr>
@@ -403,9 +403,7 @@ export default function Page() {
                 paddingLeft: '20px',
               }}
             >
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>APIFull:</strong> protestos, dívidas, situação fiscal/cadastral e processos judiciais</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Datajud/CNJ:</strong> processos judiciais (complemento gratuito)</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>BrasilAPI:</strong> dados cadastrais de CNPJ (Receita Federal)</li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>APIFull:</strong> dados cadastrais (CPF/CNPJ), protestos, dívidas, situação fiscal/cadastral e processos judiciais</li>
               <li><strong style={{ color: 'var(--color-text-primary)' }}>Serper:</strong> menções na web e perfil no Reclame Aqui</li>
             </ul>
             <p

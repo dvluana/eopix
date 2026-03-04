@@ -9,7 +9,7 @@
 - `scripts/seed.ts`
   - popula base de desenvolvimento/teste
 - `scripts/test-apis.ts`
-  - smoke test de integracoes externas
+  - smoke test de integracoes externas ativas (`Stripe`, `APIFull`, `Serper`, `OpenAI`)
 
 ## Scripts Arquivados
 
