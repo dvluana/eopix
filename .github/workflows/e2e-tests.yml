@@ -1,0 +1,227 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Test mode'
+        type: choice
+        options:
+          - mock
+          - integration
+          - all
+        default: mock
+  schedule:
+    - cron: '0 3 * * *' # Nightly 03:00 UTC
+
+env:
+  NEON_PROJECT_ID: sweet-haze-72592464
+  NODE_VERSION: '20'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: mock
+            mock_mode: 'true'
+            test_mode: 'false'
+          - name: integration
+            mock_mode: 'false'
+            test_mode: 'true'
+    # Skip integration unless nightly, manual trigger with integration/all, or push to develop
+    # Mock always runs
+    steps:
+      - name: Check if this matrix entry should run
+        id: should-run
+        run: |
+          MODE="${{ matrix.name }}"
+          EVENT="${{ github.event_name }}"
+          INPUT_MODE="${{ github.event.inputs.mode }}"
+
+          if [ "$MODE" = "mock" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT" = "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT" = "workflow_dispatch" ] && [ "$INPUT_MODE" = "integration" ] || [ "$INPUT_MODE" = "all" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.should-run.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        if: steps.should-run.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.should-run.outputs.run == 'true'
+        run: npm ci
+
+      - name: Create Neon branch
+        if: steps.should-run.outputs.run == 'true'
+        id: neon-branch
+        run: |
+          BRANCH_NAME="ci/${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}"
+
+          echo "Creating Neon branch: $BRANCH_NAME"
+
+          RESPONSE=$(curl -s -X POST \
+            "https://console.neon.tech/api/v2/projects/${{ env.NEON_PROJECT_ID }}/branches" \
+            -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"branch\": {
+                \"name\": \"$BRANCH_NAME\",
+                \"parent_id\": \"br-develop\"
+              },
+              \"endpoints\": [{
+                \"type\": \"read_write\"
+              }]
+            }")
+
+          BRANCH_ID=$(echo "$RESPONSE" | jq -r '.branch.id // empty')
+          if [ -z "$BRANCH_ID" ]; then
+            echo "::error::Failed to create Neon branch. Response: $RESPONSE"
+
+            # Fallback: try creating from default branch
+            RESPONSE=$(curl -s -X POST \
+              "https://console.neon.tech/api/v2/projects/${{ env.NEON_PROJECT_ID }}/branches" \
+              -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"branch\": {
+                  \"name\": \"$BRANCH_NAME\"
+                },
+                \"endpoints\": [{
+                  \"type\": \"read_write\"
+                }]
+              }")
+
+            BRANCH_ID=$(echo "$RESPONSE" | jq -r '.branch.id // empty')
+            if [ -z "$BRANCH_ID" ]; then
+              echo "::error::Fallback also failed. Response: $RESPONSE"
+              exit 1
+            fi
+          fi
+
+          ENDPOINT_HOST=$(echo "$RESPONSE" | jq -r '.endpoints[0].host // empty')
+          DB_NAME="neondb"
+          ROLE=$(echo "$RESPONSE" | jq -r '.branch.current_state // empty')
+
+          echo "branch_id=$BRANCH_ID" >> "$GITHUB_OUTPUT"
+          echo "endpoint_host=$ENDPOINT_HOST" >> "$GITHUB_OUTPUT"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+          # Get connection string via Neon API
+          CONN_RESPONSE=$(curl -s \
+            "https://console.neon.tech/api/v2/projects/${{ env.NEON_PROJECT_ID }}/connection_uri?branch_id=$BRANCH_ID&database_name=$DB_NAME&role_name=neondb_owner" \
+            -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}")
+
+          CONNECTION_URI=$(echo "$CONN_RESPONSE" | jq -r '.uri // empty')
+          if [ -z "$CONNECTION_URI" ]; then
+            echo "::error::Failed to get connection URI. Response: $CONN_RESPONSE"
+            exit 1
+          fi
+
+          # Pooled connection (for app) — add ?pgbouncer=true
+          POOLED_URI="${CONNECTION_URI}?pgbouncer=true&connect_timeout=15"
+          # Direct connection (for migrations)
+          DIRECT_URI="${CONNECTION_URI}?connect_timeout=15"
+
+          echo "database_url=$POOLED_URI" >> "$GITHUB_OUTPUT"
+          echo "direct_url=$DIRECT_URI" >> "$GITHUB_OUTPUT"
+
+      - name: Run Prisma migrations
+        if: steps.should-run.outputs.run == 'true'
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ steps.neon-branch.outputs.direct_url }}
+          DIRECT_URL: ${{ steps.neon-branch.outputs.direct_url }}
+
+      - name: Install Playwright Chromium
+        if: steps.should-run.outputs.run == 'true'
+        run: npx playwright install chromium --with-deps
+
+      - name: Build Next.js app
+        if: steps.should-run.outputs.run == 'true'
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ steps.neon-branch.outputs.database_url }}
+          DIRECT_URL: ${{ steps.neon-branch.outputs.direct_url }}
+          MOCK_MODE: ${{ matrix.mock_mode }}
+          TEST_MODE: ${{ matrix.test_mode }}
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          JWT_SECRET: e2e-test-secret-not-for-production
+          ADMIN_EMAILS: e2e-admin@eopix.test
+
+      - name: Start app and run E2E tests
+        if: steps.should-run.outputs.run == 'true'
+        run: |
+          # Start Next.js in production mode
+          npm run start &
+          APP_PID=$!
+
+          # Wait for app to be ready
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:3000/api/health > /dev/null 2>&1; then
+              echo "App is ready"
+              break
+            fi
+            echo "Waiting for app... ($i/30)"
+            sleep 2
+          done
+
+          # Run tests
+          npx playwright test --config e2e/playwright.config.ts || TEST_EXIT=$?
+
+          # Cleanup
+          kill $APP_PID 2>/dev/null || true
+
+          exit ${TEST_EXIT:-0}
+        env:
+          DATABASE_URL: ${{ steps.neon-branch.outputs.database_url }}
+          DIRECT_URL: ${{ steps.neon-branch.outputs.direct_url }}
+          MOCK_MODE: ${{ matrix.mock_mode }}
+          TEST_MODE: ${{ matrix.test_mode }}
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          BASE_URL: http://localhost:3000
+          JWT_SECRET: e2e-test-secret-not-for-production
+          ADMIN_EMAILS: e2e-admin@eopix.test
+          CI: true
+          # Integration-only secrets (only needed when TEST_MODE=true)
+          APIFULL_API_KEY: ${{ matrix.test_mode == 'true' && secrets.APIFULL_API_KEY || '' }}
+          SERPER_API_KEY: ${{ matrix.test_mode == 'true' && secrets.SERPER_API_KEY || '' }}
+          OPENAI_API_KEY: ${{ matrix.test_mode == 'true' && secrets.OPENAI_API_KEY || '' }}
+
+      - name: Upload Playwright report
+        if: steps.should-run.outputs.run == 'true' && failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.name }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Delete Neon branch
+        if: steps.should-run.outputs.run == 'true' && always()
+        run: |
+          BRANCH_ID="${{ steps.neon-branch.outputs.branch_id }}"
+          if [ -n "$BRANCH_ID" ]; then
+            echo "Deleting Neon branch: $BRANCH_ID"
+            curl -s -X DELETE \
+              "https://console.neon.tech/api/v2/projects/${{ env.NEON_PROJECT_ID }}/branches/$BRANCH_ID" \
+              -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" || true
+          fi
