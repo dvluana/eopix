@@ -320,7 +320,6 @@ stateDiagram-v2
 ### Tipos Centrais
 
 - **[src/types/report.ts](../src/types/report.ts)** — `SearchResult`, campos de relatório
-- **[src/types/domain.ts](../src/types/domain.ts)** — `Purchase`, `User`, entidades do DB
 
 ### Scripts Úteis
 
@@ -330,7 +329,7 @@ npm run dev                 # Roda Next.js + Inngest (modo local com MOCK_MODE)
 
 # Lint & Testes
 npm run lint               # ESLint
-npm test                   # Jest (unit + e2e smoke)
+npx vitest run             # Vitest (unit tests)
 
 # Prisma
 npx prisma studio         # Gerenciador visual do DB

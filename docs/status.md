@@ -15,11 +15,12 @@
 ## Débitos técnicos / Próximos passos
 
 - Extrair hook use-report-data
-- Centralizar tipos em domain.ts
+- Criar `src/types/domain.ts` (Purchase, User, entidades DB) — planejado, ainda não existe
 - Implementar use-report-polling hook para SSE
 
 ## Últimas mudanças
 
+- **2026-03-04** — Auditoria de documentação: AGENTS.md removido, referências legacy corrigidas em 6 docs, CLAUDE.md expandido com MCPs/Branch/Neon policy
 - **2026-03-04** — lib/inngest.ts refatorado em 3 módulos (client.ts, process-search.ts, crons.ts) com barrel export zero-break
 - 2026-03-04 — Arquivos legacy arquivados + api-contracts divididos
 - 2026-03-04 — architecture.md com Mermaid criado

@@ -13,13 +13,19 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - UC-15: Testes críticos (checkout, webhook, reembolso)
 - UC-16: Email de conclusão via Brevo (relatório pronto)
 - UC-17: Analytics Plausible (cookieless, LGPD friendly)
-- UC-18: NFS-e automática via Asaas
+- UC-18: NFS-e automática (a migrar para Stripe — Asaas removido)
 - UC-19: Job de anonimização LGPD (2 anos)
+- Migração completa de gateway: Asaas → Stripe (checkout + webhook + refund)
+- Arquitetura documentada com Mermaid (sequence, domain map, state machine) em `docs/architecture.md`
+- API contracts modularizados em `docs/api-contracts/` (5 arquivos)
 
 ### Changed
 - Documentação saneada (removidos 4 obsoletos, arquivado 1 legacy)
 - README atualizado com índice de documentação canônica
 - Documentados 19 casos de uso (12 existentes + 7 pendentes)
+- lib/inngest.ts refatorado em 3 módulos (client.ts, process-search.ts, crons.ts) com barrel export
+- AGENTS.md removido; conteúdo migrado para CLAUDE.md
+- Referências legacy (Asaas, valores apis e dados.md, domain.ts, Jest) corrigidas em todos os docs ativos
 
 ### Fixed
 - (Pendente: adicionar após implementação Sprint 4)

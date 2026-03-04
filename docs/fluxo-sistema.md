@@ -93,7 +93,7 @@ Estados usados no fluxo:
 
 ## 8. Observacoes De Governanca
 
-- API docs canonica: `docs/valores apis e dados.md`
-- Operacao obrigatoria: `AGENTS.md`
+- API docs canonica: `docs/api-contracts/`
+- Operacao obrigatoria: `CLAUDE.md`
 - Branch de trabalho: `develop`
 - Neon dev/teste: branch `develop`

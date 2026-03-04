@@ -15,7 +15,7 @@ Consulta de risco para CPF/CNPJ com compra unitária, processamento assíncrono 
 
 ## Regras Operacionais
 
-Leitura obrigatoria: [AGENTS.md](AGENTS.md)
+Leitura obrigatoria: [CLAUDE.md](CLAUDE.md)
 
 Resumo:
 - Trabalhar e commitar em `develop`
@@ -25,7 +25,7 @@ Resumo:
 
 ## Documentacao Canonica
 
-- API (fonte oficial): [docs/valores apis e dados.md](docs/valores%20apis%20e%20dados.md)
+- API (fonte oficial): [docs/api-contracts/](docs/api-contracts/)
 - Modos de execucao: [docs/modos-de-execucao.md](docs/modos-de-execucao.md)
 - Fluxo funcional atual: [docs/fluxo-sistema.md](docs/fluxo-sistema.md)
 - Custos e pipeline: [docs/custos-e-fluxo-processamento.md](docs/custos-e-fluxo-processamento.md)

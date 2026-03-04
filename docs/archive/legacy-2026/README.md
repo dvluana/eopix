@@ -12,8 +12,8 @@ Regras:
 - Nao usar estes arquivos como referencia primaria de produto.
 - Referencia atual deve ser buscada em:
   - `README.md`
-  - `AGENTS.md`
-  - `docs/valores apis e dados.md`
+  - `CLAUDE.md`
+  - `docs/api-contracts/`
   - `docs/modos-de-execucao.md`
   - `docs/fluxo-sistema.md`
   - `docs/custos-e-fluxo-processamento.md`
