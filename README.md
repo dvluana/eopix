@@ -27,7 +27,7 @@ Resumo:
 
 - API (fonte oficial): [docs/api-contracts/](docs/api-contracts/)
 - Modos de execucao: [docs/modos-de-execucao.md](docs/modos-de-execucao.md)
-- Fluxo funcional atual: [docs/fluxo-sistema.md](docs/fluxo-sistema.md)
+- Arquitetura e fluxo: [docs/architecture.md](docs/architecture.md)
 - Custos e pipeline: [docs/custos-e-fluxo-processamento.md](docs/custos-e-fluxo-processamento.md)
 
 Documentacao legado foi movida para:

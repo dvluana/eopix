@@ -31,8 +31,8 @@ sequenceDiagram
     participant User as User
     participant Frontend as Frontend
     participant API as POST /api/purchases
-    participant Stripe as Stripe Checkout
-    participant Webhook as POST /api/webhooks/stripe
+    participant Payment as Payment Provider<br/>(Stripe ou AbacatePay)
+    participant Webhook as Webhook Handler<br/>(stripe ou abacatepay)
     participant Inngest as Inngest<br/>search/process
     participant Cache as Cache (24h)<br/>SearchResult
     participant APIFull as APIFull<br/>(cadastral/processos)
@@ -50,13 +50,20 @@ sequenceDiagram
     API-->>Frontend: { purchaseId, ..., checkout_url? }
     deactivate API
 
-    alt LIVE (Stripe real)
-        Frontend->>Stripe: Redireciona para<br/>checkout
-        activate Stripe
-        User->>Stripe: Paga R$ 29,90
-        Stripe-->>User: ✓ Pagamento confirmado
-        deactivate Stripe
-        Stripe->>Webhook: POST webhook<br/>(checkout.session.completed)
+    alt LIVE (Stripe — PAYMENT_PROVIDER=stripe)
+        Frontend->>Payment: Redireciona para<br/>Stripe Checkout
+        activate Payment
+        User->>Payment: Paga R$ 29,90
+        Payment-->>User: ✓ Pagamento confirmado
+        deactivate Payment
+        Payment->>Webhook: POST /api/webhooks/stripe<br/>(checkout.session.completed)
+    else LIVE (AbacatePay — PAYMENT_PROVIDER=abacatepay)
+        Frontend->>Payment: Redireciona para<br/>AbacatePay billing
+        activate Payment
+        User->>Payment: Paga R$ 29,90 (PIX/cartão)
+        Payment-->>User: ✓ Pagamento confirmado
+        deactivate Payment
+        Payment->>Webhook: POST /api/webhooks/abacatepay<br/>(billing.paid)
     else BYPASS (MOCK/TEST)
         note over API: Admin marca<br/>Purchase → PAID
     end
@@ -64,7 +71,7 @@ sequenceDiagram
     activate Webhook
     Webhook->>DB: Purchase → PAID
     Webhook->>Inngest: send("search/process", {..})
-    Webhook-->>Stripe: 200 OK
+    Webhook-->>Payment: 200 OK
     deactivate Webhook
 
     activate Inngest
@@ -97,7 +104,8 @@ sequenceDiagram
 ```
 
 **Notas:**
-- Em **LIVE**: Stripe Webhook é a origem da confirmação de pagamento
+- Em **LIVE**: Webhook do payment provider (Stripe ou AbacatePay) é a origem da confirmação de pagamento
+- Provider determinado por `PAYMENT_PROVIDER` env var (default: `stripe`)
 - Em **BYPASS** (MOCK/TEST): Admin marca Purchase como PAID, depois dispara `/api/process-search/[code]`
 - **Cache check**: Se CPF/CNPJ já foi consultado em 24h, reutiliza resultado
 - **TTL**: SearchResult expira em 7 dias (cron cleanup diário)
@@ -185,7 +193,7 @@ graph LR
 
 **Bounded Contexts:**
 - **Purchase Context**: Gerenciam pedidos e validações
-- **Payment Context**: Integração Stripe e webhooks
+- **Payment Context**: Integração Stripe/AbacatePay e webhooks (via `PAYMENT_PROVIDER`)
 - **Report Pipeline**: Inngest orquestra consultas de dados
 - **Auth Context**: Google OAuth + sessão + magic code + admin
 - **Display & Admin**: SSE polling, relatório, painel administrativo
@@ -201,7 +209,7 @@ Ciclo de vida completo de uma `Purchase`.
 stateDiagram-v2
     [*] --> PENDING: POST /api/purchases<br/>(criada)
 
-    PENDING --> PAID: Stripe webhook<br/>checkout.session.completed<br/>OU admin marks paid
+    PENDING --> PAID: Payment webhook<br/>(Stripe ou AbacatePay)<br/>OU admin marks paid
 
     PENDING --> [*]: cleanup cron<br/>(>30 min inativo)
 
@@ -256,7 +264,7 @@ stateDiagram-v2
 ```
 
 **Transições principais:**
-- `PENDING` → `PAID`: Pagamento confirmado (Stripe webhook ou bypass)
+- `PENDING` → `PAID`: Pagamento confirmado (webhook Stripe/AbacatePay ou bypass)
 - `PAID` → `PROCESSING`: Inngest inicia orquestração
 - `PROCESSING` → `COMPLETED`: Pipeline sucesso → SearchResult criada
 - `PROCESSING` → `FAILED`: Erro em qualquer etapa
@@ -348,6 +356,7 @@ npx prisma migrate dev    # Aplicar migrations
 ### Backend APIs
 - **`/api/purchases`** — POST: criar compra, GET: listar/stream
 - **`/api/webhooks/stripe`** — POST: receber eventos Stripe
+- **`/api/webhooks/abacatepay`** — POST: receber eventos AbacatePay
 - **`/api/process-search/[code]`** — POST: fallback síncrono (MOCK/TEST/INNGEST_DEV)
 - **`/api/auth/**`** — Login (Google), auto-login (magic code)
 

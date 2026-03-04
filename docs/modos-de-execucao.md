@@ -219,8 +219,66 @@ MOCK_MODE=true npm run dev
 # test (APIs reais, consome crédito)
 TEST_MODE=true npm run dev
 
-# live local (Stripe + Inngest reais)
+# live local com Stripe (default)
 MOCK_MODE=false TEST_MODE=false npm run dev
+
+# live local com AbacatePay
+PAYMENT_PROVIDER=abacatepay MOCK_MODE=false TEST_MODE=false npm run dev
+```
+
+**Nota:** Em MOCK_MODE e TEST_MODE, o `PAYMENT_PROVIDER` é irrelevante — pagamento é bypassado em ambos.
+
+---
+
+## CI/CD — E2E Tests com Playwright
+
+### Execução Local
+
+```bash
+# Roda E2E em mock mode (requer dev server rodando)
+MOCK_MODE=true npm run test:e2e
+
+# Ou com servidor automático (Playwright inicia npm run dev)
+npm run test:e2e
+```
+
+### GitHub Actions Matrix
+
+| Job | MOCK_MODE | TEST_MODE | Trigger | Custo |
+|---|---|---|---|---|
+| **mock** | true | false | Todo PR + push develop | Zero |
+| **integration** | false | true | Nightly 03:00 UTC + manual | APIs reais |
+
+### Neon Branching
+
+- CI cria branch `ci/{name}-{run_id}` a partir de `develop`
+- Migrations rodam contra branch isolado
+- Branch deletado automaticamente no `always` step e no `neon-cleanup.yml` (PR close)
+
+### Secrets Necessários no GitHub
+
+| Secret | Usado em |
+|---|---|
+| `NEON_API_KEY` | Todos os jobs (branching) |
+| `APIFULL_API_KEY` | Integration only |
+| `SERPER_API_KEY` | Integration only |
+| `OPENAI_API_KEY` | Integration only |
+
+### Estrutura de Testes
+
+```
+e2e/
+  playwright.config.ts       # Config (Chromium only, 60s timeout)
+  global-setup.ts            # Seed admin, wait health
+  global-teardown.ts         # Cleanup test data
+  helpers/                   # api-client, admin-auth, test-data, wait-for-status
+  fixtures/                  # purchase.fixture.ts (create+pay+process)
+  tests/
+    smoke.spec.ts            # Health + landing page + validate
+    purchase-flow-cpf.spec.ts  # CPF Sol + Chuva (browser + API)
+    purchase-flow-cnpj.spec.ts # CNPJ Sol + Chuva
+    report-content.spec.ts     # Deep report verification
+    error-handling.spec.ts     # Invalid inputs, 404s, auth errors
 ```
 
 ---
@@ -235,3 +293,20 @@ MOCK_MODE=false TEST_MODE=false npm run dev
 - [ ] `NEXT_PUBLIC_APP_URL` apontando para domínio correto
 - [ ] `NEXT_PUBLIC_SENTRY_DSN` configurado (opcional, mas recomendado)
 - [ ] `BREVO_API_KEY` configurado para envio de emails
+
+---
+
+## Credenciais de Teste — AbacatePay (Dev Mode)
+
+- Prefixo `abc_dev_*` na `ABACATEPAY_API_KEY` = sandbox (zero custo, transações simuladas)
+- Webhooks de dev **isolados** — só recebem eventos de sandbox
+- Simular PIX: `POST /v1/pixQrCode/simulate-payment` (apenas em dev mode)
+- Cartão de teste: `4242 4242 4242 4242`
+- Quando LIVE, usar credenciais reais (`abc_*` sem `_dev_`)
+
+## Credenciais de Teste — Stripe
+
+- Chave `sk_test_*` na `STRIPE_SECRET_KEY` = modo teste
+- Cartão de teste: `4242 4242 4242 4242`
+- Webhooks de teste via Stripe CLI (`stripe listen`)
+- Quando LIVE, usar `sk_live_*`
