@@ -60,7 +60,7 @@ export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResp
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapCpfCadastralResponse(raw: any, cpf: string): CpfCadastralResponse {
+export function mapCpfCadastralResponse(raw: any, cpf: string): CpfCadastralResponse {
   // Response path: dados.data.cadastralPF
   const cadastralPF = raw.dados?.data?.cadastralPF || {}
   const dadosCadastrais = cadastralPF.dadosCadastrais || {}
