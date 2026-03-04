@@ -49,7 +49,7 @@ Scripts ativos e suportados:
 - `npm run start`
 - `npm run lint`
 - `npx tsx scripts/create-admin.ts`
-- `npx tsx scripts/seed.ts`
+- `npx tsx scripts/seed.ts --confirm-seed` (`--allow-remote` para banco remoto de dev/test)
 - `npx tsx scripts/test-apis.ts` (smoke de `Stripe`, `APIFull`, `Serper`, `OpenAI`)
 
 Detalhes: [scripts/README.md](scripts/README.md)

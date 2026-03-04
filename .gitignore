@@ -29,9 +29,19 @@ yarn-error.log*
 .env*.local
 .env.vercel
 
+# local assistant/config files
+CLAUDE.md
+.cursorrules
+
 # playwright
 /test-results/
 /playwright-report/
+
+# local artifacts / legacy payload dumps
+/screenshots/
+/raw/
+/raw.bak
+/json
 
 # test data with personal information
 docs/DADOS-TESTE.md

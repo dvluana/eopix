@@ -7,7 +7,7 @@
 - `scripts/create-admin.ts`
   - cria usuario admin com senha
 - `scripts/seed.ts`
-  - popula base de desenvolvimento/teste
+  - popula base de desenvolvimento/teste (requer `--confirm-seed`; remoto exige `--allow-remote`)
 - `scripts/test-apis.ts`
   - smoke test de integracoes externas ativas (`Stripe`, `APIFull`, `Serper`, `OpenAI`)
 

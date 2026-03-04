@@ -1,14 +1,58 @@
 /**
  * Script para popular o banco de dados com dados de teste
  *
- * Uso: npx tsx scripts/seed.ts
+ * Uso:
+ *   npx tsx scripts/seed.ts --confirm-seed
+ *   npx tsx scripts/seed.ts --confirm-seed --allow-remote
  */
 
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import 'dotenv/config'
 
+function guardSeedExecution() {
+  const args = new Set(process.argv.slice(2))
+  const confirmSeed = args.has('--confirm-seed')
+  const allowRemote = args.has('--allow-remote')
+
+  if (!confirmSeed) {
+    console.error('❌ Execução bloqueada: use --confirm-seed para confirmar operação destrutiva.')
+    console.error('   Exemplo: npx tsx scripts/seed.ts --confirm-seed')
+    process.exit(1)
+  }
+
+  const nodeEnv = (process.env.NODE_ENV || '').toLowerCase()
+  const vercelEnv = (process.env.VERCEL_ENV || '').toLowerCase()
+  if (nodeEnv === 'production' || vercelEnv === 'production') {
+    console.error('❌ Execução bloqueada: seed não pode rodar em ambiente de produção.')
+    process.exit(1)
+  }
+
+  const databaseUrl = process.env.DATABASE_URL
+  if (!databaseUrl) {
+    console.error('❌ DATABASE_URL não configurada.')
+    process.exit(1)
+  }
+
+  const isLocalDb = /localhost|127\.0\.0\.1/i.test(databaseUrl)
+  if (!isLocalDb && !allowRemote) {
+    console.error('❌ Execução bloqueada: banco remoto detectado.')
+    console.error('   Use --allow-remote apenas se tiver certeza de que é ambiente de dev/test.')
+    process.exit(1)
+  }
+
+  const isMockMode = process.env.MOCK_MODE === 'true'
+  const isTestMode = process.env.TEST_MODE === 'true'
+  if (!isMockMode && !isTestMode) {
+    console.warn('⚠️  MOCK_MODE/TEST_MODE estão desativados. Confirme se este é realmente um ambiente de desenvolvimento.')
+  }
+
+  console.log('⚠️  Seed destrutivo autorizado para ambiente não-produtivo.')
+}
+
 async function main() {
+  guardSeedExecution()
+
   const adapter = new PrismaNeon({
     connectionString: process.env.DATABASE_URL!,
   })
