@@ -45,6 +45,7 @@
     "@react-oauth/google": "^0.13.4",
     "@sentry/nextjs": "^10.38.0",
     "@types/bcryptjs": "^2.4.6",
+    "abacatepay-nodejs-sdk": "^1.6.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

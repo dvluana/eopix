@@ -1,7 +1,7 @@
 # Arquitetura EOPIX — SaaS de Verificação de Risco CPF/CNPJ
 
-> **Última atualização:** 2026-03-04
-> **Stack:** Next.js 14 · TypeScript · Prisma/Neon · Stripe · Inngest · OpenAI · APIFull · Serper
+> **Última atualização:** 2026-03-05
+> **Stack:** Next.js 14 · TypeScript · Prisma/Neon · Stripe/AbacatePay · Inngest · OpenAI · APIFull · Serper
 > **Preço:** R$ 29,90 (one-time purchase)
 
 ---
@@ -10,15 +10,15 @@
 
 EOPIX é uma plataforma SaaS que gera relatórios consolidados de risco fiscal e legal para CPF e CNPJ através de:
 
-1. **Pagamento único via Stripe** → Criação de `Purchase` no banco
+1. **Pagamento único via Stripe ou AbacatePay** (configurável via `PAYMENT_PROVIDER`) → Criação de `Purchase` no banco
 2. **Processamento assíncrono via Inngest** → Consulta a APIFull, Serper, OpenAI
 3. **Geração de relatório** → Armazenado em `SearchResult` com TTL de 7 dias
 4. **Display ao usuário** → SSE polling + página dinâmica `/relatorio/[id]`
 
 **Modos de execução:**
-- `MOCK_MODE=true`: Dados mockados, Stripe bypassed (desenvolvimento local)
-- `TEST_MODE=true`: APIs reais, Stripe bypassed (testes)
-- Live: Stripe real, Inngest real (produção)
+- `MOCK_MODE=true`: Dados mockados, pagamento bypassed (desenvolvimento local)
+- `TEST_MODE=true`: APIs reais, pagamento bypassed (testes)
+- Live: Pagamento real (Stripe ou AbacatePay), Inngest real (produção)
 
 ---
 
@@ -121,8 +121,8 @@ graph LR
     end
 
     subgraph "Payment Context"
-        SP["🏪 Stripe Checkout<br/>(real ou bypass)"]
-        WH["📡 WebhookLog<br/>(Stripe events)"]
+        SP["🏪 Payment Provider<br/>(Stripe ou AbacatePay<br/>via PAYMENT_PROVIDER)"]
+        WH["📡 WebhookLog<br/>(Stripe/AbacatePay events)"]
         P -->|triggers| SP
         SP -->|confirms| WH
         WH -->|updates| P
@@ -213,11 +213,11 @@ stateDiagram-v2
 
     COMPLETED --> [*]: Expiração TTL<br/>(7 dias)
 
-    FAILED --> REFUNDED: autoRefundFailedPurchases<br/>cron (30 min)
+    FAILED --> REFUNDED: Admin manual refund<br/>(via dashboard)
 
     FAILED --> [*]: Expiração<br/>(permanece no DB)
 
-    REFUNDED --> REFUND_FAILED: Erro em<br/>refund Stripe
+    REFUNDED --> REFUND_FAILED: Erro em<br/>refund (Stripe only)
 
     REFUND_FAILED --> [*]: Manual intervention<br/>needed
 
@@ -260,7 +260,7 @@ stateDiagram-v2
 - `PAID` → `PROCESSING`: Inngest inicia orquestração
 - `PROCESSING` → `COMPLETED`: Pipeline sucesso → SearchResult criada
 - `PROCESSING` → `FAILED`: Erro em qualquer etapa
-- `FAILED` → `REFUNDED`: Cron automático a cada 30 min tenta reembolso
+- `FAILED` → `REFUNDED`: Refund manual pelo admin (Stripe via API, AbacatePay via dashboard)
 - `PENDING` → [*]: Cleanup de pedidos com >30 min inativo (cron)
 
 ---
@@ -357,7 +357,6 @@ npx prisma migrate dev    # Aplicar migrations
 - **`cleanupLeads`** — Diário 03:15
 - **`cleanupMagicCodes`** — Diário 03:30
 - **`cleanupPendingPurchases`** — A cada 15 min
-- **`autoRefundFailedPurchases`** — A cada 30 min
 - **`anonymizePurchases`** — Mensal 1º dia (LGPD Art. 16)
 
 ### Banco de Dados (Prisma)

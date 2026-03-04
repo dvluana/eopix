@@ -37,6 +37,8 @@ model Purchase {
   amount                Int
   status                String        @default("PENDING")
   stripePaymentIntentId String?       @unique
+  paymentProvider       String?       @default("stripe")  // "stripe" | "abacatepay"
+  paymentExternalId     String?       // Stripe payment_intent or AbacatePay bill_xxx
   buyerName             String?
   buyerCpfCnpj          String?
   termsAcceptedAt       DateTime

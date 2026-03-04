@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { refundPayment } from '@/lib/stripe'
+import { processRefund, getProviderDisplayName } from '@/lib/payment'
 import { requireAdmin } from '@/lib/auth'
+import type { PaymentProvider } from '@/lib/payment'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -41,18 +42,28 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    if (!purchase.stripePaymentIntentId) {
+    const provider = (purchase.paymentProvider || 'stripe') as PaymentProvider
+    const externalId = purchase.paymentExternalId || purchase.stripePaymentIntentId
+
+    if (!externalId) {
       return NextResponse.json(
-        { error: 'Pagamento nao encontrado no Stripe' },
+        { error: `Pagamento nao encontrado no ${getProviderDisplayName(provider)}` },
         { status: 400 }
       )
     }
 
-    // Attempt refund
-    const refundResult = await refundPayment(purchase.stripePaymentIntentId)
+    // AbacatePay: no refund API, must use dashboard
+    if (provider === 'abacatepay') {
+      return NextResponse.json(
+        { error: 'Reembolso deve ser feito pelo dashboard AbacatePay. ID: ' + externalId },
+        { status: 400 }
+      )
+    }
+
+    // Stripe: process refund via API
+    const refundResult = await processRefund(externalId, provider)
 
     if (!refundResult.success) {
-      // Update status to REFUND_FAILED
       await prisma.purchase.update({
         where: { id },
         data: {
@@ -71,7 +82,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Update status to REFUNDED
     await prisma.purchase.update({
       where: { id },
       data: {

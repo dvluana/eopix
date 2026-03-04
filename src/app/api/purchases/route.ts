@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/prisma'
-import { createCheckoutSession } from '@/lib/stripe'
+import { createCheckout, getPaymentProvider } from '@/lib/payment'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument } from '@/lib/validators'
@@ -115,11 +115,12 @@ export async function POST(request: NextRequest) {
           term: cleanedTerm,
           amount: priceCents,
           status: 'PENDING',
+          paymentProvider: getPaymentProvider(),
           termsAcceptedAt: new Date(),
         },
       })
 
-      console.log(`🧪 [BYPASS] Purchase criada PENDING: ${purchase.code} - aguardando ação manual no admin`)
+      console.log(`🧪 [BYPASS] Purchase criada PENDING: ${purchase.code} (${getPaymentProvider()}) - aguardando ação manual no admin`)
 
       // Retorna URL de confirmação direto (sem checkout Stripe)
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -130,7 +131,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Fluxo normal: cria purchase PENDING e checkout Stripe
+    // Fluxo normal: cria purchase PENDING e checkout via provider
+    const provider = getPaymentProvider()
     const purchase = await prisma.purchase.create({
       data: {
         userId: user.id,
@@ -138,32 +140,32 @@ export async function POST(request: NextRequest) {
         term: cleanedTerm,
         amount: priceCents,
         status: 'PENDING',
+        paymentProvider: provider,
         termsAcceptedAt: new Date(),
       },
     })
 
-    // Create Stripe checkout session
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-      const { sessionId, checkoutUrl } = await createCheckoutSession({
+      const { sessionId, checkoutUrl } = await createCheckout({
         email,
         externalRef: code,
         successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
         cancelUrl: `${appUrl}/compra/confirmacao?code=${code}&cancelled=true`,
       })
 
-      console.log('[Stripe] Checkout session created:', { code, sessionId })
+      console.log(`[${provider}] Checkout session created:`, { code, sessionId })
 
       return NextResponse.json({
         code: purchase.code,
         checkoutUrl,
       })
-    } catch (stripeError) {
-      Sentry.captureException(stripeError, {
-        tags: { service: 'stripe', operation: 'createCheckoutSession' },
+    } catch (checkoutError) {
+      Sentry.captureException(checkoutError, {
+        tags: { service: provider, operation: 'createCheckout' },
         extra: { code, term: cleanedTerm, email },
       })
-      console.error('[Stripe] Error:', stripeError)
+      console.error(`[${provider}] Error:`, checkoutError)
       // Deletar purchase órfã (sem pagamento associado)
       await prisma.purchase.delete({ where: { id: purchase.id } })
       return NextResponse.json(

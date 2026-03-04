@@ -129,9 +129,14 @@ export async function POST(request: NextRequest) {
 
         console.log('[Stripe Webhook] Charge refunded:', paymentIntentId)
 
-        // Find purchase by payment intent
+        // Find purchase by payment intent (legacy field or new paymentExternalId)
         const purchase = await prisma.purchase.findFirst({
-          where: { stripePaymentIntentId: paymentIntentId },
+          where: {
+            OR: [
+              { stripePaymentIntentId: paymentIntentId },
+              { paymentExternalId: paymentIntentId, paymentProvider: 'stripe' },
+            ],
+          },
         })
 
         if (purchase && purchase.status !== 'REFUNDED') {
@@ -208,6 +213,8 @@ async function handlePaymentSuccess(
       status: 'PAID',
       paidAt: new Date(),
       stripePaymentIntentId: paymentIntentId,
+      paymentProvider: 'stripe',
+      paymentExternalId: paymentIntentId,
       buyerName: customerName || undefined,
     },
   })
