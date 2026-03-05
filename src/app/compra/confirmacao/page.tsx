@@ -50,31 +50,30 @@ function ConfirmacaoContent() {
         const data = await res.json();
         setPurchaseData(data);
 
-        // 2. Determinar estado baseado no status
-        if (data.status === 'PENDING') {
-          setPageState('pending_payment');
-          return;
+        // 2. Tentar auto-login ANTES de setar estado (só se não for PENDING)
+        if (data.status !== 'PENDING') {
+          try {
+            const loginRes = await fetch('/api/auth/auto-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code: purchaseCode }),
+            });
+            const loginData = await loginRes.json();
+            if (loginData.success) {
+              setIsLoggedIn(true);
+            }
+          } catch (loginError) {
+            console.error('Auto-login error:', loginError);
+          }
         }
 
-        if (data.status === 'COMPLETED' || data.hasReport) {
+        // 3. Determinar estado baseado no status
+        if (data.status === 'PENDING') {
+          setPageState('pending_payment');
+        } else if (data.status === 'COMPLETED' || data.hasReport) {
           setPageState('completed');
         } else {
           setPageState('approved'); // PAID ou PROCESSING
-        }
-
-        // 3. Tentar auto-login (só se não for PENDING)
-        try {
-          const loginRes = await fetch('/api/auth/auto-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: purchaseCode }),
-          });
-          const loginData = await loginRes.json();
-          if (loginData.success) {
-            setIsLoggedIn(true);
-          }
-        } catch (loginError) {
-          console.error('Auto-login error:', loginError);
         }
       } catch (err) {
         console.error('Erro ao buscar compra:', err);

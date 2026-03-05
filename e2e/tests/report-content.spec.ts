@@ -4,7 +4,11 @@ import { TEST_CPFS, TEST_CNPJS } from '../helpers/test-data'
 
 test.describe('Report Content Verification', () => {
   test('CPF Sol report shows clean data', async ({ page }) => {
-    const { reportUrl } = await createCompletedPurchase(TEST_CPFS.sol)
+    const { code, reportUrl } = await createCompletedPurchase(TEST_CPFS.sol)
+
+    // Auto-login via confirmacao page (report API requires auth)
+    await page.goto(`/compra/confirmacao?code=${code}`)
+    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
     await expect(page.locator('text=Céu limpo')).toBeVisible({ timeout: 15_000 })
@@ -17,7 +21,11 @@ test.describe('Report Content Verification', () => {
   })
 
   test('CPF Chuva report shows issues', async ({ page }) => {
-    const { reportUrl } = await createCompletedPurchase(TEST_CPFS.chuva)
+    const { code, reportUrl } = await createCompletedPurchase(TEST_CPFS.chuva)
+
+    // Auto-login via confirmacao page (report API requires auth)
+    await page.goto(`/compra/confirmacao?code=${code}`)
+    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
 
@@ -29,7 +37,11 @@ test.describe('Report Content Verification', () => {
   })
 
   test('CNPJ Sol report shows clean data', async ({ page }) => {
-    const { reportUrl } = await createCompletedPurchase(TEST_CNPJS.sol)
+    const { code, reportUrl } = await createCompletedPurchase(TEST_CNPJS.sol)
+
+    // Auto-login via confirmacao page (report API requires auth)
+    await page.goto(`/compra/confirmacao?code=${code}`)
+    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
     await expect(page.locator('text=Céu limpo')).toBeVisible({ timeout: 15_000 })
@@ -37,14 +49,22 @@ test.describe('Report Content Verification', () => {
   })
 
   test('CNPJ Chuva report shows issues', async ({ page }) => {
-    const { reportUrl } = await createCompletedPurchase(TEST_CNPJS.chuva)
+    const { code, reportUrl } = await createCompletedPurchase(TEST_CNPJS.chuva)
+
+    // Auto-login via confirmacao page (report API requires auth)
+    await page.goto(`/compra/confirmacao?code=${code}`)
+    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
     await expect(page.locator('text=pontos de atenção')).toBeVisible({ timeout: 15_000 })
   })
 
   test('report page has expected sections', async ({ page }) => {
-    const { reportUrl } = await createCompletedPurchase(TEST_CPFS.sol)
+    const { code, reportUrl } = await createCompletedPurchase(TEST_CPFS.sol)
+
+    // Auto-login via confirmacao page (report API requires auth)
+    await page.goto(`/compra/confirmacao?code=${code}`)
+    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
 
@@ -52,6 +72,6 @@ test.describe('Report Content Verification', () => {
     await expect(page.locator('text=Céu limpo')).toBeVisible({ timeout: 15_000 })
 
     // The report should have a header with the document type
-    await expect(page.locator('text=CPF')).toBeVisible()
+    await expect(page.getByRole('heading', { name: /CPF/ })).toBeVisible()
   })
 })

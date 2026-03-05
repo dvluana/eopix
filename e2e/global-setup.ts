@@ -2,7 +2,21 @@
  * Playwright global setup:
  * 1. Wait for the app to be healthy
  * 2. Seed an AdminUser for E2E tests
+ *
+ * Uses raw SQL via @neondatabase/serverless Pool instead of PrismaClient,
+ * because PrismaNeon's internal WebSocket handling fails in plain Node.js (Playwright).
  */
+
+import dotenv from 'dotenv'
+import path from 'path'
+import ws from 'ws'
+import { neonConfig, Pool } from '@neondatabase/serverless'
+
+// Load .env.local so we have DATABASE_URL
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') })
+
+// Enable WebSocket in Node.js for Neon serverless driver
+neonConfig.webSocketConstructor = ws
 
 import { ADMIN_CREDENTIALS } from './helpers/test-data'
 
@@ -26,36 +40,28 @@ async function waitForHealth(maxRetries = 30, intervalMs = 1000) {
 }
 
 async function seedAdmin() {
-  // Use Prisma directly to seed the admin user with bcrypt hash.
-  // We use dynamic import to avoid bundling issues.
   const bcrypt = await import('bcryptjs')
-
-  // In CI, DATABASE_URL is set by the workflow. Locally, it comes from .env.local.
-  // We need to use @prisma/client directly since we're outside the Next.js context.
-  const { PrismaClient } = await import('@prisma/client')
-  const prisma = new PrismaClient()
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
   try {
-    const existing = await prisma.adminUser.findUnique({
-      where: { email: ADMIN_CREDENTIALS.email },
-    })
+    const { rows } = await pool.query(
+      'SELECT id FROM "AdminUser" WHERE email = $1',
+      [ADMIN_CREDENTIALS.email]
+    )
 
-    if (!existing) {
+    if (rows.length === 0) {
       const hash = await bcrypt.hash(ADMIN_CREDENTIALS.password, 10)
-      await prisma.adminUser.create({
-        data: {
-          email: ADMIN_CREDENTIALS.email,
-          passwordHash: hash,
-          name: ADMIN_CREDENTIALS.name,
-          active: true,
-        },
-      })
+      await pool.query(
+        `INSERT INTO "AdminUser" (id, email, "passwordHash", name, role, active, "createdAt", "updatedAt")
+         VALUES (gen_random_uuid(), $1, $2, $3, 'admin', true, NOW(), NOW())`,
+        [ADMIN_CREDENTIALS.email, hash, ADMIN_CREDENTIALS.name]
+      )
       console.log(`[global-setup] Admin user seeded: ${ADMIN_CREDENTIALS.email}`)
     } else {
       console.log(`[global-setup] Admin user already exists: ${ADMIN_CREDENTIALS.email}`)
     }
   } finally {
-    await prisma.$disconnect()
+    await pool.end()
   }
 }
 

@@ -12,7 +12,7 @@ test.describe('Smoke Tests', () => {
 
   test('landing page loads and shows search input', async ({ page }) => {
     await page.goto('/')
-    await expect(page).toHaveTitle(/eopix/i)
+    await expect(page).toHaveTitle(/E o Pix/i)
 
     // Wait for the search input (typewriter effect may delay placeholder)
     const searchInput = page.locator('.search-bar__input').first()
