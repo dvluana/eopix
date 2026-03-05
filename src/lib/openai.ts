@@ -44,9 +44,17 @@ function isChuvaScenario(document: string): boolean {
   return lastDigit < 5
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy init to avoid build failure when env var is missing
+let openaiInstance: OpenAI | null = null
+
+function getOpenAI(): OpenAI {
+  if (!openaiInstance) {
+    openaiInstance = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  }
+  return openaiInstance
+}
 
 // ========== IA 1: ANALISE DE PROCESSOS ==========
 
@@ -101,7 +109,7 @@ Responda em JSON:
   ]
 }`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },
@@ -205,7 +213,7 @@ Responda em JSON:
   }
 }`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },

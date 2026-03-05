@@ -55,8 +55,6 @@ export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResp
   }
 
   const rawData = await res.json()
-  console.log('🔍 [DEBUG] APIFull r-cpf-completo raw response:', JSON.stringify(rawData, null, 2))
-
   return mapCpfCadastralResponse(rawData, cpf)
 }
 
@@ -179,8 +177,6 @@ export async function consultCpfProcessos(cpf: string): Promise<ProcessosCpfResp
   }
 
   const rawData = await res.json()
-  console.log('🔍 [DEBUG] APIFull r-acoes-e-processos-judiciais raw response:', JSON.stringify(rawData, null, 2))
-
   return mapCpfProcessosResponse(rawData)
 }
 
@@ -252,8 +248,6 @@ export async function consultCpfFinancial(cpf: string): Promise<SrsPremiumCpfRes
   }
 
   const rawData = await res.json()
-  console.log('🔍 [DEBUG] APIFull srs-premium CPF raw response:', JSON.stringify(rawData, null, 2))
-
   return mapCpfFinancialResponse(rawData)
 }
 
@@ -350,8 +344,6 @@ export async function consultCnpjDossie(cnpj: string): Promise<DossieResponse> {
   }
 
   const rawData = await res.json()
-  console.log('🔍 [DEBUG] APIFull ic-dossie-juridico raw response:', JSON.stringify(rawData, null, 2))
-
   return mapCnpjDossieResponse(rawData, cnpj)
 }
 
@@ -500,8 +492,6 @@ export async function consultCnpjFinancial(cnpj: string): Promise<SrsPremiumCnpj
   }
 
   const rawData = await res.json()
-  console.log('🔍 [DEBUG] APIFull srs-premium CNPJ raw response:', JSON.stringify(rawData, null, 2))
-
   return mapCnpjFinancialResponse(rawData, cnpj)
 }
 

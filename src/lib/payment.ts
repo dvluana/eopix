@@ -6,7 +6,7 @@
 export type PaymentProvider = 'stripe' | 'abacatepay'
 
 export function getPaymentProvider(): PaymentProvider {
-  const provider = process.env.PAYMENT_PROVIDER || 'stripe'
+  const provider = process.env.PAYMENT_PROVIDER || 'abacatepay'
   if (provider !== 'stripe' && provider !== 'abacatepay') {
     throw new Error(`Invalid PAYMENT_PROVIDER: ${provider}. Must be "stripe" or "abacatepay"`)
   }
