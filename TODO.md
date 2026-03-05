@@ -5,6 +5,7 @@
 - [x] **Teste AbacatePay MOCK_MODE** — fluxo completo validado
 - [x] **Teste manual CPF Chuva com APIs reais (TEST_MODE)** — pipeline completo validado
 - [x] **Fix APIFull endpoints** — URLs `/api/{link}`, links e params corretos, User-Agent adicionado
+- [x] **Validação pós-commit** — tsc clean, lint fix (`loginRes` unused), E2E 25/25 passando
 
 ## Pendências consolidadas
 

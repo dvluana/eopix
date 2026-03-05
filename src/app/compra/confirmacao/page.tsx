@@ -81,7 +81,7 @@ function ConfirmacaoContent() {
 
         // 2. Tentar auto-login ANTES de setar estado
         try {
-          const loginRes = await fetch('/api/auth/auto-login', {
+          await fetch('/api/auth/auto-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: purchaseCode }),

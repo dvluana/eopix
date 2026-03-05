@@ -23,6 +23,7 @@
 - **Confirmação limpa** — removidos "Buscando dados..." e "Enviamos para {email}", botão unificado "ACOMPANHAR MEU RELATORIO", handoff limpo para `/minhas-consultas`
 - **Progresso visual na confirmação** — estado `approved` mostra spinner + barra de progresso + dots (6 etapas), polling 2s atualiza progresso, transição automática para `completed`
 - **SSE/polling minhas-consultas corrigido** — dependency array fix (hasProcessing como variável derivada), fallback polling leak corrigido
+- **Validação pós-commit** — tsc, lint e E2E 25/25 passando após progresso confirmação + fix SSE
 
 ## Débitos técnicos / Próximos passos
 
@@ -33,6 +34,7 @@
 
 ## Últimas mudanças
 
+- **Validação pós-commit + lint fix** (2026-03-05): tsc clean, lint fix (`loginRes` unused removido em confirmacao/page.tsx), E2E 25/25 passando. Progresso visual e SSE fix validados end-to-end.
 - **Progresso visual na confirmação + fix SSE minhas-consultas** (2026-03-05): Estado `approved` na confirmação agora mostra spinner + barra de progresso + dots (6 etapas), polling 2s atualiza `processingStep`, transição automática para `completed`. Em minhas-consultas: dependency array do SSE effect corrigido (hasProcessing extraído como variável derivada), fallback polling interval agora limpo no cleanup (memory leak fix).
 - **Limpar tela de confirmação** (2026-03-05): Removidos "Buscando dados..." (spinner estático) e "Enviamos para {email}" (email nunca é enviado). Botão unificado "ACOMPANHAR MEU RELATORIO" (auto-login já aconteceu). Estado `isLoggedIn` removido. Confirmação agora é handoff limpo para `/minhas-consultas` onde tracking real (SSE, 6 steps) acontece.
 - **Remover estado `pending_payment` da confirmação** (2026-03-05): Estado `pending_payment` removido do PageState — no fluxo LIVE o usuário só chega à página após pagar, então PENDING no DB é tratado como `approved` na UI. Polling de pagamento removido. Auto-login agora executa para todos os status. E2E test atualizado. Débito técnico registrado: falta polling PROCESSING→COMPLETED.
