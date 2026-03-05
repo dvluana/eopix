@@ -14,7 +14,8 @@
 - [ ] Considerar verificação de email (hoje email é trusted sem confirmação)
 
 ### UX de processamento
-- [ ] Polling PROCESSING→COMPLETED na confirmação (SSE ou polling para transição automática approved→completed, sem precisar ir a Minhas Consultas)
+- [x] Polling PROCESSING→COMPLETED na confirmação — progresso visual (spinner + barra + dots) + transição automática
+- [x] Fix SSE/polling minhas-consultas — dependency array + fallback interval leak
 
 ### AbacatePay
 - [ ] Deletar branch Neon `br-cold-field-aik2eumi` via MCP `delete_branch`

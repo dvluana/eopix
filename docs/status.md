@@ -21,17 +21,19 @@
 - **AbacatePay webhook testado em MOCK_MODE** — `billing.paid` simulado com HMAC + secret, idempotency OK, security validation OK (wrong secret/signature → 401). Fluxo completo: purchase creation → webhook → mark-paid → process → COMPLETED.
 
 - **Confirmação limpa** — removidos "Buscando dados..." e "Enviamos para {email}", botão unificado "ACOMPANHAR MEU RELATORIO", handoff limpo para `/minhas-consultas`
+- **Progresso visual na confirmação** — estado `approved` mostra spinner + barra de progresso + dots (6 etapas), polling 2s atualiza progresso, transição automática para `completed`
+- **SSE/polling minhas-consultas corrigido** — dependency array fix (hasProcessing como variável derivada), fallback polling leak corrigido
 
 ## Débitos técnicos / Próximos passos
 
 - Extrair hook use-report-data
 - Criar `src/types/domain.ts` (Purchase, User, entidades DB) — planejado, ainda não existe
 - Implementar use-report-polling hook para SSE
-- **Polling PROCESSING→COMPLETED na confirmação**: estado `approved` mostra "Buscando dados..." estático, sem transição automática para `completed`. Futuro: usar SSE ou polling para detectar quando relatório fica pronto.
 - Configurar GitHub Secrets (`NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`)
 
 ## Últimas mudanças
 
+- **Progresso visual na confirmação + fix SSE minhas-consultas** (2026-03-05): Estado `approved` na confirmação agora mostra spinner + barra de progresso + dots (6 etapas), polling 2s atualiza `processingStep`, transição automática para `completed`. Em minhas-consultas: dependency array do SSE effect corrigido (hasProcessing extraído como variável derivada), fallback polling interval agora limpo no cleanup (memory leak fix).
 - **Limpar tela de confirmação** (2026-03-05): Removidos "Buscando dados..." (spinner estático) e "Enviamos para {email}" (email nunca é enviado). Botão unificado "ACOMPANHAR MEU RELATORIO" (auto-login já aconteceu). Estado `isLoggedIn` removido. Confirmação agora é handoff limpo para `/minhas-consultas` onde tracking real (SSE, 6 steps) acontece.
 - **Remover estado `pending_payment` da confirmação** (2026-03-05): Estado `pending_payment` removido do PageState — no fluxo LIVE o usuário só chega à página após pagar, então PENDING no DB é tratado como `approved` na UI. Polling de pagamento removido. Auto-login agora executa para todos os status. E2E test atualizado. Débito técnico registrado: falta polling PROCESSING→COMPLETED.
 - **Teste AbacatePay MOCK_MODE** (2026-03-05): Fluxo completo testado — purchase com `paymentProvider: abacatepay` no DB, webhook `billing.paid` simulado (HMAC-SHA256 + secret validation), idempotency (duplicate → ignored), security (wrong secret/signature → 401), processing via sync fallback com mock data (Chuva + Sol), relatórios renderizam OK.

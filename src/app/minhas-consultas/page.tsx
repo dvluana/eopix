@@ -373,31 +373,29 @@ export default function Page() {
     checkSession();
   }, []);
 
+  // Derived state: any purchases still processing?
+  const hasProcessing = purchases.some(
+    p => p.status === 'PROCESSING' || p.status === 'PAID'
+  );
+
   // SSE para atualizações em tempo real
   React.useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !hasProcessing) return;
 
-    const hasProcessing = purchases.some(
-      p => p.status === 'PROCESSING' || p.status === 'PAID'
-    );
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
 
-    if (!hasProcessing) return;
-
-    // Use Server-Sent Events for real-time updates
     const eventSource = new EventSource('/api/purchases/stream');
 
     eventSource.onmessage = (event) => {
       try {
         const updatedPurchases = JSON.parse(event.data);
 
-        // Merge updates with existing purchases
         setPurchases((prev) => {
           const updated = [...prev];
 
           updatedPurchases.forEach((newP: Purchase) => {
             const idx = updated.findIndex((p) => p.id === newP.id);
             if (idx >= 0) {
-              // Update existing purchase
               updated[idx] = { ...updated[idx], ...newP };
             }
           });
@@ -410,10 +408,9 @@ export default function Page() {
     };
 
     eventSource.onerror = () => {
-      // On error, fall back to polling
       eventSource.close();
 
-      const interval = setInterval(async () => {
+      fallbackInterval = setInterval(async () => {
         try {
           const res = await fetch('/api/purchases');
           if (res.ok) {
@@ -424,14 +421,13 @@ export default function Page() {
           // Ignore errors during polling
         }
       }, 2000);
-
-      return () => clearInterval(interval);
     };
 
     return () => {
       eventSource.close();
+      if (fallbackInterval) clearInterval(fallbackInterval);
     };
-  }, [isAuthenticated, purchases.some(p => p.status === 'PROCESSING' || p.status === 'PAID')]);
+  }, [isAuthenticated, hasProcessing]);
 
   // ============================================
   // GOOGLE LOGIN

@@ -21,6 +21,15 @@ interface PurchaseData {
   reportId: string | null
 }
 
+const PROCESSING_STEPS = [
+  { step: 1, label: 'Dados cadastrais' },
+  { step: 2, label: 'Dados financeiros' },
+  { step: 3, label: 'Processos judiciais' },
+  { step: 4, label: 'Menções na web' },
+  { step: 5, label: 'Gerando resumo' },
+  { step: 6, label: 'Finalizando' },
+];
+
 function ConfirmacaoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,6 +38,27 @@ function ConfirmacaoContent() {
   const [pageState, setPageState] = React.useState<PageState>('loading');
   const [purchaseData, setPurchaseData] = React.useState<PurchaseData | null>(null);
 
+  // Polling: atualizar progresso enquanto processando
+  React.useEffect(() => {
+    if (pageState !== 'approved' || !purchaseCode) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/purchases/${purchaseCode}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setPurchaseData(data);
+
+        if (data.status === 'COMPLETED' || data.hasReport) {
+          setPageState('completed');
+        }
+      } catch {
+        // silently ignore polling errors
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [pageState, purchaseCode]);
 
   // Buscar dados e processar estado
   React.useEffect(() => {
@@ -122,7 +152,11 @@ function ConfirmacaoContent() {
   // Renderizar conteúdo baseado no estado
   const renderContent = () => {
     switch (pageState) {
-      case 'approved':
+      case 'approved': {
+        const currentStep = purchaseData?.processingStep || 0;
+        const progressPercent = currentStep > 0 ? (currentStep / 6) * 100 : 0;
+        const currentStepInfo = PROCESSING_STEPS.find(s => s.step === currentStep);
+
         return (
           <>
             {/* Ícone de Check */}
@@ -159,8 +193,83 @@ function ConfirmacaoContent() {
               marginTop: 'var(--primitive-space-4)',
               lineHeight: 1.6
             }}>
-              Pagamento confirmado! Acompanhe o progresso do seu relatorio em Minhas Consultas.
+              Pagamento confirmado! Estamos gerando seu relatorio.
             </p>
+
+            {/* Progresso */}
+            <div style={{ marginTop: 'var(--primitive-space-5)', textAlign: 'left' }}>
+              {/* Label da etapa atual */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '8px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    width: '12px',
+                    height: '12px',
+                    border: '2px solid var(--color-border-subtle)',
+                    borderTopColor: 'var(--primitive-yellow)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                  }} />
+                  <span style={{
+                    fontFamily: 'var(--font-family-body)',
+                    fontSize: '12px',
+                    color: 'var(--color-text-secondary)',
+                  }}>
+                    {currentStepInfo ? currentStepInfo.label : 'Iniciando processamento...'}
+                  </span>
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '11px',
+                  color: 'var(--color-text-tertiary)',
+                }}>
+                  {currentStep}/6
+                </span>
+              </div>
+
+              {/* Barra de progresso */}
+              <div style={{
+                height: '6px',
+                background: 'var(--color-bg-secondary)',
+                borderRadius: '3px',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%',
+                  width: `${progressPercent}%`,
+                  background: 'linear-gradient(90deg, var(--primitive-yellow) 0%, #E6C200 100%)',
+                  borderRadius: '3px',
+                  transition: 'width 0.5s ease-out',
+                }} />
+              </div>
+
+              {/* Dots indicadores */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginTop: '8px',
+              }}>
+                {PROCESSING_STEPS.map((s) => (
+                  <div
+                    key={s.step}
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: currentStep >= s.step
+                        ? 'var(--primitive-yellow)'
+                        : 'var(--color-border-subtle)',
+                      transition: 'background 0.3s ease',
+                    }}
+                    title={s.label}
+                  />
+                ))}
+              </div>
+            </div>
 
             {/* Código */}
             <div style={{
@@ -191,6 +300,7 @@ function ConfirmacaoContent() {
             </button>
           </>
         );
+      }
 
       case 'completed':
         return (
