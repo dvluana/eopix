@@ -53,8 +53,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check rate limit by IP (bypass in MOCK_MODE/TEST_MODE)
-    if (!isBypassMode) {
+    // Check rate limit by IP (bypass in MOCK_MODE/TEST_MODE and dev)
+    const isDev = process.env.NODE_ENV === 'development'
+    if (!isBypassMode && !isDev) {
       const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
       const rateLimit = await checkRateLimit(ip, 'purchase')
       if (!rateLimit.allowed) {

@@ -32,8 +32,16 @@ export default function Page({ params }: PageProps) {
   const documentType = getDocumentType(params.term);
 
   const [isLoading, setIsLoading] = React.useState(false);
+  const [email, setEmail] = React.useState('');
 
-  const handlePurchase = async () => {
+  const handlePurchase = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    if (!email) {
+      alert('Por favor, insira seu e-mail');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -42,6 +50,7 @@ export default function Page({ params }: PageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           term: params.term,
+          email,
           termsAccepted: true,
         }),
       });
@@ -196,22 +205,60 @@ export default function Page({ params }: PageProps) {
           {/* Lead capture form - apenas em modo manutenção */}
           {isMaintenance && <LeadCaptureForm />}
 
-          {/* Botão de compra */}
-          <button
-            onClick={handlePurchase}
-            disabled={isMaintenance || isLoading}
-            className="btn btn--primary btn--lg"
-            style={{
-              width: '100%',
-              fontSize: '18px',
-              padding: '18px 32px',
-              marginBottom: 'var(--primitive-space-3)',
-              opacity: (isMaintenance || isLoading) ? 0.5 : 1,
-              cursor: (isMaintenance || isLoading) ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {isLoading ? 'Processando...' : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
-          </button>
+          {/* Form de compra com email */}
+          <form onSubmit={handlePurchase} style={{ width: '100%' }}>
+            <label
+              htmlFor="email"
+              className="caption"
+              style={{
+                display: 'block',
+                textAlign: 'left',
+                marginBottom: 'var(--primitive-space-2)',
+                color: 'var(--color-text-secondary)',
+                fontWeight: 600,
+              }}
+            >
+              Insira seu e-mail
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isMaintenance}
+              required
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                marginBottom: 'var(--primitive-space-4)',
+                background: 'var(--color-bg-subtle)',
+                border: '1px solid var(--color-border-default)',
+                borderRadius: 'var(--primitive-radius-md)',
+                color: 'var(--color-text-primary)',
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '16px',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+            <button
+              type="submit"
+              disabled={isMaintenance || isLoading}
+              className="btn btn--primary btn--lg"
+              style={{
+                width: '100%',
+                fontSize: '18px',
+                padding: '18px 32px',
+                marginBottom: 'var(--primitive-space-3)',
+                opacity: (isMaintenance || isLoading) ? 0.5 : 1,
+                cursor: (isMaintenance || isLoading) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isLoading ? 'Processando...' : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
+            </button>
+          </form>
 
           {/* Aviso de termos */}
           <p className="caption text-muted" style={{ fontStyle: 'italic', lineHeight: 1.5 }}>
@@ -540,7 +587,15 @@ export default function Page({ params }: PageProps) {
           </div>
 
           <button
-            onClick={handlePurchase}
+            onClick={() => {
+              // Scroll to email field if empty, otherwise submit
+              if (!email) {
+                document.getElementById('email')?.focus();
+                document.getElementById('email')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+              }
+              handlePurchase();
+            }}
             disabled={isLoading}
             className="btn btn--primary btn--lg"
             style={{

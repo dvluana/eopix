@@ -54,10 +54,17 @@ export async function createCheckout(
     amount: priceCents,
   })
 
-  // Customer email — use provided email or a placeholder for the SDK (AbacatePay checkout collects real email)
+  // Customer email — use provided email or a placeholder (AbacatePay checkout collects real email)
   const customerEmail = params.email || `checkout-${params.externalRef}@noreply.eopix.app`
 
-  const response = await getAbacate().billing.create({
+  // Direct fetch instead of SDK — the SDK swallows error details
+  // (SDK reads `data.message` but AbacatePay returns `data.error`)
+  const apiKey = process.env.ABACATEPAY_API_KEY
+  if (!apiKey) {
+    throw new Error('ABACATEPAY_API_KEY is not configured')
+  }
+
+  const body = {
     frequency: 'ONE_TIME',
     methods: ['PIX'],
     products: [
@@ -71,17 +78,34 @@ export async function createCheckout(
     returnUrl: params.cancelUrl,
     completionUrl: params.successUrl,
     customer: {
+      name: 'Cliente EOPIX',
+      cellphone: '00000000000',
       email: customerEmail,
-      taxId: params.taxId || '00000000000',
+      taxId: params.taxId || '52998224725',
     },
-  })
-
-  if (response.error || !response.data) {
-    console.error('[AbacatePay] Billing error:', JSON.stringify(response))
-    throw new Error(`AbacatePay billing error: ${response.error || 'No data returned'}`)
   }
 
-  const { data } = response
+  const res = await fetch('https://api.abacatepay.com/v1/billing/create', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+
+  const responseData = await res.json()
+
+  if (!res.ok || responseData.error || !responseData.data) {
+    console.error('[AbacatePay] Billing error:', {
+      status: res.status,
+      body: responseData,
+    })
+    const errorMsg = responseData.error || responseData.message || `HTTP ${res.status}`
+    throw new Error(`AbacatePay billing error: ${errorMsg}`)
+  }
+
+  const { data } = responseData
 
   console.log('[AbacatePay] Billing created:', {
     billingId: data.id,
