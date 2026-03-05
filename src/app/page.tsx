@@ -18,8 +18,34 @@ export default function LandingPage() {
   const [searchError, setSearchError] = React.useState('');
   const [documentType, setDocumentType] = React.useState<'cpf' | 'cnpj' | 'unknown'>('unknown');
   const [hasError, setHasError] = React.useState(false);
+  const [userEmail, setUserEmail] = React.useState('');
 
   const fullPlaceholder = 'Digite o CPF ou CNPJ';
+
+  // Check auth on mount
+  React.useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUserEmail(data.email || '');
+        }
+      } catch {
+        // not logged in
+      }
+    };
+    checkSession();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // ignore
+    }
+    setUserEmail('');
+  };
 
   // Typewriter effect
   React.useEffect(() => {
@@ -159,20 +185,52 @@ export default function LandingPage() {
             <li><a href="#consulta" className="nav__link" onClick={closeMobileMenu}>O que consulta</a></li>
             <li><a href="#precos" className="nav__link" onClick={closeMobileMenu}>Preços</a></li>
             <li><a href="#faq" className="nav__link" onClick={closeMobileMenu}>FAQ</a></li>
-            <li>
-              <Link
-                href="/minhas-consultas"
-                className="nav__link"
-                style={{
-                  border: '1px solid #888888',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                }}
-                onClick={closeMobileMenu}
-              >
-                Entrar
-              </Link>
-            </li>
+            {userEmail ? (
+              <li style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span
+                  className="nav__link"
+                  style={{
+                    cursor: 'default',
+                    fontFamily: 'var(--font-family-body)',
+                    fontSize: '12px',
+                  }}
+                >
+                  {userEmail}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => { handleLogout(); closeMobileMenu(); }}
+                  className="nav__link"
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #888888',
+                    padding: '6px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    color: 'inherit',
+                    fontFamily: 'var(--font-family-body)',
+                    fontSize: '12px',
+                  }}
+                >
+                  Sair
+                </button>
+              </li>
+            ) : (
+              <li>
+                <Link
+                  href="/minhas-consultas"
+                  className="nav__link"
+                  style={{
+                    border: '1px solid #888888',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                  }}
+                  onClick={closeMobileMenu}
+                >
+                  Entrar
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       </nav>

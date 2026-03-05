@@ -33,6 +33,7 @@ export default function Page({ params }: PageProps) {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLoggedIn, setIsLoggedIn] = React.useState<boolean | null>(null); // null = checking
+  const [userEmail, setUserEmail] = React.useState('');
   const [authMode, setAuthMode] = React.useState<'register' | 'login'>('register');
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
@@ -46,7 +47,9 @@ export default function Page({ params }: PageProps) {
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
+          const data = await res.json();
           setIsLoggedIn(true);
+          setUserEmail(data.email || '');
         } else {
           setIsLoggedIn(false);
         }
@@ -56,6 +59,16 @@ export default function Page({ params }: PageProps) {
     };
     checkSession();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // ignore
+    }
+    setIsLoggedIn(false);
+    setUserEmail('');
+  };
 
   const createPurchase = async () => {
     const res = await fetch('/api/purchases', {
@@ -68,6 +81,11 @@ export default function Page({ params }: PageProps) {
     });
 
     const data = await res.json();
+
+    if (res.status === 409 && data.existingReportId) {
+      router.push(`/relatorio/${data.existingReportId}`);
+      return;
+    }
 
     if (!res.ok) {
       throw new Error(data.error || 'Erro ao criar compra');
@@ -228,10 +246,37 @@ export default function Page({ params }: PageProps) {
     <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)' }}>
       {/* NAV */}
       <nav className="nav" aria-label="Menu principal">
-        <div className="nav__inner">
+        <div className="nav__inner" style={{ justifyContent: 'space-between' }}>
           <Link href="/" className="nav__logo" aria-label="E o Pix? — Página inicial">
             <LogoFundoPreto />
           </Link>
+          {userEmail && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '12px',
+                color: 'var(--color-text-inverse-muted)',
+              }}>
+                {userEmail}
+              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--color-text-inverse-muted)',
+                  color: 'var(--color-text-inverse-muted)',
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '12px',
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                Sair
+              </button>
+            </div>
+          )}
         </div>
       </nav>
 

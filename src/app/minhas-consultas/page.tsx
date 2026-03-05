@@ -302,13 +302,13 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
 // ============================================
 export default function Page() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
   const [userEmail, setUserEmail] = React.useState('');
   const [purchases, setPurchases] = React.useState<Purchase[]>([]);
 
   // SSE + fallback polling for real-time updates
   const { fetchPurchases } = usePurchasePolling({
-    enabled: isAuthenticated,
+    enabled: !!isAuthenticated,
     purchases,
     setPurchases,
   });
@@ -325,9 +325,11 @@ export default function Page() {
           if (data.email) {
             setUserEmail(data.email);
           }
+        } else {
+          setIsAuthenticated(false);
         }
       } catch {
-        // Not authenticated
+        setIsAuthenticated(false);
       }
     };
     checkSession();
@@ -356,6 +358,29 @@ export default function Page() {
   const handleViewReport = (id: string) => {
     router.push(`/relatorio/${id}`);
   };
+
+  // ============================================
+  // LOADING: CHECKING SESSION
+  // ============================================
+  if (isAuthenticated === null) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{
+          width: '24px',
+          height: '24px',
+          border: '2px solid var(--color-border-subtle)',
+          borderTopColor: 'var(--primitive-yellow)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <style jsx>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   // ============================================
   // SE NÃO ESTIVER AUTENTICADO: MOSTRA LOGIN

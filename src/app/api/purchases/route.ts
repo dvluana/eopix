@@ -78,6 +78,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check for existing active report for same document (logged-in users only)
+    const session = await getSession()
+    if (session) {
+      const sessionUser = await prisma.user.findUnique({
+        where: { email: session.email },
+      })
+      if (sessionUser) {
+        const existingPurchase = await prisma.purchase.findFirst({
+          where: {
+            userId: sessionUser.id,
+            term: cleanedTerm,
+            status: 'COMPLETED',
+            searchResult: {
+              expiresAt: { gt: new Date() }
+            }
+          },
+          include: { searchResult: { select: { id: true, expiresAt: true } } }
+        })
+
+        if (existingPurchase) {
+          return NextResponse.json({
+            error: 'Voce ja possui um relatorio ativo para este documento.',
+            existingReportId: existingPurchase.searchResult?.id,
+            expiresAt: existingPurchase.searchResult?.expiresAt,
+          }, { status: 409 })
+        }
+      }
+    }
+
     // Generate unique code (before user lookup so we can use it for guest email)
     let code = generateCode()
     let attempts = 0
@@ -91,7 +120,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user from session (if authenticated) or create guest
-    const session = await getSession()
     const userEmail = session?.email || (email ? email.toLowerCase() : `guest-${code.toLowerCase()}@guest.eopix.app`)
     let user = await prisma.user.findUnique({
       where: { email: userEmail },
