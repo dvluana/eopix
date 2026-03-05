@@ -1,6 +1,6 @@
 # Status Vivo — EOPIX
 
-**Atualizado em:** 2026-03-05
+**Atualizado em:** 2026-03-07
 **Branch atual:** develop
 **Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
@@ -33,6 +33,11 @@
 - **CPF/CNPJ sem censura** — Masking com `***` removido de 9 arquivos (8 API routes + PersonInfoCard). Substituído por `formatDocument()` de `@/lib/validators` (formatação completa sem censura). `maskTerm()` removida da consulta page.
 - **Fix 500 sem API key** — Auto-fallback para bypass quando `ABACATEPAY_API_KEY` não configurado (dev sem MOCK_MODE). Log de warning ao ativar.
 - **Rate limit bypass em dev local** — `NODE_ENV=development` agora bypassa rate limit em `/api/purchases` (evita 429 falso em dev quando IP='unknown'). Dev banner atualizado: Stripe → AbacatePay.
+- **Fix flash do form de login** — `isAuthenticated` em `minhas-consultas` agora é tri-state (`null | boolean`). Enquanto `null`, mostra spinner em vez de flashar o form de login.
+- **Bloqueio de compra duplicada** — `POST /api/purchases` verifica se usuário logado já tem Purchase COMPLETED com SearchResult não expirado para o mesmo CPF/CNPJ. Retorna 409 com link pro relatório existente. Guests não são bloqueados. Frontend redireciona automaticamente.
+- **Botão "Painel Admin" na topbar** — `GET /api/purchases` retorna `isAdmin` (verifica `AdminUser` table + `ADMIN_EMAILS` env). `minhas-consultas` exibe botão amarelo/preto "Painel Admin" linkando para `/admin` (mesmo cookie `eopix_session`).
+- **Nav improvements** — Landing e consulta pages mostram "Minhas Consultas" (link) em vez de "Sair" na topbar quando logado. `minhas-consultas` usa classes `nav`/`nav__inner` padrão (grid consistente). Fix email uppercase e cor do botão na landing.
+- **Auditoria admin panel** — (1) JWT timing-safe: `hmacVerify()` usa `crypto.subtle.verify()` (constant-time) em vez de `===`. (2) Cookie `sameSite: 'strict'` (previne CSRF em rotas admin). (3) Rate limit no login admin: 5 tentativas/15 min por IP via `checkRateLimit()`. (4) Revenue dashboard conta só COMPLETED (antes incluía PAID/PROCESSING). (5) Paginação clampada 1-100 em purchases, blocklist, leads. (6) Lead reason filter aceita qualquer reason (antes hardcoded `['API_DOWN','MAINTENANCE']`).
 
 ## Débitos técnicos / Próximos passos
 
@@ -40,6 +45,8 @@
 
 ## Últimas mudanças
 
+- **Auditoria admin panel** (2026-03-07): (1) `hmacVerify()` refatorada para usar `crypto.subtle.verify()` — comparação constant-time, elimina timing attack no JWT. (2) Cookie `sameSite` de `'lax'` para `'strict'` — previne CSRF cross-origin. (3) Rate limit no login admin (5 tentativas/15 min por IP) — previne brute force. (4) Revenue dashboard corrigido: agrega só status `COMPLETED` (antes incluía PAID/PROCESSING, distorcendo receita). (5) Paginação admin clampada: `limit` em 1-100 em purchases, blocklist, leads (previne queries abusivas). (6) Lead reason filter: removido hardcoded `['API_DOWN','MAINTENANCE']`, aceita qualquer reason string. Débitos documentados no TODO: audit logging, admin CRUD, RBAC, timezone fix. tsc e lint clean.
+- **Fix flash login + bloqueio duplicata + admin button + nav** (2026-03-06): (1) `minhas-consultas` isAuthenticated tri-state (null→spinner, false→login, true→lista) — elimina flash de 200ms do form. (2) `POST /api/purchases` checa Purchase COMPLETED + SearchResult não expirado para mesmo term/userId → 409 com `existingReportId`. `/consulta/[term]` trata 409 redirecionando pro relatório. (3) `GET /api/purchases` retorna `isAdmin` (via `isAdminEmail()` — AdminUser table + ADMIN_EMAILS env). Botão amarelo "Painel Admin" na topbar de minhas-consultas para admins. (4) Landing e consulta: "Sair" substituído por "Minhas Consultas" (link). Nav de minhas-consultas migrada para classes `nav`/`nav__inner`. Fix email uppercase (removido `nav__link` com text-transform) e cor do botão na landing. tsc e lint clean.
 - **Substituir Google OAuth por Email+Senha** (2026-03-05): (1) Google OAuth removido completamente — `GoogleLoginButton.tsx`, `/api/auth/google`, `@react-oauth/google`, `google-auth-library` deletados. (2) Novas rotas: `/api/auth/register` (nome+email+senha, bcrypt, Zod) e `/api/auth/login` (email+senha, bcrypt). (3) `AuthForm.tsx` componente reutilizável (modo register/login com toggle). (4) `/consulta/[term]` refatorado: se logado → só botão "DESBLOQUEAR"; se não → form registro (nome/email/senha/confirmar) + link "Ja possui conta?"; 1-clique register+purchase. (5) `User` model: `name` e `passwordHash` adicionados (nullable, backward compatible). (6) AbacatePay recebe nome+email real do comprador. (7) Confirmação e minhas-consultas usam `AuthForm` em vez de Google. (8) E2E tests atualizados (browser tests preenchem form registro). (9) Docs atualizados. `GOOGLE_CLIENT_ID` removido de `.env.*.example`. tsc e lint clean.
 - **Fix AbacatePay checkout + restaurar email** (2026-03-05): (1) `abacatepay.ts` reescrito com fetch direto — SDK engolia erros 422 (campos obrigatórios faltando). Customer agora usa `name: 'Cliente EOPIX'`, `cellphone: '00000000000'` (placeholders), email real do frontend quando disponível. (2) Campo de email restaurado em `/consulta/[term]` — input `type="email"` com `autoComplete`, label "Insira seu e-mail", validação client-side. Email enviado no body do POST `/api/purchases`. (3) CTA duplicado no bottom faz scroll para o input de email se vazio. tsc e lint clean.
 - **Fix rate limit dev + banner update** (2026-03-05): Rate limit em `/api/purchases` agora bypassed quando `NODE_ENV=development` (IP localhost cai como 'unknown', compartilhando contador entre todos os requests). Dev banner (`scripts/dev-banner.js`) atualizado: "Stripe" → "AbacatePay (PIX)" no modo produção, "sem Stripe" → "sem checkout" nos modos bypass.

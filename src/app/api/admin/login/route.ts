@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminCredentials } from '@/lib/admin-auth'
 import { createSession } from '@/lib/auth'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const loginSchema = z.object({
@@ -10,6 +11,16 @@ const loginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit por IP
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    const rateLimit = await checkRateLimit(ip, 'admin_login')
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente mais tarde.' },
+        { status: 429 }
+      )
+    }
+
     // Validar payload
     const body = await request.json()
     const { email, password } = loginSchema.parse(body)

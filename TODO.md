@@ -37,6 +37,8 @@
 
 ### Auth
 - [x] Substituir Google OAuth por Email+Senha (bcrypt)
+- [x] Fix flash do form de login em minhas-consultas (tri-state null/false/true)
+- [x] Botão "Painel Admin" na topbar para admins (verifica AdminUser table)
 - [ ] Implementar reset de senha (iteração futura)
 - [ ] Remover `GOOGLE_CLIENT_ID` e `NEXT_PUBLIC_GOOGLE_CLIENT_ID` do Vercel (se configurados)
 
@@ -51,6 +53,18 @@
 - [x] Extrair hook `use-report-data`
 - [x] Implementar hook `use-purchase-polling` para SSE
 - [x] Criar `src/types/domain.ts` (Purchase, User, entidades DB)
+- [x] Bloquear compra duplicada para mesmo CPF/CNPJ (409 + redirect)
+- [x] Nav consistente: landing/consulta mostram "Minhas Consultas", grid padrão nav__inner
+- [x] Auditoria admin: timing-safe JWT, sameSite strict, rate limit login, revenue fix, pagination clamp, lead filter fix
+
+### Débitos da auditoria admin (futuro)
+- [ ] Audit logging (tabela AdminActionLog — rastrear mark-paid, refund, etc.)
+- [ ] Admin user CRUD via UI (criar/desativar admin sem acesso direto ao DB)
+- [ ] RBAC com campo `role` do AdminUser
+- [ ] Toggle `active` para AdminUser via UI
+- [ ] Log de login falhado com IP/timestamp
+- [ ] Padronizar formato de erro nas respostas admin (`{error}` vs `{message}`)
+- [ ] Fix timezone dashboard (usar Intl.DateTimeFormat em vez de toLocaleString→Date roundtrip)
 
 ---
 

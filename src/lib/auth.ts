@@ -51,8 +51,23 @@ async function hmacSign(data: string, secret: string): Promise<string> {
 }
 
 async function hmacVerify(data: string, signature: string, secret: string): Promise<boolean> {
-  const expectedSignature = await hmacSign(data, secret)
-  return signature === expectedSignature
+  const encoder = new TextEncoder()
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['verify']
+  )
+  // Decode the base64url signature back to bytes for constant-time verify
+  let base64 = signature.replace(/-/g, '+').replace(/_/g, '/')
+  while (base64.length % 4) base64 += '='
+  const binary = atob(base64)
+  const sigBytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    sigBytes[i] = binary.charCodeAt(i)
+  }
+  return crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(data))
 }
 
 /**
@@ -72,7 +87,7 @@ export async function createSession(email: string): Promise<string> {
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     path: '/',
     maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
   })

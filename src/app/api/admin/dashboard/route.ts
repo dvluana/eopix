@@ -50,26 +50,26 @@ export async function GET(request: NextRequest) {
       // Revenue (sum of completed purchases)
       prisma.purchase.aggregate({
         _sum: { amount: true },
-        where: { status: { in: ['COMPLETED', 'PAID', 'PROCESSING'] } },
+        where: { status: 'COMPLETED' },
       }),
       prisma.purchase.aggregate({
         _sum: { amount: true },
         where: {
-          status: { in: ['COMPLETED', 'PAID', 'PROCESSING'] },
+          status: 'COMPLETED',
           paidAt: { gte: today },
         },
       }),
       prisma.purchase.aggregate({
         _sum: { amount: true },
         where: {
-          status: { in: ['COMPLETED', 'PAID', 'PROCESSING'] },
+          status: 'COMPLETED',
           paidAt: { gte: sevenDaysAgo },
         },
       }),
       prisma.purchase.aggregate({
         _sum: { amount: true },
         where: {
-          status: { in: ['COMPLETED', 'PAID', 'PROCESSING'] },
+          status: 'COMPLETED',
           paidAt: { gte: thirtyDaysAgo },
         },
       }),
