@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   Users,
   LogOut,
+  FileSearch,
 } from 'lucide-react'
 
 const navItems = [
@@ -93,13 +94,20 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {/* Logout */}
+      {/* Footer actions */}
       <div
         style={{
           padding: '16px 12px',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
         }}
       >
+        <Link href="/minhas-consultas" className="admin-logout-btn">
+          <FileSearch size={18} />
+          Minhas Consultas
+        </Link>
         <button onClick={handleLogout} className="admin-logout-btn">
           <LogOut size={18} />
           Sair
