@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isValidCPF, isValidCNPJ, cleanDocument } from '@/lib/validators'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { isBypassMode } from '@/lib/mock-mode'
 
 interface ValidateRequest {
   document: string
@@ -36,14 +37,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check rate limit by IP
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
-    const rateLimit = await checkRateLimit(ip, 'search')
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: 'Limite de buscas excedido. Tente novamente mais tarde.' },
-        { status: 429 }
-      )
+    // Check rate limit by IP (bypassed in MOCK/TEST mode)
+    if (!isBypassMode) {
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
+      const rateLimit = await checkRateLimit(ip, 'search')
+      if (!rateLimit.allowed) {
+        return NextResponse.json(
+          { error: 'Limite de buscas excedido. Tente novamente mais tarde.' },
+          { status: 429 }
+        )
+      }
     }
 
     // Check blocklist
