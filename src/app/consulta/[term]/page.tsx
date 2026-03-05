@@ -259,22 +259,20 @@ export default function Page({ params }: PageProps) {
               }}>
                 {userEmail}
               </span>
-              <button
-                type="button"
-                onClick={handleLogout}
+              <Link
+                href="/minhas-consultas"
                 style={{
-                  background: 'transparent',
                   border: '1px solid var(--color-text-inverse-muted)',
                   color: 'var(--color-text-inverse-muted)',
                   fontFamily: 'var(--font-family-body)',
                   fontSize: '12px',
                   padding: '6px 12px',
                   borderRadius: '4px',
-                  cursor: 'pointer',
+                  textDecoration: 'none',
                 }}
               >
-                Sair
-              </button>
+                Minhas Consultas
+              </Link>
             </div>
           )}
         </div>

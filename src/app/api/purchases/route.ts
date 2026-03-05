@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/prisma'
 import { createCheckout, getPaymentProvider } from '@/lib/payment'
-import { getSession } from '@/lib/auth'
+import { getSession, isAdminEmail } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument, formatDocument } from '@/lib/validators'
 import { isBypassMode, isBypassPayment } from '@/lib/mock-mode'
@@ -268,9 +268,12 @@ export async function GET() {
       reportId: p.searchResultId,
     }))
 
+    const isAdmin = await isAdminEmail(session.email)
+
     return NextResponse.json({
       email: session.email,
       purchases,
+      isAdmin,
     })
   } catch (error) {
     console.error('List purchases error:', error)

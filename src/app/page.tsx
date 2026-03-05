@@ -188,32 +188,29 @@ export default function LandingPage() {
             {userEmail ? (
               <li style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span
-                  className="nav__link"
                   style={{
-                    cursor: 'default',
                     fontFamily: 'var(--font-family-body)',
                     fontSize: '12px',
+                    color: 'var(--color-text-muted)',
                   }}
                 >
                   {userEmail}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => { handleLogout(); closeMobileMenu(); }}
-                  className="nav__link"
+                <Link
+                  href="/minhas-consultas"
+                  onClick={closeMobileMenu}
                   style={{
-                    background: 'transparent',
-                    border: '1px solid #888888',
+                    border: '1px solid var(--color-text-muted)',
                     padding: '6px 12px',
                     borderRadius: '4px',
-                    cursor: 'pointer',
-                    color: 'inherit',
+                    color: 'var(--color-text-muted)',
                     fontFamily: 'var(--font-family-body)',
                     fontSize: '12px',
+                    textDecoration: 'none',
                   }}
                 >
-                  Sair
-                </button>
+                  Minhas Consultas
+                </Link>
               </li>
             ) : (
               <li>

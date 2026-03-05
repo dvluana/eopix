@@ -304,6 +304,7 @@ export default function Page() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
   const [userEmail, setUserEmail] = React.useState('');
+  const [isAdmin, setIsAdmin] = React.useState(false);
   const [purchases, setPurchases] = React.useState<Purchase[]>([]);
 
   // SSE + fallback polling for real-time updates
@@ -324,6 +325,9 @@ export default function Page() {
           setPurchases(data.purchases || []);
           if (data.email) {
             setUserEmail(data.email);
+          }
+          if (data.isAdmin) {
+            setIsAdmin(true);
           }
         } else {
           setIsAuthenticated(false);
@@ -485,60 +489,58 @@ export default function Page() {
       {/* ============================================ */}
       {/* NAV */}
       {/* ============================================ */}
-      <nav
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '64px',
-          background: 'rgba(26, 26, 26, 0.97)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingLeft: '32px',
-          paddingRight: '32px',
-          zIndex: 1000,
-        }}
-      >
-        {/* Logo */}
-        <Link
-          href="/"
-          style={{
-            textDecoration: 'none',
-          }}
-        >
-          <LogoFundoPreto />
-        </Link>
+      <nav className="nav" aria-label="Menu principal">
+        <div className="nav__inner">
+          <Link href="/" className="nav__logo" aria-label="E o Pix? — Página inicial">
+            <LogoFundoPreto />
+          </Link>
 
-        {/* User + Logout */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '12px',
-              color: 'var(--color-text-inverse-muted)',
-            }}
-          >
-            {userEmail}
-          </span>
-          <button
-            type="button"
-            onClick={handleLogout}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--color-text-inverse-muted)',
-              color: 'var(--color-text-inverse-muted)',
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '12px',
-              padding: '6px 12px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            Sair
-          </button>
+          {/* User + Admin + Logout */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '12px',
+                color: 'var(--color-text-inverse-muted)',
+              }}
+            >
+              {userEmail}
+            </span>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                style={{
+                  background: 'var(--primitive-yellow)',
+                  color: 'var(--primitive-black)',
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  border: 'none',
+                }}
+              >
+                Painel Admin
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={handleLogout}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--color-text-inverse-muted)',
+                color: 'var(--color-text-inverse-muted)',
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '12px',
+                padding: '6px 12px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </nav>
 
