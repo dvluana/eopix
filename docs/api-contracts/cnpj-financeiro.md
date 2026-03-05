@@ -1,4 +1,4 @@
-# Serasa Premium — Variante CNPJ (`srs-premium`)
+# Serasa Premium — Variante CNPJ (`serasa-premium`)
 
 Score de crédito, protestos e pendências financeiras para CNPJ.
 
@@ -9,7 +9,7 @@ Score de crédito, protestos e pendências financeiras para CNPJ.
 ```json
 {
   "document": "{{cpf_ou_cnpj}}",
-  "link": "srs-premium"
+  "link": "serasa-premium"
 }
 ```
 

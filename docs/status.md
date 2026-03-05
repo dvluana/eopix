@@ -13,7 +13,7 @@
 - Relatório display (page.tsx)
 - Modos MOCK/TEST/LIVE
 - **lib/inngest.ts refatorado** (3 módulos + barrel export)
-- **E2E tests com Playwright** (smoke, purchase flows CPF/CNPJ, report content, error handling)
+- **E2E tests com Playwright** — 25/25 passando (smoke, purchase flows CPF/CNPJ, report content, error handling)
 - **GitHub Actions CI** (mock obrigatório em PRs, integration nightly, Neon branching)
 - **Migration paymentProvider/paymentExternalId** aplicada no Neon develop
 - **Docs dual-mode completos** (architecture, custos, modos — todos referenciam Stripe + AbacatePay)
@@ -27,6 +27,9 @@
 
 ## Últimas mudanças
 
+- **Fix APIFull endpoints** (2026-03-05): URLs corrigidas (`/consulta` → `/api/{endpoint}`), links corrigidos (`r-cpf-completo` → `ic-cpf-completo`, `srs-premium` → `serasa-premium`), `User-Agent` header adicionado (obrigatório, sem ele Apache retorna 403). Confirmado com curl: response 200. Docs api-contracts atualizados.
+- **Fix 9 falhas E2E** (2026-03-05): race condition auto-login em `confirmacao/page.tsx` (auto-login agora executa ANTES de setPageState), título regex em smoke test (`/E o Pix/i`), selector ambíguo CPF em report-content (`getByRole('heading')`). Resultado: 25/25 passando.
+- **E2E global-setup/teardown reescritos com raw SQL** (2026-03-05): substituídos PrismaClient por pg direto para evitar conflito de schema, seed de admin via INSERT raw, cleanup via DELETE raw. 14/25 passaram imediatamente.
 - **Finalização migração AbacatePay** (2026-03-05): migration `paymentProvider`/`paymentExternalId` aplicada no Neon develop + backfill, docs atualizados (architecture.md dual-mode sequence diagram, custos-e-fluxo-processamento.md com ambos providers, modos-de-execucao.md com credenciais de teste), `fluxo-sistema.md` arquivado (Stripe-only, superseded por architecture.md), README.md atualizado.
 - **E2E Testing + CI/CD** (2026-03-04): Playwright E2E tests (smoke, purchase-flow-cpf, purchase-flow-cnpj, report-content, error-handling), GitHub Actions workflows (e2e-tests.yml com matrix mock/integration + Neon branching, neon-cleanup.yml), helpers (api-client, admin-auth, test-data, wait-for-status), purchase fixture. Comando: `npm run test:e2e`.
 - **Migração Stripe → AbacatePay (dual-mode)** (2026-03-05): abstraction layer `src/lib/payment.ts`, SDK wrapper `src/lib/abacatepay.ts`, webhook handler `/api/webhooks/abacatepay`, Prisma fields `paymentProvider`/`paymentExternalId`, cron `autoRefundFailedPurchases` removido (refund agora manual-only via admin). Rollback: `PAYMENT_PROVIDER=stripe`.

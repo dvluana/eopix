@@ -198,7 +198,7 @@ Variável de ambiente: `NEXT_PUBLIC_SENTRY_DSN`
 - Login principal: Google Sign-In (`/api/auth/google`)
 - Sessão por cookie (`eopix_session`, HMAC-SHA256)
 - Auto-login por código de compra: `/api/auth/auto-login`
-- Admin: bcrypt password (`/api/auth/admin`)
+- Admin: bcrypt password (`/api/admin/login`)
 
 ---
 
@@ -207,6 +207,25 @@ Variável de ambiente: `NEXT_PUBLIC_SENTRY_DSN`
 - `POST /api/process-search/[code]`
   - Permitido quando `MOCK_MODE=true`, `TEST_MODE=true`, ou `INNGEST_DEV=true`
   - Executa o pipeline de forma síncrona (sem Inngest)
+
+### Fluxo manual TEST_MODE (sem Inngest local)
+
+```bash
+# 1. Admin login
+curl -X POST localhost:3000/api/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"...","password":"..."}'
+# → cookie eopix_session
+
+# 2. Mark paid (purchase já criada via /api/purchases com _bypassMode)
+curl -X POST localhost:3000/api/admin/purchases/{ID}/mark-paid \
+  -H "Cookie: eopix_session=..."
+
+# 3. Process (fallback síncrono — consome crédito real)
+curl -X POST localhost:3000/api/process-search/{CODE}
+```
+
+**Nota:** Não use `/mark-paid-and-process` sem Inngest dev server — ele tenta enviar evento Inngest e falha com ECONNREFUSED.
 
 ---
 

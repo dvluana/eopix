@@ -1,7 +1,8 @@
 # APIFull — Contratos de API (EOPIX)
 
 > Fonte oficial de documentação de APIs externas usadas no EOPIX.
-> Última revisão: 27/02/2026.
+> Última revisão: 05/03/2026.
+> Postman oficial: https://www.postman.com/api-full/api-full/collection/29rpdvv/api-full
 
 ## Regras De Governança
 
@@ -13,36 +14,41 @@
 
 | Tipo | Endpoints Utilizados |
 |------|---|
-| **CPF** | `r-cpf-completo` + `r-acoes-e-processos-judiciais` + `srs-premium` |
-| **CNPJ** | `ic-dossie-juridico` + `srs-premium` |
-
-**Nota:** O endpoint `cnpj` está documentado em `cnpj-dossie.md` para referência, mas **não é usado no pipeline principal atual**.
+| **CPF** | `ic-cpf-completo` + `r-acoes-e-processos-judiciais` + `serasa-premium` |
+| **CNPJ** | `ic-dossie-juridico` + `serasa-premium` |
 
 ## Visão Geral dos Endpoints
 
-| Endpoint | Link | Parâmetro | Arquivo | Descrição |
-|----------|------|-----------|---------|-----------|
-| CPF Completo | `r-cpf-completo` | `cpf` | `cpf-cadastral.md` | Dados cadastrais, endereços, telefones, emails e empresas |
-| Ações e Processos | `r-acoes-e-processos-judiciais` | `cpf` | `cpf-processos.md` | Processos judiciais em todos os tribunais |
-| CNPJ Completo | `cnpj` | `cnpj` | `cnpj-dossie.md` | Dados da empresa, sócios, atividades e regime tributário *(não usado)* |
-| Dossiê Jurídico | `ic-dossie-juridico` | `document` | `cnpj-dossie.md` | Relatório jurídico empresarial completo |
-| Serasa Premium (CPF) | `srs-premium` | `document` | `cpf-financeiro.md` | Score de crédito, protestos e pendências |
-| Serasa Premium (CNPJ) | `srs-premium` | `document` | `cnpj-financeiro.md` | Score de crédito, protestos e pendências |
+| Endpoint | URL Path | Link (body) | Parâmetro | Arquivo |
+|----------|----------|-------------|-----------|---------|
+| CPF Completo | `/api/ic-cpf-completo` | `ic-cpf-completo` | `cpf` | `cpf-cadastral.md` |
+| Ações e Processos | `/api/r-acoes-e-processos-judiciais` | `r-acoes-e-processos-judiciais` | `document` | `cpf-processos.md` |
+| Dossiê Jurídico | `/api/ic-dossie-juridico` | `ic-dossie-juridico` | `cpf` | `cnpj-dossie.md` |
+| Serasa Premium | `/api/serasa-premium` | `serasa-premium` | `document` | `cpf-financeiro.md` / `cnpj-financeiro.md` |
 
 ## Notas de Uso
 
-### Exemplo de Request (todos os endpoints)
+### URL Base e Headers Obrigatórios
+
+```
+Base: https://api.apifull.com.br
+```
+
+**IMPORTANTE:** O servidor Apache da APIFull bloqueia requests sem `User-Agent` (retorna 403 Forbidden). Sempre incluir um User-Agent válido.
+
+### Exemplo de Request
 
 ```javascript
-const response = await fetch('https://api.apifull.com.br/consulta', {
+const response = await fetch('https://api.apifull.com.br/api/ic-cpf-completo', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer {{token}}'
+    'Authorization': 'Bearer {{token}}',
+    'User-Agent': 'EOPIX/1.0'
   },
   body: JSON.stringify({
-    cpf: '12345678900',        // ou cnpj ou document
-    link: 'r-cpf-completo'    // link da API desejada
+    cpf: '12345678900',
+    link: 'ic-cpf-completo'
   })
 });
 ```
