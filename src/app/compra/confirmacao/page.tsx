@@ -3,14 +3,13 @@
 import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Clock, CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Loader2 } from 'lucide-react';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 
 type PageState =
   | 'loading'           // Carregando dados
   | 'not_found'         // Código inválido
-  | 'pending_payment'   // Aguardando pagamento (boleto)
-  | 'approved'          // Pagamento aprovado, gerando relatório
+  | 'approved'          // Pagamento feito, processando relatório
   | 'completed'         // Relatório pronto
 
 interface PurchaseData {
@@ -50,30 +49,26 @@ function ConfirmacaoContent() {
         const data = await res.json();
         setPurchaseData(data);
 
-        // 2. Tentar auto-login ANTES de setar estado (só se não for PENDING)
-        if (data.status !== 'PENDING') {
-          try {
-            const loginRes = await fetch('/api/auth/auto-login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ code: purchaseCode }),
-            });
-            const loginData = await loginRes.json();
-            if (loginData.success) {
-              setIsLoggedIn(true);
-            }
-          } catch (loginError) {
-            console.error('Auto-login error:', loginError);
+        // 2. Tentar auto-login ANTES de setar estado
+        try {
+          const loginRes = await fetch('/api/auth/auto-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: purchaseCode }),
+          });
+          const loginData = await loginRes.json();
+          if (loginData.success) {
+            setIsLoggedIn(true);
           }
+        } catch (loginError) {
+          console.error('Auto-login error:', loginError);
         }
 
         // 3. Determinar estado baseado no status
-        if (data.status === 'PENDING') {
-          setPageState('pending_payment');
-        } else if (data.status === 'COMPLETED' || data.hasReport) {
+        if (data.status === 'COMPLETED' || data.hasReport) {
           setPageState('completed');
         } else {
-          setPageState('approved'); // PAID ou PROCESSING
+          setPageState('approved'); // PENDING, PAID, ou PROCESSING — pagamento já feito
         }
       } catch (err) {
         console.error('Erro ao buscar compra:', err);
@@ -130,95 +125,6 @@ function ConfirmacaoContent() {
   // Renderizar conteúdo baseado no estado
   const renderContent = () => {
     switch (pageState) {
-      case 'pending_payment':
-        return (
-          <>
-            {/* Ícone de Clock */}
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              background: 'var(--color-bg-accent-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto'
-            }}>
-              <Clock size={24} color="var(--color-text-secondary)" />
-            </div>
-
-            {/* Título */}
-            <h1 style={{
-              fontFamily: 'var(--font-family-heading)',
-              fontSize: '28px',
-              fontWeight: 'var(--primitive-weight-bold)',
-              color: 'var(--color-text-primary)',
-              marginTop: 'var(--primitive-space-4)',
-              marginBottom: 0
-            }}>
-              Aguardando pagamento
-            </h1>
-
-            {/* Descrição */}
-            <p style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '15px',
-              color: 'var(--color-text-secondary)',
-              marginTop: 'var(--primitive-space-4)',
-              lineHeight: 1.6
-            }}>
-              Seu boleto foi gerado com sucesso. Assim que o pagamento for confirmado, iniciaremos a geracao do seu relatorio.
-            </p>
-
-            {/* Email */}
-            <div style={{
-              marginTop: 'var(--primitive-space-5)',
-              background: 'var(--color-bg-secondary)',
-              borderRadius: 'var(--primitive-radius-md)',
-              padding: 'var(--primitive-space-4)',
-              textAlign: 'left'
-            }}>
-              <p style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '13px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.6,
-                margin: 0
-              }}>
-                Voce recebera um e-mail em <strong style={{ color: 'var(--color-text-primary)' }}>{purchaseData?.email}</strong> quando o relatorio estiver pronto.
-              </p>
-            </div>
-
-            {/* Código */}
-            <div style={{
-              marginTop: 'var(--primitive-space-4)',
-              fontFamily: 'var(--font-family-body)'
-            }}>
-              <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
-                Codigo:{' '}
-              </span>
-              <span style={{ fontSize: '14px', fontWeight: 'var(--primitive-weight-bold)', color: 'var(--color-text-primary)' }}>
-                #{purchaseCode}
-              </span>
-            </div>
-
-            {/* Botão */}
-            <button
-              onClick={handleGoToConsultas}
-              className="btn btn--secondary"
-              style={{
-                marginTop: 'var(--primitive-space-6)',
-                width: '100%',
-                fontSize: '14px',
-                padding: '16px',
-                fontWeight: 'var(--primitive-weight-bold)'
-              }}
-            >
-              IR PARA MINHAS CONSULTAS
-            </button>
-          </>
-        );
-
       case 'approved':
         return (
           <>

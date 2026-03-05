@@ -20,6 +20,7 @@ export interface CreateCheckoutParams {
   externalRef: string // purchase code
   successUrl: string
   cancelUrl: string
+  taxId?: string // CPF or CNPJ (required by AbacatePay API)
 }
 
 export interface CheckoutResponse {
@@ -66,10 +67,16 @@ export async function createCheckout(
     ],
     returnUrl: params.cancelUrl,
     completionUrl: params.successUrl,
-    customer: { email: params.email },
+    customer: {
+      email: params.email,
+      name: params.email.split('@')[0],
+      cellphone: '00000000000',
+      taxId: params.taxId || '00000000000',
+    },
   })
 
   if (response.error || !response.data) {
+    console.error('[AbacatePay] Billing error:', JSON.stringify(response))
     throw new Error(`AbacatePay billing error: ${response.error || 'No data returned'}`)
   }
 

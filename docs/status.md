@@ -18,16 +18,20 @@
 - **Migration paymentProvider/paymentExternalId** aplicada no Neon develop
 - **Docs dual-mode completos** (architecture, custos, modos — todos referenciam Stripe + AbacatePay)
 - **Pipeline TEST_MODE validado com APIs reais** — CPF Chuva (`006.780.809-33`), todas as 7 etapas OK (cadastral, financeiro, processos, Serper, OpenAI×2, summary). SearchResult 91KB.
+- **AbacatePay webhook testado em MOCK_MODE** — `billing.paid` simulado com HMAC + secret, idempotency OK, security validation OK (wrong secret/signature → 401). Fluxo completo: purchase creation → webhook → mark-paid → process → COMPLETED.
 
 ## Débitos técnicos / Próximos passos
 
 - Extrair hook use-report-data
 - Criar `src/types/domain.ts` (Purchase, User, entidades DB) — planejado, ainda não existe
 - Implementar use-report-polling hook para SSE
+- **Polling PROCESSING→COMPLETED na confirmação**: estado `approved` mostra "Buscando dados..." estático, sem transição automática para `completed`. Futuro: usar SSE ou polling para detectar quando relatório fica pronto.
 - Configurar GitHub Secrets (`NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`)
 
 ## Últimas mudanças
 
+- **Remover estado `pending_payment` da confirmação** (2026-03-05): Estado `pending_payment` removido do PageState — no fluxo LIVE o usuário só chega à página após pagar, então PENDING no DB é tratado como `approved` na UI. Polling de pagamento removido. Auto-login agora executa para todos os status. E2E test atualizado. Débito técnico registrado: falta polling PROCESSING→COMPLETED.
+- **Teste AbacatePay MOCK_MODE** (2026-03-05): Fluxo completo testado — purchase com `paymentProvider: abacatepay` no DB, webhook `billing.paid` simulado (HMAC-SHA256 + secret validation), idempotency (duplicate → ignored), security (wrong secret/signature → 401), processing via sync fallback com mock data (Chuva + Sol), relatórios renderizam OK.
 - **Fix APIFull endpoints (final)** (2026-03-05): URLs corrigidas (`/consulta` → `/api/{link}`), links mantidos originais (`r-cpf-completo`, `srs-premium`, `r-acoes-e-processos-judiciais`, `ic-dossie-juridico`), params corrigidos por endpoint (`cpf` vs `document`), `User-Agent: EOPIX/1.0` adicionado (obrigatório, Apache retorna 403 sem). Testado com curl em cada endpoint + pipeline completo CPF Chuva com sucesso.
 - **Teste manual CPF Chuva com APIs reais** (2026-03-05): Neon branch isolado `test/manual-cpf-chuva`, purchase `UJ9HC2` processada com sucesso. Todas as APIs responderam: APIFull (cadastral 1.3KB, financeiro 1.2KB, processos 74.9KB), Serper (3.3KB), OpenAI (análise 10.6KB, resumo financeiro 239B, summary 271B). Purchase COMPLETED, relatório renderizável.
 - **Fix 9 falhas E2E** (2026-03-05): race condition auto-login em `confirmacao/page.tsx` (auto-login agora executa ANTES de setPageState), título regex em smoke test (`/E o Pix/i`), selector ambíguo CPF em report-content (`getByRole('heading')`). Resultado: 25/25 passando.

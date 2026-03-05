@@ -1,5 +1,14 @@
 ## Concluído nesta sessão
 
+- [x] **Remover estado `pending_payment` da confirmação** — PageState simplificado, PENDING→approved na UI, polling removido, auto-login para todos, E2E atualizado
+- [x] **Teste AbacatePay MOCK_MODE** — fluxo completo validado
+  - Purchase creation com `paymentProvider: "abacatepay"` confirmado no DB
+  - Webhook `billing.paid` simulado com HMAC-SHA256 + secret — processou corretamente (PENDING → PAID)
+  - Idempotency: webhook duplicado retorna `{ received: true, duplicate: true }`
+  - Security: wrong secret → 401, wrong signature → 401
+  - Processing via sync fallback — mock data (Chuva + Sol) → COMPLETED
+  - Report pages renderizam (HTTP 200)
+  - Test data cleaned up
 - [x] **Teste manual CPF Chuva com APIs reais (TEST_MODE)** — pipeline completo validado
   - Purchase `UJ9HC2` → COMPLETED, SearchResult 91KB, relatório OK
   - Todas as 7 APIs responderam: cadastral, financeiro, processos, Serper, OpenAI×3
@@ -8,11 +17,10 @@
 ## Cleanup pendente
 
 - [ ] Deletar branch Neon `br-cold-field-aik2eumi` via MCP `delete_branch`
-- [ ] Verificar relatório renderizado no browser (`http://localhost:3000/relatorio/cmmdpqcno00027cyeklmqnqiu`)
-- [ ] Testar CPF Sol, CNPJ Chuva, CNPJ Sol (podem reusar o mesmo branch Neon)
 
 ## Próximo
 
+- [ ] Polling PROCESSING→COMPLETED na página de confirmação (SSE ou polling para transição automática approved→completed)
 - [ ] Extrair hook use-report-data
 - [ ] Criar `src/types/domain.ts`
 - [ ] Configurar GitHub Secrets (`NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`)

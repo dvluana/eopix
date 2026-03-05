@@ -18,6 +18,7 @@ export interface CreateCheckoutParams {
   externalRef: string
   successUrl: string
   cancelUrl: string
+  taxId?: string // CPF or CNPJ (required by AbacatePay)
 }
 
 export interface CheckoutResponse {
