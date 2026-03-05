@@ -18,7 +18,6 @@ export interface CreateCheckoutParams {
   externalRef: string
   successUrl: string
   cancelUrl: string
-  taxId?: string // CPF or CNPJ
 }
 
 export interface CheckoutResponse {

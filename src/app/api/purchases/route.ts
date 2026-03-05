@@ -160,7 +160,6 @@ export async function POST(request: NextRequest) {
         externalRef: code,
         successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
         cancelUrl: `${appUrl}/compra/confirmacao?code=${code}&cancelled=true`,
-        taxId: cleanedTerm,
       })
 
       console.log(`[${provider}] Checkout session created:`, { code, sessionId })

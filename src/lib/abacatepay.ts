@@ -20,7 +20,6 @@ export interface CreateCheckoutParams {
   externalRef: string // purchase code
   successUrl: string
   cancelUrl: string
-  taxId?: string // CPF or CNPJ
 }
 
 export interface CheckoutResponse {
@@ -78,10 +77,7 @@ export async function createCheckout(
     returnUrl: params.cancelUrl,
     completionUrl: params.successUrl,
     customer: {
-      name: 'Cliente EOPIX',
-      cellphone: '00000000000',
       email: customerEmail,
-      taxId: params.taxId || '52998224725',
     },
   }
 
