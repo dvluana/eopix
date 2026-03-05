@@ -20,6 +20,8 @@
 - **Pipeline TEST_MODE validado com APIs reais** — CPF Chuva (`006.780.809-33`), todas as 7 etapas OK (cadastral, financeiro, processos, Serper, OpenAI×2, summary). SearchResult 91KB.
 - **AbacatePay webhook testado em MOCK_MODE** — `billing.paid` simulado com HMAC + secret, idempotency OK, security validation OK (wrong secret/signature → 401). Fluxo completo: purchase creation → webhook → mark-paid → process → COMPLETED.
 
+- **Confirmação limpa** — removidos "Buscando dados..." e "Enviamos para {email}", botão unificado "ACOMPANHAR MEU RELATORIO", handoff limpo para `/minhas-consultas`
+
 ## Débitos técnicos / Próximos passos
 
 - Extrair hook use-report-data
@@ -30,6 +32,7 @@
 
 ## Últimas mudanças
 
+- **Limpar tela de confirmação** (2026-03-05): Removidos "Buscando dados..." (spinner estático) e "Enviamos para {email}" (email nunca é enviado). Botão unificado "ACOMPANHAR MEU RELATORIO" (auto-login já aconteceu). Estado `isLoggedIn` removido. Confirmação agora é handoff limpo para `/minhas-consultas` onde tracking real (SSE, 6 steps) acontece.
 - **Remover estado `pending_payment` da confirmação** (2026-03-05): Estado `pending_payment` removido do PageState — no fluxo LIVE o usuário só chega à página após pagar, então PENDING no DB é tratado como `approved` na UI. Polling de pagamento removido. Auto-login agora executa para todos os status. E2E test atualizado. Débito técnico registrado: falta polling PROCESSING→COMPLETED.
 - **Teste AbacatePay MOCK_MODE** (2026-03-05): Fluxo completo testado — purchase com `paymentProvider: abacatepay` no DB, webhook `billing.paid` simulado (HMAC-SHA256 + secret validation), idempotency (duplicate → ignored), security (wrong secret/signature → 401), processing via sync fallback com mock data (Chuva + Sol), relatórios renderizam OK.
 - **Fix APIFull endpoints (final)** (2026-03-05): URLs corrigidas (`/consulta` → `/api/{link}`), links mantidos originais (`r-cpf-completo`, `srs-premium`, `r-acoes-e-processos-judiciais`, `ic-dossie-juridico`), params corrigidos por endpoint (`cpf` vs `document`), `User-Agent: EOPIX/1.0` adicionado (obrigatório, Apache retorna 403 sem). Testado com curl em cada endpoint + pipeline completo CPF Chuva com sucesso.

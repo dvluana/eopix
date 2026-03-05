@@ -28,7 +28,7 @@ function ConfirmacaoContent() {
 
   const [pageState, setPageState] = React.useState<PageState>('loading');
   const [purchaseData, setPurchaseData] = React.useState<PurchaseData | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
 
   // Buscar dados e processar estado
   React.useEffect(() => {
@@ -56,10 +56,7 @@ function ConfirmacaoContent() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: purchaseCode }),
           });
-          const loginData = await loginRes.json();
-          if (loginData.success) {
-            setIsLoggedIn(true);
-          }
+          // We don't need to track login state — session cookie is set automatically
         } catch (loginError) {
           console.error('Auto-login error:', loginError);
         }
@@ -162,50 +159,8 @@ function ConfirmacaoContent() {
               marginTop: 'var(--primitive-space-4)',
               lineHeight: 1.6
             }}>
-              Pagamento confirmado com sucesso. Estamos gerando seu relatorio...
+              Pagamento confirmado! Acompanhe o progresso do seu relatorio em Minhas Consultas.
             </p>
-
-            {/* Progress indicator */}
-            <div style={{
-              marginTop: 'var(--primitive-space-5)',
-              background: 'var(--color-bg-secondary)',
-              borderRadius: 'var(--primitive-radius-md)',
-              padding: 'var(--primitive-space-4)'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--primitive-space-3)'
-              }}>
-                <Loader2 size={18} style={{ animation: 'spin 1s linear infinite', color: 'var(--color-text-accent)' }} />
-                <span style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '14px',
-                  color: 'var(--color-text-secondary)'
-                }}>
-                  Buscando dados...
-                </span>
-              </div>
-            </div>
-
-            {/* Email */}
-            <div style={{
-              marginTop: 'var(--primitive-space-5)',
-              background: 'var(--color-bg-secondary)',
-              borderRadius: 'var(--primitive-radius-md)',
-              padding: 'var(--primitive-space-4)',
-              textAlign: 'left'
-            }}>
-              <p style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '13px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.6,
-                margin: 0
-              }}>
-                Enviamos para <strong style={{ color: 'var(--color-text-primary)' }}>{purchaseData?.email}</strong>
-              </p>
-            </div>
 
             {/* Código */}
             <div style={{
@@ -232,7 +187,7 @@ function ConfirmacaoContent() {
                 fontWeight: 'var(--primitive-weight-bold)'
               }}
             >
-              {isLoggedIn ? 'VER MEUS RELATORIOS' : 'IR PARA MINHAS CONSULTAS'}
+              ACOMPANHAR MEU RELATORIO
             </button>
           </>
         );
