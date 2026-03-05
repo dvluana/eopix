@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
+import GoogleLoginButton from '@/components/GoogleLoginButton';
 
 type PageState =
   | 'loading'           // Carregando dados
@@ -37,6 +38,7 @@ function ConfirmacaoContent() {
 
   const [pageState, setPageState] = React.useState<PageState>('loading');
   const [purchaseData, setPurchaseData] = React.useState<PurchaseData | null>(null);
+  const [autoLoginFailed, setAutoLoginFailed] = React.useState(false);
 
   // Polling: atualizar progresso enquanto processando
   React.useEffect(() => {
@@ -81,14 +83,17 @@ function ConfirmacaoContent() {
 
         // 2. Tentar auto-login ANTES de setar estado
         try {
-          await fetch('/api/auth/auto-login', {
+          const loginRes = await fetch('/api/auth/auto-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: purchaseCode }),
           });
-          // We don't need to track login state — session cookie is set automatically
+          if (!loginRes.ok) {
+            setAutoLoginFailed(true);
+          }
         } catch (loginError) {
           console.error('Auto-login error:', loginError);
+          setAutoLoginFailed(true);
         }
 
         // 3. Determinar estado baseado no status
@@ -284,20 +289,36 @@ function ConfirmacaoContent() {
               </span>
             </div>
 
-            {/* Botão */}
-            <button
-              onClick={handleGoToConsultas}
-              className="btn btn--primary"
-              style={{
-                marginTop: 'var(--primitive-space-6)',
-                width: '100%',
-                fontSize: '14px',
-                padding: '16px',
-                fontWeight: 'var(--primitive-weight-bold)'
-              }}
-            >
-              ACOMPANHAR MEU RELATORIO
-            </button>
+            {/* Botão ou Google Login fallback */}
+            {autoLoginFailed ? (
+              <div style={{ marginTop: 'var(--primitive-space-6)' }}>
+                <p style={{
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '13px',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: 'var(--primitive-space-3)',
+                }}>
+                  Para acompanhar seu relatorio, faca login:
+                </p>
+                <GoogleLoginButton
+                  onSuccess={handleGoToConsultas}
+                />
+              </div>
+            ) : (
+              <button
+                onClick={handleGoToConsultas}
+                className="btn btn--primary"
+                style={{
+                  marginTop: 'var(--primitive-space-6)',
+                  width: '100%',
+                  fontSize: '14px',
+                  padding: '16px',
+                  fontWeight: 'var(--primitive-weight-bold)'
+                }}
+              >
+                ACOMPANHAR MEU RELATORIO
+              </button>
+            )}
           </>
         );
       }

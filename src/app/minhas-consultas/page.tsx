@@ -3,9 +3,9 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import Footer from '@/components/Footer';
+import GoogleLoginButton from '@/components/GoogleLoginButton';
 
 // ============================================
 // TIPOS
@@ -329,8 +329,6 @@ export default function Page() {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [userEmail, setUserEmail] = React.useState('');
   const [purchases, setPurchases] = React.useState<Purchase[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState('');
 
   // Fetch purchases when authenticated
   const fetchPurchases = React.useCallback(async () => {
@@ -432,31 +430,9 @@ export default function Page() {
   // ============================================
   // GOOGLE LOGIN
   // ============================================
-  const handleGoogleSuccess = async (response: CredentialResponse) => {
-    setError('');
-    setIsLoading(true);
-
-    try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: response.credential }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Erro ao autenticar com Google');
-        return;
-      }
-
-      setIsAuthenticated(true);
-      await fetchPurchases();
-    } catch {
-      setError('Erro ao autenticar com Google. Tente novamente.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGoogleLoginSuccess = async () => {
+    setIsAuthenticated(true);
+    await fetchPurchases();
   };
 
   const handleLogout = async () => {
@@ -483,124 +459,92 @@ export default function Page() {
   // ============================================
   if (!isAuthenticated) {
     return (
-      <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
-        <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)' }}>
-          {/* NAV */}
-          <nav className="nav" aria-label="Menu principal">
-            <div className="nav__inner">
-              <Link href="/" className="nav__logo" aria-label="E o Pix? — Página inicial">
-                <LogoFundoPreto />
-              </Link>
-            </div>
-          </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg-primary)' }}>
+        {/* NAV */}
+        <nav className="nav" aria-label="Menu principal">
+          <div className="nav__inner">
+            <Link href="/" className="nav__logo" aria-label="E o Pix? — Página inicial">
+              <LogoFundoPreto />
+            </Link>
+          </div>
+        </nav>
 
-          {/* MAIN CONTENT */}
-          <main style={{
-            paddingTop: 'calc(64px + var(--primitive-space-10))',
-            paddingBottom: 'var(--primitive-space-12)',
-            minHeight: 'calc(100vh - 64px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+        {/* MAIN CONTENT */}
+        <main style={{
+          paddingTop: 'calc(64px + var(--primitive-space-10))',
+          paddingBottom: 'var(--primitive-space-12)',
+          minHeight: 'calc(100vh - 64px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+
+          {/* CARD CENTRALIZADO */}
+          <div style={{
+            maxWidth: '440px',
+            width: '100%',
+            margin: '0 var(--primitive-space-6)',
+            background: 'var(--primitive-white)',
+            border: '1px solid var(--color-border-subtle)',
+            borderRadius: 'var(--primitive-radius-md)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
+            padding: '40px'
           }}>
-
-            {/* CARD CENTRALIZADO */}
-            <div style={{
-              maxWidth: '440px',
-              width: '100%',
-              margin: '0 var(--primitive-space-6)',
-              background: 'var(--primitive-white)',
-              border: '1px solid var(--color-border-subtle)',
-              borderRadius: 'var(--primitive-radius-md)',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-              padding: '40px'
+            <h1 style={{
+              fontFamily: 'var(--font-family-heading)',
+              fontSize: '28px',
+              fontWeight: 700,
+              color: 'var(--primitive-black)',
+              textAlign: 'center',
+              margin: '0 0 8px 0'
             }}>
-              <h1 style={{
-                fontFamily: 'var(--font-family-heading)',
-                fontSize: '28px',
-                fontWeight: 700,
-                color: 'var(--primitive-black)',
-                textAlign: 'center',
-                margin: '0 0 8px 0'
-              }}>
-                Minhas Consultas
-              </h1>
+              Minhas Consultas
+            </h1>
 
-              <p style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                textAlign: 'center',
-                margin: '0 0 24px 0'
-              }}>
-                Entre com sua conta Google para acessar suas consultas.
-              </p>
+            <p style={{
+              fontFamily: 'var(--font-family-body)',
+              fontSize: '14px',
+              color: 'var(--color-text-secondary)',
+              textAlign: 'center',
+              margin: '0 0 24px 0'
+            }}>
+              Entre com sua conta Google para acessar suas consultas.
+            </p>
 
-              {error && (
-                <div style={{
-                  color: '#CC3333',
-                  fontSize: '13px',
-                  marginBottom: '16px',
-                  textAlign: 'center'
-                }}>
-                  {error}
-                </div>
-              )}
+            <GoogleLoginButton
+              onSuccess={handleGoogleLoginSuccess}
+            />
+          </div>
+        </main>
 
-              {isLoading ? (
-                <div style={{
-                  textAlign: 'center',
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '14px',
-                  color: 'var(--color-text-secondary)',
-                  padding: '16px 0',
-                }}>
-                  Entrando...
-                </div>
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => setError('Erro ao autenticar com Google. Tente novamente.')}
-                    size="large"
-                    width="360"
-                    text="signin_with"
-                    shape="rectangular"
-                  />
-                </div>
-              )}
+        {/* FOOTER */}
+        <footer className="footer">
+          <div className="footer__inner">
+            <div className="footer__logo">
+              <LogoFundoPreto />
             </div>
-          </main>
 
-          {/* FOOTER */}
-          <footer className="footer">
-            <div className="footer__inner">
-              <div className="footer__logo">
-                <LogoFundoPreto />
-              </div>
-
-              <div className="footer__links">
-                <a href="/sobre" className="footer__link">
-                  Sobre
-                </a>
-                <a href="/privacidade" className="footer__link">
-                  Privacidade
-                </a>
-                <a href="/termos" className="footer__link">
-                  Termos
-                </a>
-                <a href="/contato" className="footer__link">
-                  Contato
-                </a>
-              </div>
-
-              <div className="footer__copyright">
-                &copy; 2026 E o Pix? Todos os direitos reservados.
-              </div>
+            <div className="footer__links">
+              <a href="/sobre" className="footer__link">
+                Sobre
+              </a>
+              <a href="/privacidade" className="footer__link">
+                Privacidade
+              </a>
+              <a href="/termos" className="footer__link">
+                Termos
+              </a>
+              <a href="/contato" className="footer__link">
+                Contato
+              </a>
             </div>
-          </footer>
-        </div>
-      </GoogleOAuthProvider>
+
+            <div className="footer__copyright">
+              &copy; 2026 E o Pix? Todos os direitos reservados.
+            </div>
+          </div>
+        </footer>
+      </div>
     );
   }
 

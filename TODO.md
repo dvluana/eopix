@@ -11,8 +11,8 @@
 
 ### Auth & vínculo purchase→usuário
 - [ ] Verificar se Google OAuth funciona em produção (localhost OK, testar com domínio real)
-- [ ] Tratar falha silenciosa de auto-login na confirmação (ex: botão "Fazer login com Google" como fallback)
-- [ ] Considerar verificação de email (hoje email é trusted sem confirmação)
+- [x] Tratar falha silenciosa de auto-login na confirmação — GoogleLoginButton fallback na confirmação
+- ~~Considerar verificação de email~~ — risco baixo, acesso por código de compra
 
 ### UX de processamento
 - [x] Polling PROCESSING→COMPLETED na confirmação — progresso visual (spinner + barra + dots) + transição automática

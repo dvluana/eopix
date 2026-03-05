@@ -24,6 +24,7 @@
 - **Progresso visual na confirmação** — estado `approved` mostra spinner + barra de progresso + dots (6 etapas), polling 2s atualiza progresso, transição automática para `completed`
 - **SSE/polling minhas-consultas corrigido** — dependency array fix (hasProcessing como variável derivada), fallback polling leak corrigido
 - **Validação pós-commit** — tsc, lint e E2E 25/25 passando após progresso confirmação + fix SSE
+- **GoogleLoginButton componente reutilizável** — extraído de minhas-consultas, usado como fallback na confirmação quando auto-login falha
 
 ## Débitos técnicos / Próximos passos
 
@@ -34,6 +35,7 @@
 
 ## Últimas mudanças
 
+- **GoogleLoginButton fallback na confirmação** (2026-03-05): Componente `GoogleLoginButton` extraído de minhas-consultas e reutilizado na confirmação como fallback quando auto-login falha. TODO atualizado (verificação de email removida — risco baixo).
 - **Validação pós-commit + lint fix** (2026-03-05): tsc clean, lint fix (`loginRes` unused removido em confirmacao/page.tsx), E2E 25/25 passando. Progresso visual e SSE fix validados end-to-end.
 - **Progresso visual na confirmação + fix SSE minhas-consultas** (2026-03-05): Estado `approved` na confirmação agora mostra spinner + barra de progresso + dots (6 etapas), polling 2s atualiza `processingStep`, transição automática para `completed`. Em minhas-consultas: dependency array do SSE effect corrigido (hasProcessing extraído como variável derivada), fallback polling interval agora limpo no cleanup (memory leak fix).
 - **Limpar tela de confirmação** (2026-03-05): Removidos "Buscando dados..." (spinner estático) e "Enviamos para {email}" (email nunca é enviado). Botão unificado "ACOMPANHAR MEU RELATORIO" (auto-login já aconteceu). Estado `isLoggedIn` removido. Confirmação agora é handoff limpo para `/minhas-consultas` onde tracking real (SSE, 6 steps) acontece.
