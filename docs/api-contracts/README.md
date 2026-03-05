@@ -14,17 +14,17 @@
 
 | Tipo | Endpoints Utilizados |
 |------|---|
-| **CPF** | `ic-cpf-completo` + `r-acoes-e-processos-judiciais` + `serasa-premium` |
-| **CNPJ** | `ic-dossie-juridico` + `serasa-premium` |
+| **CPF** | `r-cpf-completo` + `r-acoes-e-processos-judiciais` + `srs-premium` |
+| **CNPJ** | `ic-dossie-juridico` + `srs-premium` |
 
 ## Visão Geral dos Endpoints
 
 | Endpoint | URL Path | Link (body) | Parâmetro | Arquivo |
 |----------|----------|-------------|-----------|---------|
-| CPF Completo | `/api/ic-cpf-completo` | `ic-cpf-completo` | `cpf` | `cpf-cadastral.md` |
-| Ações e Processos | `/api/r-acoes-e-processos-judiciais` | `r-acoes-e-processos-judiciais` | `document` | `cpf-processos.md` |
-| Dossiê Jurídico | `/api/ic-dossie-juridico` | `ic-dossie-juridico` | `cpf` | `cnpj-dossie.md` |
-| Serasa Premium | `/api/serasa-premium` | `serasa-premium` | `document` | `cpf-financeiro.md` / `cnpj-financeiro.md` |
+| CPF Completo | `/api/r-cpf-completo` | `r-cpf-completo` | `cpf` | `cpf-cadastral.md` |
+| Ações e Processos | `/api/r-acoes-e-processos-judiciais` | `r-acoes-e-processos-judiciais` | `cpf` | `cpf-processos.md` |
+| Dossiê Jurídico | `/api/ic-dossie-juridico` | `ic-dossie-juridico` | `document` | `cnpj-dossie.md` |
+| Serasa Premium (CPF/CNPJ) | `/api/srs-premium` | `srs-premium` | `document` | `cpf-financeiro.md` / `cnpj-financeiro.md` |
 
 ## Notas de Uso
 
@@ -39,7 +39,7 @@ Base: https://api.apifull.com.br
 ### Exemplo de Request
 
 ```javascript
-const response = await fetch('https://api.apifull.com.br/api/ic-cpf-completo', {
+const response = await fetch('https://api.apifull.com.br/api/r-cpf-completo', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ const response = await fetch('https://api.apifull.com.br/api/ic-cpf-completo', {
   },
   body: JSON.stringify({
     cpf: '12345678900',
-    link: 'ic-cpf-completo'
+    link: 'r-cpf-completo'
   })
 });
 ```

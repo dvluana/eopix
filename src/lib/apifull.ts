@@ -25,7 +25,7 @@ function isChuvaScenario(document: string): boolean {
   return lastDigit < 5
 }
 
-// ========== CPF CADASTRAL (ic-cpf-completo) ==========
+// ========== CPF CADASTRAL (r-cpf-completo) ==========
 
 export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResponse> {
   if (isMockMode) {
@@ -34,8 +34,8 @@ export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResp
     return isChuvaScenario(cpf) ? MOCK_APIFULL_CPF_CADASTRAL_CHUVA : MOCK_APIFULL_CPF_CADASTRAL_SOL
   }
 
-  // === CHAMADA REAL - ic-cpf-completo ===
-  const res = await fetch('https://api.apifull.com.br/api/ic-cpf-completo', {
+  // === CHAMADA REAL - r-cpf-completo ===
+  const res = await fetch('https://api.apifull.com.br/api/r-cpf-completo', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -44,7 +44,7 @@ export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResp
     },
     body: JSON.stringify({
       cpf: cpf.replace(/\D/g, ''),
-      link: 'ic-cpf-completo',
+      link: 'r-cpf-completo',
     }),
   })
 
@@ -167,7 +167,7 @@ export async function consultCpfProcessos(cpf: string): Promise<ProcessosCpfResp
       'User-Agent': 'EOPIX/1.0',
     },
     body: JSON.stringify({
-      document: cpf.replace(/\D/g, ''),
+      cpf: cpf.replace(/\D/g, ''),
       link: 'r-acoes-e-processos-judiciais',
     }),
   })
@@ -231,8 +231,8 @@ export async function consultCpfFinancial(cpf: string): Promise<SrsPremiumCpfRes
     return isChuvaScenario(cpf) ? MOCK_APIFULL_CPF_FINANCIAL_CHUVA : MOCK_APIFULL_CPF_FINANCIAL_SOL
   }
 
-  // === CHAMADA REAL - serasa-premium ===
-  const res = await fetch('https://api.apifull.com.br/api/serasa-premium', {
+  // === CHAMADA REAL - srs-premium ===
+  const res = await fetch('https://api.apifull.com.br/api/srs-premium', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -241,7 +241,7 @@ export async function consultCpfFinancial(cpf: string): Promise<SrsPremiumCpfRes
     },
     body: JSON.stringify({
       document: cpf.replace(/\D/g, ''),
-      link: 'serasa-premium',
+      link: 'srs-premium',
     }),
   })
 
@@ -338,7 +338,7 @@ export async function consultCnpjDossie(cnpj: string): Promise<DossieResponse> {
       'User-Agent': 'EOPIX/1.0',
     },
     body: JSON.stringify({
-      cpf: cnpj.replace(/\D/g, ''),
+      document: cnpj.replace(/\D/g, ''),
       link: 'ic-dossie-juridico',
     }),
   })
@@ -479,8 +479,8 @@ export async function consultCnpjFinancial(cnpj: string): Promise<SrsPremiumCnpj
     return isChuvaScenario(cnpj) ? MOCK_APIFULL_CNPJ_FINANCIAL_CHUVA : MOCK_APIFULL_CNPJ_FINANCIAL_SOL
   }
 
-  // === CHAMADA REAL - serasa-premium ===
-  const res = await fetch('https://api.apifull.com.br/api/serasa-premium', {
+  // === CHAMADA REAL - srs-premium ===
+  const res = await fetch('https://api.apifull.com.br/api/srs-premium', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -489,7 +489,7 @@ export async function consultCnpjFinancial(cnpj: string): Promise<SrsPremiumCnpj
     },
     body: JSON.stringify({
       document: cnpj.replace(/\D/g, ''),
-      link: 'serasa-premium',
+      link: 'srs-premium',
     }),
   })
 

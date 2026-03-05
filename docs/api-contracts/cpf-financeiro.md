@@ -1,4 +1,4 @@
-# Serasa Premium — Variante CPF (`serasa-premium`)
+# Serasa Premium — Variante CPF (`srs-premium`)
 
 Score de crédito, protestos e pendências financeiras para CPF.
 
@@ -9,7 +9,7 @@ Score de crédito, protestos e pendências financeiras para CPF.
 ```json
 {
   "document": "{{cpf_ou_cnpj}}",
-  "link": "serasa-premium"
+  "link": "srs-premium"
 }
 ```
 

@@ -11,9 +11,9 @@ Referencia tecnica de custo aproximado por consulta e pipeline atual.
 
 | Servico | Endpoint/uso | Custo aproximado |
 |---|---|---:|
-| APIFull | `ic-cpf-completo` | R$ 0,80 |
+| APIFull | `r-cpf-completo` | R$ 0,80 |
 | APIFull | `r-acoes-e-processos-judiciais` | R$ 4,14 |
-| APIFull | `serasa-premium` | R$ 6,96 |
+| APIFull | `srs-premium` | R$ 6,96 |
 | Serper | busca web | R$ 0,00 (faixa free) |
 | OpenAI | `gpt-4o-mini` | ~R$ 0,01 |
 | Payment provider (Stripe ou AbacatePay) | taxa transacao | varia por meio/provider |
@@ -23,7 +23,7 @@ Referencia tecnica de custo aproximado por consulta e pipeline atual.
 | Servico | Endpoint/uso | Custo aproximado |
 |---|---|---:|
 | APIFull | `ic-dossie-juridico` | R$ 11,76 |
-| APIFull | `serasa-premium` | R$ 6,96 |
+| APIFull | `srs-premium` | R$ 6,96 |
 | Serper | busca web | R$ 0,00 (faixa free) |
 | OpenAI | `gpt-4o-mini` | ~R$ 0,005 |
 | Payment provider (Stripe ou AbacatePay) | taxa transacao | varia por meio/provider |

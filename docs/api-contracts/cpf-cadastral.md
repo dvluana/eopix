@@ -1,4 +1,4 @@
-# CPF Completo (`ic-cpf-completo`)
+# CPF Completo (`r-cpf-completo`)
 
 Dados cadastrais, endereços, telefones, emails e empresas vinculadas.
 
@@ -7,7 +7,7 @@ Dados cadastrais, endereços, telefones, emails e empresas vinculadas.
 ```json
 {
   "cpf": "{{cpf}}",
-  "link": "ic-cpf-completo"
+  "link": "r-cpf-completo"
 }
 ```
 
