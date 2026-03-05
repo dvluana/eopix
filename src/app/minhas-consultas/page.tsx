@@ -6,33 +6,9 @@ import Link from 'next/link';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import Footer from '@/components/Footer';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
-
-// ============================================
-// TIPOS
-// ============================================
-type PurchaseStatus = 'COMPLETED' | 'PROCESSING' | 'FAILED' | 'REFUND_PENDING' | 'EXPIRED' | 'PENDING' | 'PAID';
-
-interface Purchase {
-  id: string;
-  code: string;
-  status: PurchaseStatus;
-  processingStep?: number;
-  term: string;
-  type: 'CPF' | 'CNPJ';
-  createdAt: string;
-  hasReport: boolean;
-  reportId?: string;
-}
-
-// Etapas de processamento
-const PROCESSING_STEPS = [
-  { step: 1, label: 'Dados cadastrais' },
-  { step: 2, label: 'Dados financeiros' },
-  { step: 3, label: 'Processos judiciais' },
-  { step: 4, label: 'Menções na web' },
-  { step: 5, label: 'Gerando resumo' },
-  { step: 6, label: 'Finalizando' },
-];
+import { usePurchasePolling } from '@/lib/hooks/use-purchase-polling';
+import { PROCESSING_STEPS } from '@/types/domain';
+import type { Purchase } from '@/types/domain';
 
 // ============================================
 // CARD DE CONSULTA
@@ -48,7 +24,7 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
   const progressPercent = isProcessing && currentStep > 0 ? (currentStep / 6) * 100 : 0;
   const currentStepInfo = PROCESSING_STEPS.find(s => s.step === currentStep);
 
-  const getBadgeConfig = (status: PurchaseStatus) => {
+  const getBadgeConfig = (status: string) => {
     switch (status) {
       case 'COMPLETED':
         return {
@@ -330,26 +306,12 @@ export default function Page() {
   const [userEmail, setUserEmail] = React.useState('');
   const [purchases, setPurchases] = React.useState<Purchase[]>([]);
 
-  // Fetch purchases when authenticated
-  const fetchPurchases = React.useCallback(async () => {
-    try {
-      const res = await fetch('/api/purchases');
-      if (res.status === 401) {
-        setIsAuthenticated(false);
-        return;
-      }
-      if (!res.ok) {
-        throw new Error('Erro ao carregar consultas');
-      }
-      const data = await res.json();
-      setPurchases(data.purchases || []);
-      if (data.email) {
-        setUserEmail(data.email);
-      }
-    } catch (err) {
-      console.error('Erro ao carregar consultas:', err);
-    }
-  }, []);
+  // SSE + fallback polling for real-time updates
+  const { fetchPurchases } = usePurchasePolling({
+    enabled: isAuthenticated,
+    purchases,
+    setPurchases,
+  });
 
   // Check session on mount
   React.useEffect(() => {
@@ -370,62 +332,6 @@ export default function Page() {
     };
     checkSession();
   }, []);
-
-  // Derived state: any purchases still processing?
-  const hasProcessing = purchases.some(
-    p => p.status === 'PROCESSING' || p.status === 'PAID'
-  );
-
-  // SSE para atualizações em tempo real
-  React.useEffect(() => {
-    if (!isAuthenticated || !hasProcessing) return;
-
-    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
-
-    const eventSource = new EventSource('/api/purchases/stream');
-
-    eventSource.onmessage = (event) => {
-      try {
-        const updatedPurchases = JSON.parse(event.data);
-
-        setPurchases((prev) => {
-          const updated = [...prev];
-
-          updatedPurchases.forEach((newP: Purchase) => {
-            const idx = updated.findIndex((p) => p.id === newP.id);
-            if (idx >= 0) {
-              updated[idx] = { ...updated[idx], ...newP };
-            }
-          });
-
-          return updated;
-        });
-      } catch (err) {
-        console.error('Error parsing SSE message:', err);
-      }
-    };
-
-    eventSource.onerror = () => {
-      eventSource.close();
-
-      fallbackInterval = setInterval(async () => {
-        try {
-          const res = await fetch('/api/purchases');
-          if (res.ok) {
-            const data = await res.json();
-            setPurchases(data.purchases || []);
-          }
-        } catch {
-          // Ignore errors during polling
-        }
-      }, 2000);
-    };
-
-    return () => {
-      eventSource.close();
-      if (fallbackInterval) clearInterval(fallbackInterval);
-    };
-  }, [isAuthenticated, hasProcessing]);
 
   // ============================================
   // GOOGLE LOGIN

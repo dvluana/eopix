@@ -27,16 +27,16 @@
 - **GoogleLoginButton componente reutilizável** — extraído de minhas-consultas, usado como fallback na confirmação quando auto-login falha
 - **Monitoramento de saldos API no admin health** — APIFull (balance real, threshold R$30), Serper (credits, threshold 500), OpenAI (conectividade). Mock mode com valores simulados. Frontend mostra saldo verde/vermelho com ícone de alerta.
 - **Branch Neon orphan deletado** — `br-cold-field-aik2eumi` removido via MCP
+- **Hooks extraídos** — `use-report-data` (fetch + transform do relatório), `use-purchase-polling` (SSE + fallback polling), `PROCESSING_STEPS` centralizado
+- **`src/types/domain.ts` criado** — Purchase, User, AdminPurchase, DocumentType, PaymentProvider, PROCESSING_STEPS
 
 ## Débitos técnicos / Próximos passos
 
-- Extrair hook use-report-data
-- Criar `src/types/domain.ts` (Purchase, User, entidades DB) — planejado, ainda não existe
-- Implementar use-report-polling hook para SSE
 - Configurar GitHub Secrets (`NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`)
 
 ## Últimas mudanças
 
+- **Hooks + domain.ts** (2026-03-05): `use-report-data` hook extrai fetch/parse/transform do relatório. `use-purchase-polling` hook extrai SSE + fallback polling. `src/types/domain.ts` com Purchase, User, AdminPurchase, PROCESSING_STEPS. Confirmação e minhas-consultas refatorados para usar tipos/hooks centralizados.
 - **Monitoramento de saldos API + go-live prep** (2026-03-05): Health endpoint estendido com checks de balance (APIFull R$, Serper credits, OpenAI conectividade). Admin health page mostra saldo com cores (verde/vermelho) e ícone de alerta para low balance. TODO.md reescrito com checklist go-live consolidado. Branch Neon orphan deletado.
 - **GoogleLoginButton fallback na confirmação** (2026-03-05): Componente `GoogleLoginButton` extraído de minhas-consultas e reutilizado na confirmação como fallback quando auto-login falha. TODO atualizado (verificação de email removida — risco baixo).
 - **Validação pós-commit + lint fix** (2026-03-05): tsc clean, lint fix (`loginRes` unused removido em confirmacao/page.tsx), E2E 25/25 passando. Progresso visual e SSE fix validados end-to-end.

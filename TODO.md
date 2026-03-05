@@ -46,9 +46,9 @@
 ---
 
 ## Débitos técnicos
-- [ ] Extrair hook `use-report-data`
-- [ ] Implementar hook `use-report-polling` para SSE
-- [ ] Criar `src/types/domain.ts` (Purchase, User, entidades DB)
+- [x] Extrair hook `use-report-data`
+- [x] Implementar hook `use-purchase-polling` para SSE
+- [x] Criar `src/types/domain.ts` (Purchase, User, entidades DB)
 
 ---
 

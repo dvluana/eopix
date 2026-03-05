@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
+import { PROCESSING_STEPS } from '@/types/domain';
 
 type PageState =
   | 'loading'           // Carregando dados
@@ -21,15 +22,6 @@ interface PurchaseData {
   hasReport: boolean
   reportId: string | null
 }
-
-const PROCESSING_STEPS = [
-  { step: 1, label: 'Dados cadastrais' },
-  { step: 2, label: 'Dados financeiros' },
-  { step: 3, label: 'Processos judiciais' },
-  { step: 4, label: 'Menções na web' },
-  { step: 5, label: 'Gerando resumo' },
-  { step: 6, label: 'Finalizando' },
-];
 
 function ConfirmacaoContent() {
   const router = useRouter();
