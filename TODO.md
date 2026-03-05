@@ -1,32 +1,56 @@
-## Concluído nesta sessão
+# TODO — EOPIX Go-Live
 
-- [x] **Remover estado `pending_payment` da confirmação** — PageState simplificado, PENDING→approved na UI, polling removido, auto-login para todos, E2E atualizado
-- [x] **Limpar tela de confirmação** — removidos "Buscando dados..." e "Enviamos para {email}", botão unificado "ACOMPANHAR MEU RELATORIO"
-- [x] **Teste AbacatePay MOCK_MODE** — fluxo completo validado
-- [x] **Teste manual CPF Chuva com APIs reais (TEST_MODE)** — pipeline completo validado
-- [x] **Fix APIFull endpoints** — URLs `/api/{link}`, links e params corretos, User-Agent adicionado
-- [x] **Validação pós-commit** — tsc clean, lint fix (`loginRes` unused), E2E 25/25 passando
+## Go-Live (ações manuais — Luana)
 
-## Pendências consolidadas
+### Pagamento
+- [ ] Gerar API key produção AbacatePay (sem prefixo `_dev_`)
+- [ ] Configurar webhook produção no dashboard AbacatePay:
+  - URL: `https://{DOMINIO}/api/webhooks/abacatepay`
+  - Secret: gerar com `openssl rand -hex 32`
+  - Evento: `billing.paid`
 
-### Auth & vínculo purchase→usuário
-- [ ] Verificar se Google OAuth funciona em produção (localhost OK, testar com domínio real)
-- [x] Tratar falha silenciosa de auto-login na confirmação — GoogleLoginButton fallback na confirmação
-- ~~Considerar verificação de email~~ — risco baixo, acesso por código de compra
+### Saldos de API (pré-pago)
+- [ ] Colocar saldo na APIFull (dashboard: app.apifull.com.br) — mínimo R$30 (~2-3 consultas CPF)
+- [ ] Colocar créditos na OpenAI (platform.openai.com/settings/organization/billing)
+- [ ] Verificar créditos Serper (free tier: 2.500 buscas, depois plano paid)
 
-### UX de processamento
-- [x] Polling PROCESSING→COMPLETED na confirmação — progresso visual (spinner + barra + dots) + transição automática
-- [x] Fix SSE/polling minhas-consultas — dependency array + fallback interval leak
+### Env vars produção (Vercel)
+- [ ] Configurar todas as env vars na Vercel:
+  ```
+  PAYMENT_PROVIDER=abacatepay
+  ABACATEPAY_API_KEY=abc_XXX
+  ABACATEPAY_WEBHOOK_SECRET=XXX
+  NEXT_PUBLIC_APP_URL=https://{DOMINIO}
+  APIFULL_API_KEY=XXX
+  SERPER_API_KEY=XXX
+  OPENAI_API_KEY=XXX
+  INNGEST_EVENT_KEY=XXX
+  INNGEST_SIGNING_KEY=XXX
+  BREVO_API_KEY=XXX
+  NEXT_PUBLIC_SENTRY_DSN=XXX
+  MOCK_MODE → NÃO SETAR (ou false)
+  TEST_MODE → NÃO SETAR (ou false)
+  ```
 
-### AbacatePay
-- [ ] Deletar branch Neon `br-cold-field-aik2eumi` via MCP `delete_branch`
+### CI/CD
+- [ ] Configurar GitHub Secrets: `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`
 
-### Infra
-- [ ] Configurar GitHub Secrets (`NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`)
+### Auth
+- [ ] Testar Google OAuth com domínio real (localhost OK, produção pendente)
 
-### Débitos técnicos
-- [ ] Extrair hook use-report-data
-- [ ] Criar `src/types/domain.ts`
+---
+
+## Cleanup
+- [x] Deletar branch Neon orphan `br-cold-field-aik2eumi`
+
+---
+
+## Débitos técnicos
+- [ ] Extrair hook `use-report-data`
+- [ ] Implementar hook `use-report-polling` para SSE
+- [ ] Criar `src/types/domain.ts` (Purchase, User, entidades DB)
+
+---
 
 ## Referência rápida — APIFull endpoints (testados e confirmados)
 

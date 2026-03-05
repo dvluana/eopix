@@ -25,6 +25,8 @@
 - **SSE/polling minhas-consultas corrigido** — dependency array fix (hasProcessing como variável derivada), fallback polling leak corrigido
 - **Validação pós-commit** — tsc, lint e E2E 25/25 passando após progresso confirmação + fix SSE
 - **GoogleLoginButton componente reutilizável** — extraído de minhas-consultas, usado como fallback na confirmação quando auto-login falha
+- **Monitoramento de saldos API no admin health** — APIFull (balance real, threshold R$30), Serper (credits, threshold 500), OpenAI (conectividade). Mock mode com valores simulados. Frontend mostra saldo verde/vermelho com ícone de alerta.
+- **Branch Neon orphan deletado** — `br-cold-field-aik2eumi` removido via MCP
 
 ## Débitos técnicos / Próximos passos
 
@@ -35,6 +37,7 @@
 
 ## Últimas mudanças
 
+- **Monitoramento de saldos API + go-live prep** (2026-03-05): Health endpoint estendido com checks de balance (APIFull R$, Serper credits, OpenAI conectividade). Admin health page mostra saldo com cores (verde/vermelho) e ícone de alerta para low balance. TODO.md reescrito com checklist go-live consolidado. Branch Neon orphan deletado.
 - **GoogleLoginButton fallback na confirmação** (2026-03-05): Componente `GoogleLoginButton` extraído de minhas-consultas e reutilizado na confirmação como fallback quando auto-login falha. TODO atualizado (verificação de email removida — risco baixo).
 - **Validação pós-commit + lint fix** (2026-03-05): tsc clean, lint fix (`loginRes` unused removido em confirmacao/page.tsx), E2E 25/25 passando. Progresso visual e SSE fix validados end-to-end.
 - **Progresso visual na confirmação + fix SSE minhas-consultas** (2026-03-05): Estado `approved` na confirmação agora mostra spinner + barra de progresso + dots (6 etapas), polling 2s atualiza `processingStep`, transição automática para `completed`. Em minhas-consultas: dependency array do SSE effect corrigido (hasProcessing extraído como variável derivada), fallback polling interval agora limpo no cleanup (memory leak fix).

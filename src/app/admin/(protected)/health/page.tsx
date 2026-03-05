@@ -17,6 +17,11 @@ interface HealthService {
   status: 'up' | 'down' | 'degraded'
   latency?: number
   message?: string
+  balance?: {
+    current: number | string
+    unit: string
+    low?: boolean
+  }
 }
 
 interface HealthData {
@@ -259,6 +264,21 @@ export default function HealthPage() {
                       <p style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', margin: 0 }}>
                         {service.latency}ms
                       </p>
+                    )}
+                    {service.balance && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '2px' }}>
+                        {service.balance.low && <AlertCircle size={12} style={{ color: '#ef4444' }} />}
+                        <span style={{
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: service.balance.low ? '#ef4444' : '#22c55e',
+                        }}>
+                          {typeof service.balance.current === 'number'
+                            ? `${service.balance.unit === 'BRL' ? 'R$ ' : ''}${service.balance.current.toLocaleString('pt-BR')}${service.balance.unit !== 'BRL' ? ` ${service.balance.unit}` : ''}`
+                            : `${service.balance.current} ${service.balance.unit}`
+                          }
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
