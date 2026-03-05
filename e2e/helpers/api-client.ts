@@ -46,7 +46,7 @@ interface ValidateResponse {
   valid: boolean
   type: string
   term: string
-  maskedDocument: string
+  formattedDocument: string
   error?: string
 }
 
@@ -66,10 +66,10 @@ interface CreatePurchaseResponse {
   error?: string
 }
 
-export function createPurchase(term: string, email: string) {
+export function createPurchase(term: string, email?: string) {
   return apiCall<CreatePurchaseResponse>('/api/purchases', {
     method: 'POST',
-    body: JSON.stringify({ term, email, termsAccepted: true }),
+    body: JSON.stringify({ term, ...(email && { email }), termsAccepted: true }),
   })
 }
 

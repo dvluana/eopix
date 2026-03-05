@@ -14,11 +14,11 @@ export function getPaymentProvider(): PaymentProvider {
 }
 
 export interface CreateCheckoutParams {
-  email: string
+  email?: string
   externalRef: string
   successUrl: string
   cancelUrl: string
-  taxId?: string // CPF or CNPJ (required by AbacatePay)
+  taxId?: string // CPF or CNPJ
 }
 
 export interface CheckoutResponse {

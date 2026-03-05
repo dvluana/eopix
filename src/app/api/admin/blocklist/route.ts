@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { isValidCPF, isValidCNPJ, cleanDocument } from '@/lib/validators'
+import { isValidCPF, isValidCNPJ, cleanDocument, formatDocument } from '@/lib/validators'
 import { requireAdmin } from '@/lib/auth'
 
 interface AddBlocklistRequest {
@@ -40,16 +40,13 @@ export async function GET(request: NextRequest) {
       prisma.blocklist.count({ where }),
     ])
 
-    // Mask terms
-    const maskedBlocklist = blocklist.map((b) => ({
+    const formattedBlocklist = blocklist.map((b) => ({
       ...b,
-      term: b.term.length === 11
-        ? b.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-        : b.term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**'),
+      term: formatDocument(b.term),
     }))
 
     return NextResponse.json({
-      blocklist: maskedBlocklist,
+      blocklist: formattedBlocklist,
       pagination: {
         page,
         limit,
@@ -123,9 +120,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       id: blocked.id,
-      term: cleanedTerm.length === 11
-        ? cleanedTerm.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-        : cleanedTerm.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**'),
+      term: formatDocument(cleanedTerm),
       reason: blocked.reason,
       createdAt: blocked.createdAt,
     })

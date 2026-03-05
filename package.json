@@ -10,7 +10,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test --config e2e/playwright.config.ts",
+    "test:e2e": "npx tsx scripts/tests/test-with-branch.ts",
+    "test:e2e:mock": "MOCK_MODE=true playwright test --config e2e/playwright.config.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

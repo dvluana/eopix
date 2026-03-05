@@ -33,7 +33,7 @@
   ```
 
 ### CI/CD
-- [ ] Configurar GitHub Secrets: `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`
+- [x] Configurar GitHub Secrets: `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`
 
 ### Auth
 - [ ] Testar Google OAuth com domínio real (localhost OK, produção pendente)

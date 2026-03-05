@@ -1,9 +1,10 @@
-name: Neon Branch Cleanup
+name: Neon Branch Cleanup (Fallback)
 
 on:
   pull_request:
     types: [closed]
     branches: [develop]
+  workflow_dispatch:
 
 env:
   NEON_PROJECT_ID: sweet-haze-72592464
@@ -13,26 +14,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Delete Neon CI branches for this PR
+      - name: Clean up orphaned E2E branches
         run: |
-          echo "Cleaning up Neon branches for PR #${{ github.event.pull_request.number }}"
+          echo "🧹 Limpando branches Neon órfãs..."
 
-          # List all branches and filter CI ones
+          # List all e2e-* branches (should be auto-deleted by TTL after 1h)
+          # This is a fallback in case a branch creation failed mid-test
           BRANCHES=$(curl -s \
-            "https://console.neon.tech/api/v2/projects/${{ env.NEON_PROJECT_ID }}/branches" \
+            "https://api.neon.tech/api/v1/projects/${{ env.NEON_PROJECT_ID }}/branches" \
             -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
-            | jq -r '.branches[] | select(.name | startswith("ci/")) | .id')
+            | jq -r '.branches[] | select(.name | startswith("e2e-")) | .id')
 
           if [ -z "$BRANCHES" ]; then
-            echo "No CI branches found to clean up"
+            echo "✓ Nenhuma branch órfã encontrada"
             exit 0
           fi
 
+          echo "Encontradas branches órfãs: $BRANCHES"
+
           for BRANCH_ID in $BRANCHES; do
-            echo "Deleting branch: $BRANCH_ID"
+            echo "🗑️  Deletando branch: $BRANCH_ID"
             curl -s -X DELETE \
-              "https://console.neon.tech/api/v2/projects/${{ env.NEON_PROJECT_ID }}/branches/$BRANCH_ID" \
+              "https://api.neon.tech/api/v1/projects/${{ env.NEON_PROJECT_ID }}/branches/$BRANCH_ID" \
               -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" || true
           done
 
-          echo "Cleanup complete"
+          echo "✓ Limpeza concluída"

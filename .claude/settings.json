@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [{ "type": "command", "command": "cd '/Users/luana/Documents/Code Projects/eopix' && echo '=== RETOMADA ===' && git branch --show-current && git log --oneline -3 && echo '' && cat TODO.md 2>/dev/null || echo 'Sem TODO.md'" }]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [{ "type": "command", "command": "cd '/Users/luana/Documents/Code Projects/eopix' && echo '=== PÓS-COMPACTAÇÃO ===' && git branch --show-current && echo '' && cat TODO.md 2>/dev/null || echo 'Sem TODO.md'" }]
+      }
+    ],
+    "PreCompact": [{
+      "matcher": "auto",
+      "hooks": [{ "type": "command", "command": "bash '/Users/luana/Documents/Code Projects/eopix/.claude/hooks/smart-commit.sh'" }]
+    }],
+    "PostToolUse": [{
+      "matcher": "Write|Edit",
+      "hooks": [{ "type": "command", "command": "bash '/Users/luana/Documents/Code Projects/eopix/.claude/hooks/typecheck.sh'" }]
+    }]
+  }
+}

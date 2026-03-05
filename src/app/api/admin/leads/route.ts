@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { formatDocument } from '@/lib/validators'
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdmin(request)
@@ -34,11 +35,7 @@ export async function GET(request: NextRequest) {
     const formattedLeads = leads.map((l) => ({
       id: l.id,
       email: l.email,
-      term: l.term
-        ? l.term.length === 11
-          ? l.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-          : l.term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')
-        : null,
+      term: l.term ? formatDocument(l.term) : null,
       reason: l.reason,
       createdAt: l.createdAt,
     }))

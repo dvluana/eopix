@@ -6,6 +6,7 @@ import Link from 'next/link';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import MaintenanceCallout from '@/components/MaintenanceCallout';
 import LeadCaptureForm from '@/components/LeadCaptureForm';
+import { formatDocument } from '@/lib/validators';
 
 interface PageProps {
   params: { term: string }
@@ -14,61 +15,25 @@ interface PageProps {
 export default function Page({ params }: PageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = React.useState('');
 
   // Detecta se está em modo manutenção via query param
   const isMaintenance = searchParams?.get('variant') === 'maintenance';
 
-  // ============================================
-  // DETECTA SE É CPF (11 dígitos) OU CNPJ (14 dígitos)
-  // ============================================
+  // Tipo do documento detectado automaticamente (CPF ou CNPJ)
   const getDocumentType = (value: string | undefined): 'CPF' | 'CNPJ' | 'DOCUMENTO' => {
     if (!value) return 'DOCUMENTO';
-
     const cleaned = value.replace(/\D/g, '');
-
-    if (cleaned.length === 11) {
-      return 'CPF'; // 11 dígitos = CPF
-    } else if (cleaned.length === 14) {
-      return 'CNPJ'; // 14 dígitos = CNPJ
-    }
-
-    return 'DOCUMENTO'; // Fallback caso não seja nem CPF nem CNPJ
+    if (cleaned.length === 11) return 'CPF';
+    if (cleaned.length === 14) return 'CNPJ';
+    return 'DOCUMENTO';
   };
 
-  // Função para mascarar CPF/CNPJ
-  const maskTerm = (value: string | undefined): string => {
-    if (!value) return '***.***.***-**';
-
-    // Remove caracteres especiais
-    const cleaned = value.replace(/\D/g, '');
-
-    if (cleaned.length === 11) {
-      // CPF: ***.456.789-**
-      return `***.${cleaned.substring(3, 6)}.${cleaned.substring(6, 9)}-**`;
-    } else if (cleaned.length === 14) {
-      // CNPJ: **.***.***/****-**
-      return `**.${cleaned.substring(2, 5)}.${cleaned.substring(5, 8)}/${cleaned.substring(8, 12)}-**`;
-    }
-
-    // Fallback: mostra só parte do meio
-    const middle = cleaned.substring(3, 6);
-    return `***.${middle}.***-**`;
-  };
-
-  // CPF/CNPJ mascarado vindo da rota
-  const maskedTerm = maskTerm(params.term);
-  // Tipo do documento detectado automaticamente (CPF ou CNPJ)
+  const formattedTerm = formatDocument(params.term);
   const documentType = getDocumentType(params.term);
 
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handlePurchase = async () => {
-    if (!email) {
-      alert('Por favor, informe seu e-mail');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -77,7 +42,6 @@ export default function Page({ params }: PageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           term: params.term,
-          email,
           termsAccepted: true,
         }),
       });
@@ -219,15 +183,10 @@ export default function Page({ params }: PageProps) {
             }
           </h1>
 
-          {/*
-            Mostra "CPF consultado:" ou "CNPJ consultado:" dependendo do tipo detectado
-            - CPF = 11 dígitos (ex: 123.456.789-10)
-            - CNPJ = 14 dígitos (ex: 12.345.678/0001-90)
-          */}
           <p className="caption text-muted" style={{ marginBottom: 'var(--primitive-space-8)', fontStyle: 'italic' }}>
             {isMaintenance
-              ? `Não foi possível processar a consulta para ${maskedTerm}`
-              : `${documentType} consultado: ${maskedTerm}`
+              ? `Não foi possível processar a consulta para ${formattedTerm}`
+              : `${documentType} consultado: ${formattedTerm}`
             }
           </p>
 
@@ -237,66 +196,22 @@ export default function Page({ params }: PageProps) {
           {/* Lead capture form - apenas em modo manutenção */}
           {isMaintenance && <LeadCaptureForm />}
 
-          {/* Form com input de email e botão - necessário para ativar autoComplete do navegador */}
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handlePurchase();
-          }}>
-            {/* Input de email - seguindo Design System */}
-            <div style={{ marginBottom: 'var(--primitive-space-4)', textAlign: 'left' }}>
-              <label
-                htmlFor="email"
-                className="caption text-muted"
-                style={{ display: 'block', marginBottom: 'var(--primitive-space-2)' }}
-              >
-                Para onde enviamos o relatório?
-              </label>
-              <input
-                id="email"
-                type="email"
-                name="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com"
-                style={{
-                  width: '100%',
-                  padding: '14px 16px',
-                  border: '2px solid var(--color-border-default)',
-                  borderRadius: 'var(--primitive-radius-md)',
-                  background: 'var(--color-bg-primary)',
-                  color: 'var(--color-text-primary)',
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: 'var(--primitive-size-body)',
-                  outline: 'none',
-                  transition: 'border-color var(--transition-fast)'
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-border-accent)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-border-default)';
-                }}
-              />
-            </div>
-
-            {/* Botão de compra */}
-            <button
-              type="submit"
-              disabled={isMaintenance || isLoading}
-              className="btn btn--primary btn--lg"
-              style={{
-                width: '100%',
-                fontSize: '18px',
-                padding: '18px 32px',
-                marginBottom: 'var(--primitive-space-3)',
-                opacity: (isMaintenance || isLoading) ? 0.5 : 1,
-                cursor: (isMaintenance || isLoading) ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {isLoading ? 'Processando...' : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
-            </button>
-          </form>
+          {/* Botão de compra */}
+          <button
+            onClick={handlePurchase}
+            disabled={isMaintenance || isLoading}
+            className="btn btn--primary btn--lg"
+            style={{
+              width: '100%',
+              fontSize: '18px',
+              padding: '18px 32px',
+              marginBottom: 'var(--primitive-space-3)',
+              opacity: (isMaintenance || isLoading) ? 0.5 : 1,
+              cursor: (isMaintenance || isLoading) ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isLoading ? 'Processando...' : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
+          </button>
 
           {/* Aviso de termos */}
           <p className="caption text-muted" style={{ fontStyle: 'italic', lineHeight: 1.5 }}>
@@ -362,22 +277,6 @@ export default function Page({ params }: PageProps) {
             }}>
               <span style={{ fontSize: '14px' }}>⚡</span>
               <span>Instantâneo</span>
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 12px',
-              background: 'var(--color-bg-subtle)',
-              border: '1px solid var(--color-border-accent)',
-              borderRadius: 'var(--primitive-radius-full)',
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '11px',
-              fontWeight: 500,
-              color: 'var(--color-text-secondary)'
-            }}>
-              <span style={{ fontSize: '14px' }}>📧</span>
-              <span>Por email</span>
             </div>
           </div>
         </section>
@@ -656,7 +555,7 @@ export default function Page({ params }: PageProps) {
           </button>
 
           <p className="caption text-muted" style={{ marginTop: 'var(--primitive-space-3)', fontStyle: 'italic' }}>
-            Pagamento 100% seguro • Relatório enviado por email em até 3 minutos
+            Pagamento 100% seguro • Relatório disponível em até 3 minutos
           </p>
         </section>}
 

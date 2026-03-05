@@ -18,10 +18,8 @@ test.describe('Purchase Flow — CPF', () => {
 
     // 2. Should navigate to /consulta/{term}
     await page.waitForURL(`**/consulta/${cpf}`, { timeout: 10_000 })
-    await expect(page.locator('#email')).toBeVisible()
 
-    // 3. Fill email and purchase
-    await page.locator('#email').fill(TEST_EMAIL)
+    // 3. Click purchase button (no email required)
     await page.locator('button:has-text("DESBLOQUEAR")').first().click()
 
     // 4. Should redirect to /compra/confirmacao?code=XXX

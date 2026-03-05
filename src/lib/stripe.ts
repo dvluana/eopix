@@ -15,7 +15,7 @@ function getStripe(): Stripe {
 }
 
 export interface CreateCheckoutSessionParams {
-  email: string
+  email?: string
   externalRef: string // codigo da purchase
   successUrl: string
   cancelUrl: string

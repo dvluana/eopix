@@ -17,8 +17,7 @@ test.describe('Purchase Flow — CNPJ', () => {
     // 2. Navigate to /consulta/{term}
     await page.waitForURL(`**/consulta/${cnpj}`, { timeout: 10_000 })
 
-    // 3. Fill email and purchase
-    await page.locator('#email').fill(TEST_EMAIL)
+    // 3. Click purchase button (no email required)
     await page.locator('button:has-text("DESBLOQUEAR")').first().click()
 
     // 4. Redirect to confirmation

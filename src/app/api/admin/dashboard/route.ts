@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { formatDocument } from '@/lib/validators'
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdmin(request)
@@ -100,13 +101,10 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Mask terms and emails in response
-    const maskedRecentPurchases = recentPurchases.map((p) => ({
+    const formattedRecentPurchases = recentPurchases.map((p) => ({
       id: p.id,
       code: p.code,
-      term: p.term.length === 11
-        ? p.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-        : p.term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**'),
+      term: formatDocument(p.term),
       status: p.status,
       amount: p.amount,
       createdAt: p.createdAt,
@@ -143,7 +141,7 @@ export async function GET(request: NextRequest) {
         total: totalLeads,
         today: leadsToday,
       },
-      recentPurchases: maskedRecentPurchases,
+      recentPurchases: formattedRecentPurchases,
     })
   } catch (error) {
     console.error('Dashboard error:', error)

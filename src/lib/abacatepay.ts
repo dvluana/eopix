@@ -16,11 +16,11 @@ function getAbacate() {
 }
 
 export interface CreateCheckoutParams {
-  email: string
+  email?: string
   externalRef: string // purchase code
   successUrl: string
   cancelUrl: string
-  taxId?: string // CPF or CNPJ (required by AbacatePay API)
+  taxId?: string // CPF or CNPJ
 }
 
 export interface CheckoutResponse {
@@ -54,6 +54,9 @@ export async function createCheckout(
     amount: priceCents,
   })
 
+  // Customer email — use provided email or a placeholder for the SDK (AbacatePay checkout collects real email)
+  const customerEmail = params.email || `checkout-${params.externalRef}@noreply.eopix.app`
+
   const response = await getAbacate().billing.create({
     frequency: 'ONE_TIME',
     methods: ['PIX'],
@@ -68,7 +71,7 @@ export async function createCheckout(
     returnUrl: params.cancelUrl,
     completionUrl: params.successUrl,
     customer: {
-      email: params.email,
+      email: customerEmail,
       taxId: params.taxId || '00000000000',
     },
   })

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { isValidCPF, isValidCNPJ, cleanDocument } from '@/lib/validators'
+import { isValidCPF, isValidCNPJ, cleanDocument, formatDocument } from '@/lib/validators'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isBypassMode } from '@/lib/mock-mode'
 
@@ -72,10 +72,7 @@ export async function POST(request: NextRequest) {
       valid: true,
       type: docType,
       term: cleanedDoc,
-      // Mask for display: 123.456.***-** or 12.345.678/****-**
-      maskedDocument: docType === 'CPF'
-        ? cleanedDoc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-        : cleanedDoc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**'),
+      formattedDocument: formatDocument(cleanedDoc),
     })
   } catch (error) {
     console.error('Validate error:', error)

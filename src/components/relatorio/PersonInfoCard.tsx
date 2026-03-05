@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { formatCNPJ } from '@/lib/validators'
 
 interface EnderecoItem {
   logradouro: string
@@ -47,17 +48,6 @@ function maskPhone(ddd: string, numero: string): string {
   const first = cleanNum.slice(0, 2)
   const last = cleanNum.slice(-2)
   return `${ddd} ${first}****${last}`
-}
-
-/**
- * Mask CNPJ: show first 2 digits, mask middle, show last 4 of base
- * Example: 12.345.xxx/xxxx-xx
- */
-function maskCnpj(cnpj: string): string {
-  const clean = cnpj.replace(/\D/g, '')
-  if (clean.length !== 14) return cnpj
-
-  return `${clean.slice(0, 2)}.${clean.slice(2, 5)}.***/${clean.slice(8, 12)}-**`
 }
 
 /**
@@ -409,7 +399,7 @@ export default function PersonInfoCard({ cadastral }: PersonInfoCardProps) {
                           gap: '8px',
                         }}
                       >
-                        <span>CNPJ: {maskCnpj(emp.cnpj)}</span>
+                        <span>CNPJ: {formatCNPJ(emp.cnpj)}</span>
                         <span style={{ color: 'var(--color-text-tertiary)' }}>|</span>
                         <span>{emp.participacao}</span>
                       </div>

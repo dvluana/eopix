@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { formatDocument } from '@/lib/validators'
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdmin(request)
@@ -51,9 +52,7 @@ export async function GET(request: NextRequest) {
     const formattedPurchases = purchases.map((p) => ({
       id: p.id,
       code: p.code,
-      term: p.term.length === 11
-        ? p.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-        : p.term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**'),
+      term: formatDocument(p.term),
       type: p.term.length === 11 ? 'CPF' : 'CNPJ',
       status: p.status,
       amount: p.amount,

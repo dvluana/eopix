@@ -4,12 +4,12 @@ import { prisma } from '@/lib/prisma'
 import { createCheckout, getPaymentProvider } from '@/lib/payment'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument } from '@/lib/validators'
+import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument, formatDocument } from '@/lib/validators'
 import { isBypassMode, isBypassPayment } from '@/lib/mock-mode'
 
 interface CreatePurchaseRequest {
   term: string
-  email: string
+  email?: string
   termsAccepted: boolean
 }
 
@@ -28,14 +28,14 @@ export async function POST(request: NextRequest) {
     const { term, email, termsAccepted } = body
 
     // Validate inputs
-    if (!term || !email || !termsAccepted) {
+    if (!term || !termsAccepted) {
       return NextResponse.json(
-        { error: 'term, email e termsAccepted sao obrigatorios' },
+        { error: 'term e termsAccepted sao obrigatorios' },
         { status: 400 }
       )
     }
 
-    if (!isValidEmail(email)) {
+    if (email && !isValidEmail(email)) {
       return NextResponse.json(
         { error: 'Email invalido' },
         { status: 400 }
@@ -77,18 +77,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get or create user
-    let user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
-    })
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: { email: email.toLowerCase() },
-      })
-    }
-
-    // Generate unique code
+    // Generate unique code (before user lookup so we can use it for guest email)
     let code = generateCode()
     let attempts = 0
     while (attempts < 10) {
@@ -100,12 +89,30 @@ export async function POST(request: NextRequest) {
       attempts++
     }
 
+    // Get or create user — email is optional, generates guest placeholder if absent
+    const userEmail = email ? email.toLowerCase() : `guest-${code.toLowerCase()}@guest.eopix.app`
+    let user = await prisma.user.findUnique({
+      where: { email: userEmail },
+    })
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: { email: userEmail },
+      })
+    }
+
     // Get price from env
     const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
 
+    // Auto-fallback: bypass se API key não configurada (dev sem MOCK_MODE)
+    const effectiveBypass = isBypassPayment || !process.env.ABACATEPAY_API_KEY
+    if (effectiveBypass && !isBypassPayment) {
+      console.warn('[Purchases] ABACATEPAY_API_KEY nao configurado — bypass automatico')
+    }
+
     // Bypass payment: cria purchase PENDING aguardando ação manual do admin (sem checkout)
-    if (isBypassPayment) {
-      console.log(`🧪 [BYPASS] Stripe bypass - criando purchase PENDING para: ${cleanedTerm}`)
+    if (effectiveBypass) {
+      console.log(`🧪 [BYPASS] Payment bypass - criando purchase PENDING para: ${cleanedTerm}`)
 
       // Cria purchase com status PENDING - aguarda ação manual do admin
       const purchase = await prisma.purchase.create({
@@ -122,7 +129,7 @@ export async function POST(request: NextRequest) {
 
       console.log(`🧪 [BYPASS] Purchase criada PENDING: ${purchase.code} (${getPaymentProvider()}) - aguardando ação manual no admin`)
 
-      // Retorna URL de confirmação direto (sem checkout Stripe)
+      // Retorna URL de confirmação direto (sem checkout externo)
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       return NextResponse.json({
         code: purchase.code,
@@ -148,7 +155,7 @@ export async function POST(request: NextRequest) {
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       const { sessionId, checkoutUrl } = await createCheckout({
-        email,
+        email: email || undefined,
         externalRef: code,
         successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
         cancelUrl: `${appUrl}/compra/confirmacao?code=${code}&cancelled=true`,
@@ -225,9 +232,7 @@ export async function GET() {
       status: p.status,
       processingStep: p.processingStep,
       type: p.term.length === 11 ? 'CPF' : 'CNPJ',
-      term: p.term.length === 11
-        ? p.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-        : p.term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**'),
+      term: formatDocument(p.term),
       createdAt: p.createdAt,
       hasReport: !!p.searchResultId,
       reportId: p.searchResultId,

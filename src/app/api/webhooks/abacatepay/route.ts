@@ -153,6 +153,30 @@ async function handlePaymentSuccess(
     },
   })
 
+  // Capture email from checkout — update guest user with real email
+  if (customerEmail && purchase.user.email.includes('@guest.eopix.app')) {
+    const normalizedEmail = customerEmail.toLowerCase()
+    const existingUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    })
+
+    if (existingUser) {
+      // User with this email already exists — link purchase to existing user
+      await prisma.purchase.update({
+        where: { id: purchase.id },
+        data: { userId: existingUser.id },
+      })
+      console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} linked to existing user ${normalizedEmail}`)
+    } else {
+      // Update guest user email with real email from checkout
+      await prisma.user.update({
+        where: { id: purchase.userId },
+        data: { email: normalizedEmail },
+      })
+      console.log(`[AbacatePay Webhook] Guest user updated with email: ${normalizedEmail}`)
+    }
+  }
+
   console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} updated to PAID`)
 
   // Trigger Inngest job

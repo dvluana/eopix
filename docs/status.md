@@ -29,13 +29,17 @@
 - **`src/types/domain.ts` criado** — Purchase, User, AdminPurchase, DocumentType, PaymentProvider, PROCESSING_STEPS
 - **Go-live fixes aplicados** — OpenAI lazy init (build blocker fix), 5 DEBUG console.logs removidos (LGPD), AbacatePay customer cleanup (cellphone/name removidos), default payment provider → `abacatepay`, migration aplicada no Neon main
 - **`isBypassPayment` flag** — Bypass de pagamento separado do `isBypassMode`. Permite `MOCK_MODE=true` + `BYPASS_PAYMENT=false` para testar checkout real (sandbox) com APIs mockadas.
+- **Email removido da consulta** — Campo de email removido de `/consulta/[term]`. Email agora capturado do webhook AbacatePay (`billing.paid → customer.metadata.email`). Guest users criados com placeholder email, atualizados após checkout. AbacatePay SDK usa placeholder quando email não fornecido.
+- **CPF/CNPJ sem censura** — Masking com `***` removido de 9 arquivos (8 API routes + PersonInfoCard). Substituído por `formatDocument()` de `@/lib/validators` (formatação completa sem censura). `maskTerm()` removida da consulta page.
+- **Fix 500 sem API key** — Auto-fallback para bypass quando `ABACATEPAY_API_KEY` não configurado (dev sem MOCK_MODE). Log de warning ao ativar.
 
 ## Débitos técnicos / Próximos passos
 
-- Configurar GitHub Secrets (`NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`)
+- ~~Configurar GitHub Secrets~~ ✓ — `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY` todos configurados
 
 ## Últimas mudanças
 
+- **Fix 500 + remove email + uncensor CPF/CNPJ** (2026-03-05): (1) Auto-fallback bypass quando `ABACATEPAY_API_KEY` ausente — evita 500 em dev. (2) Email removido de `/consulta/[term]` — campo, trust badge "Por email", texto "enviado por email" removidos. Backend: email agora opcional, guest users com `guest-{code}@guest.eopix.app`, webhook `billing.paid` captura email real e atualiza User. (3) CPF/CNPJ desmascarado em 9 arquivos — inline regex com `***` substituído por `formatDocument()` de validators.ts. `maskCnpj()` removida de PersonInfoCard. E2E tests atualizados (email não mais obrigatório). tsc e lint clean.
 - **`isBypassPayment` — bypass de pagamento independente** (2026-03-05): Novo flag `isBypassPayment` em `mock-mode.ts` com override via `BYPASS_PAYMENT` env var. `abacatepay.ts`, `stripe.ts` e `purchases/route.ts` agora usam `isBypassPayment` nos code paths de pagamento. Sem `BYPASS_PAYMENT` no env, comportamento 100% backward compatible. Permite `MOCK_MODE=true BYPASS_PAYMENT=false` para testar checkout AbacatePay sandbox com APIs mockadas (custo zero). Docs atualizados.
 - **Go-live production fixes** (2026-03-05): OpenAI client lazy init (fix build blocker — `new OpenAI()` no import falhava sem env var). 5 DEBUG console.logs removidos de `apifull.ts` (vazavam dados pessoais completos — CPF, nome, endereço, processos). AbacatePay customer: removidos `cellphone` e `name` fake do inline customer. Default `PAYMENT_PROVIDER` trocado de `'stripe'` para `'abacatepay'`. Migration `add_payment_provider` aplicada no Neon main (produção). Build, tsc, lint validados.
 - **Go-live: Stripe removido, AbacatePay only** (2026-03-05): Todas as referências a Stripe removidas dos docs ativos (CLAUDE.md, architecture.md, custos, modos, abacatepay-api.md, status.md). Seções de comparação/migração Stripe→AbacatePay removidas do abacatepay-api.md (migração concluída). Stripe env vars removidas da Vercel. `.env.production.local` criado com keys de produção AbacatePay. Vercel env vars de produção configuradas (7 novas: PAYMENT_PROVIDER, ABACATEPAY_*, TEST_MODE, INNGEST_DEV, GOOGLE_CLIENT_ID, NEXT_PUBLIC_GOOGLE_CLIENT_ID).

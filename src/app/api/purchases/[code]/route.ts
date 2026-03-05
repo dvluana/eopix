@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { formatDocument } from '@/lib/validators'
 
 interface RouteParams {
   params: Promise<{ code: string }>
@@ -35,14 +36,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Mask document for response
-    const maskedTerm = purchase.term.length === 11
-      ? purchase.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-      : purchase.term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')
-
     return NextResponse.json({
       code: purchase.code,
-      term: maskedTerm,
+      term: formatDocument(purchase.term),
       type: purchase.term.length === 11 ? 'CPF' : 'CNPJ',
       status: purchase.status,
       processingStep: purchase.processingStep,
