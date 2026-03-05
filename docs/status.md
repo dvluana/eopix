@@ -2,7 +2,7 @@
 
 **Atualizado em:** 2026-03-05
 **Branch atual:** develop
-**Modo de execução:** MOCK_MODE=true (local)
+**Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
 ## O que está funcionando ✓
 
@@ -17,6 +17,7 @@
 - **GitHub Actions CI** (mock obrigatório em PRs, integration nightly, Neon branching)
 - **Migration paymentProvider/paymentExternalId** aplicada no Neon develop
 - **Docs dual-mode completos** (architecture, custos, modos — todos referenciam Stripe + AbacatePay)
+- **Pipeline TEST_MODE validado com APIs reais** — CPF Chuva (`006.780.809-33`), todas as 7 etapas OK (cadastral, financeiro, processos, Serper, OpenAI×2, summary). SearchResult 91KB.
 
 ## Débitos técnicos / Próximos passos
 
@@ -27,7 +28,8 @@
 
 ## Últimas mudanças
 
-- **Fix APIFull endpoints** (2026-03-05): URLs corrigidas (`/consulta` → `/api/{endpoint}`), links corrigidos (`r-cpf-completo` → `ic-cpf-completo`, `srs-premium` → `serasa-premium`), `User-Agent` header adicionado (obrigatório, sem ele Apache retorna 403). Confirmado com curl: response 200. Docs api-contracts atualizados.
+- **Fix APIFull endpoints (final)** (2026-03-05): URLs corrigidas (`/consulta` → `/api/{link}`), links mantidos originais (`r-cpf-completo`, `srs-premium`, `r-acoes-e-processos-judiciais`, `ic-dossie-juridico`), params corrigidos por endpoint (`cpf` vs `document`), `User-Agent: EOPIX/1.0` adicionado (obrigatório, Apache retorna 403 sem). Testado com curl em cada endpoint + pipeline completo CPF Chuva com sucesso.
+- **Teste manual CPF Chuva com APIs reais** (2026-03-05): Neon branch isolado `test/manual-cpf-chuva`, purchase `UJ9HC2` processada com sucesso. Todas as APIs responderam: APIFull (cadastral 1.3KB, financeiro 1.2KB, processos 74.9KB), Serper (3.3KB), OpenAI (análise 10.6KB, resumo financeiro 239B, summary 271B). Purchase COMPLETED, relatório renderizável.
 - **Fix 9 falhas E2E** (2026-03-05): race condition auto-login em `confirmacao/page.tsx` (auto-login agora executa ANTES de setPageState), título regex em smoke test (`/E o Pix/i`), selector ambíguo CPF em report-content (`getByRole('heading')`). Resultado: 25/25 passando.
 - **E2E global-setup/teardown reescritos com raw SQL** (2026-03-05): substituídos PrismaClient por pg direto para evitar conflito de schema, seed de admin via INSERT raw, cleanup via DELETE raw. 14/25 passaram imediatamente.
 - **Finalização migração AbacatePay** (2026-03-05): migration `paymentProvider`/`paymentExternalId` aplicada no Neon develop + backfill, docs atualizados (architecture.md dual-mode sequence diagram, custos-e-fluxo-processamento.md com ambos providers, modos-de-execucao.md com credenciais de teste), `fluxo-sistema.md` arquivado (Stripe-only, superseded por architecture.md), README.md atualizado.
