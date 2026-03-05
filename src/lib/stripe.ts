@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { isBypassMode } from './mock-mode'
+import { isBypassPayment } from './mock-mode'
 
 // Lazy initialization to avoid errors during build
 let stripeInstance: Stripe | null = null
@@ -34,7 +34,7 @@ export interface RefundResponse {
 export async function createCheckoutSession(
   params: CreateCheckoutSessionParams
 ): Promise<CheckoutSessionResponse> {
-  if (isBypassMode) {
+  if (isBypassPayment) {
     console.log(`🧪 [BYPASS] Stripe bypass - criando fake checkout: ${params.externalRef}`)
     const fakeSessionId = `cs_bypass_${Date.now()}`
     // Bypass: redirect direto pra confirmacao (pula checkout Stripe)
@@ -81,7 +81,7 @@ export async function createCheckoutSession(
 }
 
 export async function refundPayment(paymentIntentId: string): Promise<RefundResponse> {
-  if (isBypassMode) {
+  if (isBypassPayment) {
     console.log(`🧪 [BYPASS] Stripe refundPayment: ${paymentIntentId}`)
     await new Promise((r) => setTimeout(r, 300))
     return {

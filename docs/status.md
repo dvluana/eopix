@@ -27,6 +27,8 @@
 - **Branch Neon orphan deletado** — `br-cold-field-aik2eumi` removido via MCP
 - **Hooks extraídos** — `use-report-data` (fetch + transform do relatório), `use-purchase-polling` (SSE + fallback polling), `PROCESSING_STEPS` centralizado
 - **`src/types/domain.ts` criado** — Purchase, User, AdminPurchase, DocumentType, PaymentProvider, PROCESSING_STEPS
+- **Go-live fixes aplicados** — OpenAI lazy init (build blocker fix), 5 DEBUG console.logs removidos (LGPD), AbacatePay customer cleanup (cellphone/name removidos), default payment provider → `abacatepay`, migration aplicada no Neon main
+- **`isBypassPayment` flag** — Bypass de pagamento separado do `isBypassMode`. Permite `MOCK_MODE=true` + `BYPASS_PAYMENT=false` para testar checkout real (sandbox) com APIs mockadas.
 
 ## Débitos técnicos / Próximos passos
 
@@ -34,6 +36,8 @@
 
 ## Últimas mudanças
 
+- **`isBypassPayment` — bypass de pagamento independente** (2026-03-05): Novo flag `isBypassPayment` em `mock-mode.ts` com override via `BYPASS_PAYMENT` env var. `abacatepay.ts`, `stripe.ts` e `purchases/route.ts` agora usam `isBypassPayment` nos code paths de pagamento. Sem `BYPASS_PAYMENT` no env, comportamento 100% backward compatible. Permite `MOCK_MODE=true BYPASS_PAYMENT=false` para testar checkout AbacatePay sandbox com APIs mockadas (custo zero). Docs atualizados.
+- **Go-live production fixes** (2026-03-05): OpenAI client lazy init (fix build blocker — `new OpenAI()` no import falhava sem env var). 5 DEBUG console.logs removidos de `apifull.ts` (vazavam dados pessoais completos — CPF, nome, endereço, processos). AbacatePay customer: removidos `cellphone` e `name` fake do inline customer. Default `PAYMENT_PROVIDER` trocado de `'stripe'` para `'abacatepay'`. Migration `add_payment_provider` aplicada no Neon main (produção). Build, tsc, lint validados.
 - **Go-live: Stripe removido, AbacatePay only** (2026-03-05): Todas as referências a Stripe removidas dos docs ativos (CLAUDE.md, architecture.md, custos, modos, abacatepay-api.md, status.md). Seções de comparação/migração Stripe→AbacatePay removidas do abacatepay-api.md (migração concluída). Stripe env vars removidas da Vercel. `.env.production.local` criado com keys de produção AbacatePay. Vercel env vars de produção configuradas (7 novas: PAYMENT_PROVIDER, ABACATEPAY_*, TEST_MODE, INNGEST_DEV, GOOGLE_CLIENT_ID, NEXT_PUBLIC_GOOGLE_CLIENT_ID).
 - **Hooks + domain.ts** (2026-03-05): `use-report-data` hook extrai fetch/parse/transform do relatório. `use-purchase-polling` hook extrai SSE + fallback polling. `src/types/domain.ts` com Purchase, User, AdminPurchase, PROCESSING_STEPS. Confirmação e minhas-consultas refatorados para usar tipos/hooks centralizados.
 - **Monitoramento de saldos API + go-live prep** (2026-03-05): Health endpoint estendido com checks de balance (APIFull R$, Serper credits, OpenAI conectividade). Admin health page mostra saldo com cores (verde/vermelho) e ícone de alerta para low balance. TODO.md reescrito com checklist go-live consolidado. Branch Neon orphan deletado.

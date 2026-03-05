@@ -5,7 +5,7 @@ import { createCheckout, getPaymentProvider } from '@/lib/payment'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument } from '@/lib/validators'
-import { isBypassMode } from '@/lib/mock-mode'
+import { isBypassMode, isBypassPayment } from '@/lib/mock-mode'
 
 interface CreatePurchaseRequest {
   term: string
@@ -103,8 +103,8 @@ export async function POST(request: NextRequest) {
     // Get price from env
     const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
 
-    // Bypass mode: cria purchase PENDING aguardando ação manual do admin (sem Stripe)
-    if (isBypassMode) {
+    // Bypass payment: cria purchase PENDING aguardando ação manual do admin (sem checkout)
+    if (isBypassPayment) {
       console.log(`🧪 [BYPASS] Stripe bypass - criando purchase PENDING para: ${cleanedTerm}`)
 
       // Cria purchase com status PENDING - aguarda ação manual do admin

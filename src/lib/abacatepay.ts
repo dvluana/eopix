@@ -1,6 +1,6 @@
 import crypto from 'node:crypto'
 import AbacatePay from 'abacatepay-nodejs-sdk'
-import { isBypassMode } from './mock-mode'
+import { isBypassPayment } from './mock-mode'
 
 // Lazy initialization to avoid errors during build
 let abacateInstance: ReturnType<typeof AbacatePay> | null = null
@@ -37,7 +37,7 @@ export interface RefundResponse {
 export async function createCheckout(
   params: CreateCheckoutParams
 ): Promise<CheckoutResponse> {
-  if (isBypassMode) {
+  if (isBypassPayment) {
     console.log(`🧪 [BYPASS] AbacatePay bypass - criando fake checkout: ${params.externalRef}`)
     const fakeId = `bill_bypass_${Date.now()}`
     return {
@@ -69,8 +69,6 @@ export async function createCheckout(
     completionUrl: params.successUrl,
     customer: {
       email: params.email,
-      name: params.email.split('@')[0],
-      cellphone: '00000000000',
       taxId: params.taxId || '00000000000',
     },
   })
@@ -94,7 +92,7 @@ export async function createCheckout(
 }
 
 export async function processRefund(_billingId: string): Promise<RefundResponse> {
-  if (isBypassMode) {
+  if (isBypassPayment) {
     console.log(`🧪 [BYPASS] AbacatePay refund: ${_billingId}`)
     await new Promise((r) => setTimeout(r, 300))
     return {

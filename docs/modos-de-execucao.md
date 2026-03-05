@@ -35,11 +35,33 @@ Definidos em `src/lib/mock-mode.ts`:
 export const isMockMode = process.env.MOCK_MODE === 'true'
 export const isTestMode = process.env.TEST_MODE === 'true'
 export const isBypassMode = isMockMode || isTestMode
+
+// Override independente de pagamento
+export const isBypassPayment = process.env.BYPASS_PAYMENT !== undefined
+  ? process.env.BYPASS_PAYMENT === 'true'
+  : isBypassMode
 ```
 
 - `isMockMode` — Todas as APIs mockadas
 - `isTestMode` — APIs reais, mas pagamento e Inngest em bypass
 - `isBypassMode` — Ativo em ambos; pula pagamento (AbacatePay) e usa fallback síncrono Inngest
+- `isBypassPayment` — Controla bypass de pagamento independentemente. Por default segue `isBypassMode`, mas pode ser overridden via `BYPASS_PAYMENT` env var
+
+### Override `BYPASS_PAYMENT`
+
+Permite separar bypass de APIs do bypass de pagamento:
+
+| Cenário | `MOCK_MODE` | `BYPASS_PAYMENT` | APIs | Pagamento |
+|---------|-------------|-------------------|------|-----------|
+| Dev normal | `true` | (não setado) | Mock | Bypass |
+| **Sandbox checkout** | `true` | `false` | Mock | **Real (sandbox)** |
+| Test com APIs reais | — | (não setado, `TEST_MODE=true`) | Real | Bypass |
+| Produção | — | — | Real | Real |
+
+Exemplo para testar checkout AbacatePay sandbox com APIs mockadas:
+```bash
+MOCK_MODE=true BYPASS_PAYMENT=false npm run dev
+```
 
 ---
 
