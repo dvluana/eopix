@@ -6,8 +6,6 @@
 
 ## O que está funcionando ✓
 
-- Payment provider abstraction (Stripe + AbacatePay dual-mode via `PAYMENT_PROVIDER`)
-- Stripe checkout + webhook
 - AbacatePay checkout + webhook (`billing.paid`)
 - Pipeline Inngest básico (cache + APIFull)
 - Relatório display (page.tsx)
@@ -16,7 +14,7 @@
 - **E2E tests com Playwright** — 25/25 passando (smoke, purchase flows CPF/CNPJ, report content, error handling)
 - **GitHub Actions CI** (mock obrigatório em PRs, integration nightly, Neon branching)
 - **Migration paymentProvider/paymentExternalId** aplicada no Neon develop
-- **Docs dual-mode completos** (architecture, custos, modos — todos referenciam Stripe + AbacatePay)
+- **Docs atualizados** (architecture, custos, modos — AbacatePay only)
 - **Pipeline TEST_MODE validado com APIs reais** — CPF Chuva (`006.780.809-33`), todas as 7 etapas OK (cadastral, financeiro, processos, Serper, OpenAI×2, summary). SearchResult 91KB.
 - **AbacatePay webhook testado em MOCK_MODE** — `billing.paid` simulado com HMAC + secret, idempotency OK, security validation OK (wrong secret/signature → 401). Fluxo completo: purchase creation → webhook → mark-paid → process → COMPLETED.
 
@@ -36,6 +34,7 @@
 
 ## Últimas mudanças
 
+- **Go-live: Stripe removido, AbacatePay only** (2026-03-05): Todas as referências a Stripe removidas dos docs ativos (CLAUDE.md, architecture.md, custos, modos, abacatepay-api.md, status.md). Seções de comparação/migração Stripe→AbacatePay removidas do abacatepay-api.md (migração concluída). Stripe env vars removidas da Vercel. `.env.production.local` criado com keys de produção AbacatePay. Vercel env vars de produção configuradas (7 novas: PAYMENT_PROVIDER, ABACATEPAY_*, TEST_MODE, INNGEST_DEV, GOOGLE_CLIENT_ID, NEXT_PUBLIC_GOOGLE_CLIENT_ID).
 - **Hooks + domain.ts** (2026-03-05): `use-report-data` hook extrai fetch/parse/transform do relatório. `use-purchase-polling` hook extrai SSE + fallback polling. `src/types/domain.ts` com Purchase, User, AdminPurchase, PROCESSING_STEPS. Confirmação e minhas-consultas refatorados para usar tipos/hooks centralizados.
 - **Monitoramento de saldos API + go-live prep** (2026-03-05): Health endpoint estendido com checks de balance (APIFull R$, Serper credits, OpenAI conectividade). Admin health page mostra saldo com cores (verde/vermelho) e ícone de alerta para low balance. TODO.md reescrito com checklist go-live consolidado. Branch Neon orphan deletado.
 - **GoogleLoginButton fallback na confirmação** (2026-03-05): Componente `GoogleLoginButton` extraído de minhas-consultas e reutilizado na confirmação como fallback quando auto-login falha. TODO atualizado (verificação de email removida — risco baixo).

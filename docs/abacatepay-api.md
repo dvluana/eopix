@@ -36,7 +36,7 @@ const headers = {
 
 ---
 
-## 3. Billing (Cobranca) — Equivalente ao Stripe Checkout
+## 3. Billing (Cobranca)
 
 ### 3.1 Criar Cobranca
 
@@ -120,7 +120,7 @@ const billing = await abacate.billing.create({
 });
 
 // billing.data.url → redirecionar cliente para pagamento
-// billing.data.id → salvar como referencia (equivale ao Stripe session.id)
+// billing.data.id → salvar como referencia
 ```
 
 ### 3.2 Listar Cobrancas
@@ -426,47 +426,3 @@ const customers = await abacate.customer.list();
 
 GitHub: https://github.com/AbacatePay/abacatepay-nodejs-sdk
 
----
-
-## 8. Diferencas Criticas: AbacatePay vs Stripe
-
-| Aspecto | Stripe | AbacatePay |
-|---|---|---|
-| **Modelo de checkout** | Redirect para Stripe-hosted page | Redirect para AbacatePay-hosted page (`billing.url`) |
-| **Criacao de sessao** | `stripe.checkout.sessions.create()` | `POST /v1/billing/create` |
-| **ID de sessao** | `cs_xxx` | `bill_xxx` |
-| **Webhook evento pago** | `checkout.session.completed` | `billing.paid` |
-| **Webhook secret** | Assinatura via `stripe.webhooks.constructEvent()` | Secret na query string + HMAC `X-Webhook-Signature` |
-| **Ambientes** | Chaves `sk_test_` / `sk_live_` | Mesma URL, chave determina ambiente |
-| **Metodos pagamento** | Cartao, boleto, PIX, etc | PIX + Cartao (beta) |
-| **Produtos** | Pre-criados no dashboard ou `price_xxx` | Inline no request (nome, preco, quantidade) |
-| **Cliente** | `cus_xxx` pre-criado ou inline | `cust_xxx` pre-criado ou inline |
-| **Moeda** | Multi-currency | BRL only (centavos) |
-| **Refund** | `stripe.refunds.create()` | Via dashboard (sem endpoint de refund documentado) |
-| **URL de retorno** | `success_url` + `cancel_url` | `completionUrl` + `returnUrl` |
-| **Sandbox** | Chaves `sk_test_` | Dev mode (toggle no dashboard) |
-| **SDK** | `stripe` npm package | `abacatepay-nodejs-sdk` npm package |
-
----
-
-## 9. Mapeamento de Migracao EOPIX
-
-### Stripe → AbacatePay (resumo de mudancas)
-
-| Componente EOPIX | Hoje (Stripe) | Depois (AbacatePay) |
-|---|---|---|
-| `POST /api/purchases` | `stripe.checkout.sessions.create()` | `POST /v1/billing/create` com products inline |
-| `POST /api/webhooks/stripe` | Valida `stripe.webhooks.constructEvent()` | Valida `webhookSecret` query + HMAC header |
-| Evento de pagamento | `checkout.session.completed` | `billing.paid` |
-| ID no Purchase | `stripeSessionId` | `abacateBillingId` (ou campo generico) |
-| Env vars | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | `ABACATEPAY_API_KEY`, `ABACATEPAY_WEBHOOK_SECRET` |
-| Redirect | `session.url` | `billing.data.url` |
-| Bypass modes | `isBypassMode` pula Stripe | Manter logica, pular AbacatePay |
-| Auto-refund cron | `stripe.refunds.create()` | Manual via dashboard (ou futuro endpoint) |
-
-### Env vars necessarias
-
-```env
-ABACATEPAY_API_KEY=abc_xxx          # chave de API (dev ou prod)
-ABACATEPAY_WEBHOOK_SECRET=xxx       # secret configurado no webhook
-```

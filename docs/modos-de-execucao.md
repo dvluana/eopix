@@ -7,11 +7,7 @@ Este projeto opera com dois flags de ambiente:
 - `MOCK_MODE=true` — Desenvolvimento local, dados mockados
 - `TEST_MODE=true` — Integração com APIs reais, sem pagamento real
 
-E um flag de provider de pagamento:
-
-- `PAYMENT_PROVIDER=stripe|abacatepay` — Determina qual gateway é usado (default: `stripe`)
-
-Se ambos os modos estiverem `false` (ou ausentes), o sistema roda em **modo live** (produção).
+Se ambos os modos estiverem `false` (ou ausentes), o sistema roda em **modo live** (produção) com AbacatePay.
 
 ---
 
@@ -22,7 +18,7 @@ Se ambos os modos estiverem `false` (ou ausentes), o sistema roda em **modo live
 | **APIFull** | Mock (500ms delay) | Real | Real |
 | **Serper** | Mock (700ms delay) | Real | Real |
 | **OpenAI** | Mock (600–800ms delay) | Real | Real |
-| **Pagamento** | Bypass (fake URL) | Bypass (fake URL) | Real checkout (Stripe ou AbacatePay via `PAYMENT_PROVIDER`) |
+| **Pagamento** | Bypass (fake URL) | Bypass (fake URL) | Real checkout (AbacatePay) |
 | **Inngest** | Fallback síncrono | Fallback síncrono | Async real |
 | **Email (Brevo)** | Console.log | Console.log | Envio real |
 | **Rate limit** | Bypassed | Bypassed | Checado por IP |
@@ -43,15 +39,7 @@ export const isBypassMode = isMockMode || isTestMode
 
 - `isMockMode` — Todas as APIs mockadas
 - `isTestMode` — APIs reais, mas pagamento e Inngest em bypass
-- `isBypassMode` — Ativo em ambos; pula pagamento (Stripe/AbacatePay) e usa fallback síncrono Inngest
-
-Provider de pagamento em `src/lib/payment.ts`:
-
-```ts
-export function getPaymentProvider(): 'stripe' | 'abacatepay' {
-  return process.env.PAYMENT_PROVIDER || 'stripe'
-}
-```
+- `isBypassMode` — Ativo em ambos; pula pagamento (AbacatePay) e usa fallback síncrono Inngest
 
 ---
 
@@ -59,18 +47,6 @@ export function getPaymentProvider(): 'stripe' | 'abacatepay' {
 
 ### LIVE (produção)
 
-Provider determinado por `PAYMENT_PROVIDER` env var.
-
-**PAYMENT_PROVIDER=stripe:**
-```
-POST /api/purchases → Stripe checkout real
-  → Webhook /api/webhooks/stripe (checkout.session.completed)
-  → Inngest search/process (async)
-  → APIFull + Serper + OpenAI (reais)
-  → SearchResult persistida → Purchase → COMPLETED
-```
-
-**PAYMENT_PROVIDER=abacatepay:**
 ```
 POST /api/purchases → AbacatePay billing create
   → Webhook /api/webhooks/abacatepay (billing.paid)
@@ -79,18 +55,13 @@ POST /api/purchases → AbacatePay billing create
   → SearchResult persistida → Purchase → COMPLETED
 ```
 
-Eventos Stripe relevantes (quando PAYMENT_PROVIDER=stripe):
-- `checkout.session.completed`
-- `checkout.session.async_payment_succeeded`
-- `checkout.session.async_payment_failed`
-
-Eventos AbacatePay relevantes (quando PAYMENT_PROVIDER=abacatepay):
+Evento relevante:
 - `billing.paid`
 
 ### TEST_MODE (integração com APIs reais)
 
 ```
-POST /api/purchases → bypass pagamento (fake URL, qualquer provider)
+POST /api/purchases → bypass pagamento (fake URL)
   → Admin marca Purchase como PAID
   → POST /api/process-search/[code] (fallback síncrono)
   → APIFull + Serper + OpenAI (reais — consome crédito)
@@ -102,7 +73,7 @@ POST /api/purchases → bypass pagamento (fake URL, qualquer provider)
 ### MOCK_MODE (desenvolvimento local)
 
 ```
-POST /api/purchases → bypass pagamento (fake URL, qualquer provider)
+POST /api/purchases → bypass pagamento (fake URL)
   → Admin marca Purchase como PAID
   → POST /api/process-search/[code] (fallback síncrono)
   → APIFull mock + Serper mock + OpenAI mock (cenários Chuva/Sol)
@@ -181,7 +152,7 @@ Variável de ambiente: `NEXT_PUBLIC_SENTRY_DSN`
 
 | Arquivo | O que captura |
 |---|---|
-| `src/app/api/purchases/route.ts` | Erros de checkout (Stripe ou AbacatePay) |
+| `src/app/api/purchases/route.ts` | Erros de checkout (AbacatePay) |
 | `src/app/api/auth/auto-login/route.ts` | Erros de auto-login |
 | `src/app/global-error.tsx` | Erros não-capturados (global boundary) |
 | `instrumentation.ts` | Erros de request (via `captureRequestError`) |
@@ -238,14 +209,9 @@ MOCK_MODE=true npm run dev
 # test (APIs reais, consome crédito)
 TEST_MODE=true npm run dev
 
-# live local com Stripe (default)
+# live local (AbacatePay)
 MOCK_MODE=false TEST_MODE=false npm run dev
-
-# live local com AbacatePay
-PAYMENT_PROVIDER=abacatepay MOCK_MODE=false TEST_MODE=false npm run dev
 ```
-
-**Nota:** Em MOCK_MODE e TEST_MODE, o `PAYMENT_PROVIDER` é irrelevante — pagamento é bypassado em ambos.
 
 ---
 
@@ -304,9 +270,7 @@ e2e/
 
 ## Checklist Antes de Live
 
-- [ ] `PAYMENT_PROVIDER` definido (`stripe` ou `abacatepay`)
-- [ ] Se Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` configurados
-- [ ] Se AbacatePay: `ABACATEPAY_API_KEY`, `ABACATEPAY_WEBHOOK_SECRET` configurados
+- [ ] `ABACATEPAY_API_KEY`, `ABACATEPAY_WEBHOOK_SECRET` configurados
 - [ ] `INNGEST_EVENT_KEY` e `INNGEST_SIGNING_KEY` configurados
 - [ ] `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY` válidos
 - [ ] `NEXT_PUBLIC_APP_URL` apontando para domínio correto
@@ -323,9 +287,3 @@ e2e/
 - Cartão de teste: `4242 4242 4242 4242`
 - Quando LIVE, usar credenciais reais (`abc_*` sem `_dev_`)
 
-## Credenciais de Teste — Stripe
-
-- Chave `sk_test_*` na `STRIPE_SECRET_KEY` = modo teste
-- Cartão de teste: `4242 4242 4242 4242`
-- Webhooks de teste via Stripe CLI (`stripe listen`)
-- Quando LIVE, usar `sk_live_*`

@@ -1,7 +1,7 @@
 # Arquitetura EOPIX — SaaS de Verificação de Risco CPF/CNPJ
 
 > **Última atualização:** 2026-03-05
-> **Stack:** Next.js 14 · TypeScript · Prisma/Neon · Stripe/AbacatePay · Inngest · OpenAI · APIFull · Serper
+> **Stack:** Next.js 14 · TypeScript · Prisma/Neon · AbacatePay · Inngest · OpenAI · APIFull · Serper
 > **Preço:** R$ 29,90 (one-time purchase)
 
 ---
@@ -10,7 +10,7 @@
 
 EOPIX é uma plataforma SaaS que gera relatórios consolidados de risco fiscal e legal para CPF e CNPJ através de:
 
-1. **Pagamento único via Stripe ou AbacatePay** (configurável via `PAYMENT_PROVIDER`) → Criação de `Purchase` no banco
+1. **Pagamento único via AbacatePay** → Criação de `Purchase` no banco
 2. **Processamento assíncrono via Inngest** → Consulta a APIFull, Serper, OpenAI
 3. **Geração de relatório** → Armazenado em `SearchResult` com TTL de 7 dias
 4. **Display ao usuário** → SSE polling + página dinâmica `/relatorio/[id]`
@@ -18,7 +18,7 @@ EOPIX é uma plataforma SaaS que gera relatórios consolidados de risco fiscal e
 **Modos de execução:**
 - `MOCK_MODE=true`: Dados mockados, pagamento bypassed (desenvolvimento local)
 - `TEST_MODE=true`: APIs reais, pagamento bypassed (testes)
-- Live: Pagamento real (Stripe ou AbacatePay), Inngest real (produção)
+- Live: Pagamento real (AbacatePay), Inngest real (produção)
 
 ---
 
@@ -31,8 +31,8 @@ sequenceDiagram
     participant User as User
     participant Frontend as Frontend
     participant API as POST /api/purchases
-    participant Payment as Payment Provider<br/>(Stripe ou AbacatePay)
-    participant Webhook as Webhook Handler<br/>(stripe ou abacatepay)
+    participant Payment as AbacatePay
+    participant Webhook as Webhook Handler<br/>(/api/webhooks/abacatepay)
     participant Inngest as Inngest<br/>search/process
     participant Cache as Cache (24h)<br/>SearchResult
     participant APIFull as APIFull<br/>(cadastral/processos)
@@ -50,14 +50,7 @@ sequenceDiagram
     API-->>Frontend: { purchaseId, ..., checkout_url? }
     deactivate API
 
-    alt LIVE (Stripe — PAYMENT_PROVIDER=stripe)
-        Frontend->>Payment: Redireciona para<br/>Stripe Checkout
-        activate Payment
-        User->>Payment: Paga R$ 29,90
-        Payment-->>User: ✓ Pagamento confirmado
-        deactivate Payment
-        Payment->>Webhook: POST /api/webhooks/stripe<br/>(checkout.session.completed)
-    else LIVE (AbacatePay — PAYMENT_PROVIDER=abacatepay)
+    alt LIVE
         Frontend->>Payment: Redireciona para<br/>AbacatePay billing
         activate Payment
         User->>Payment: Paga R$ 29,90 (PIX/cartão)
@@ -104,8 +97,7 @@ sequenceDiagram
 ```
 
 **Notas:**
-- Em **LIVE**: Webhook do payment provider (Stripe ou AbacatePay) é a origem da confirmação de pagamento
-- Provider determinado por `PAYMENT_PROVIDER` env var (default: `stripe`)
+- Em **LIVE**: Webhook do AbacatePay (`billing.paid`) é a origem da confirmação de pagamento
 - Em **BYPASS** (MOCK/TEST): Admin marca Purchase como PAID, depois dispara `/api/process-search/[code]`
 - **Cache check**: Se CPF/CNPJ já foi consultado em 24h, reutiliza resultado
 - **TTL**: SearchResult expira em 7 dias (cron cleanup diário)
@@ -129,8 +121,8 @@ graph LR
     end
 
     subgraph "Payment Context"
-        SP["🏪 Payment Provider<br/>(Stripe ou AbacatePay<br/>via PAYMENT_PROVIDER)"]
-        WH["📡 WebhookLog<br/>(Stripe/AbacatePay events)"]
+        SP["🏪 AbacatePay<br/>(PIX/cartão)"]
+        WH["📡 WebhookLog<br/>(billing.paid events)"]
         P -->|triggers| SP
         SP -->|confirms| WH
         WH -->|updates| P
@@ -193,7 +185,7 @@ graph LR
 
 **Bounded Contexts:**
 - **Purchase Context**: Gerenciam pedidos e validações
-- **Payment Context**: Integração Stripe/AbacatePay e webhooks (via `PAYMENT_PROVIDER`)
+- **Payment Context**: Integração AbacatePay e webhooks
 - **Report Pipeline**: Inngest orquestra consultas de dados
 - **Auth Context**: Google OAuth + sessão + magic code + admin
 - **Display & Admin**: SSE polling, relatório, painel administrativo
@@ -209,7 +201,7 @@ Ciclo de vida completo de uma `Purchase`.
 stateDiagram-v2
     [*] --> PENDING: POST /api/purchases<br/>(criada)
 
-    PENDING --> PAID: Payment webhook<br/>(Stripe ou AbacatePay)<br/>OU admin marks paid
+    PENDING --> PAID: AbacatePay webhook<br/>(billing.paid)<br/>OU admin marks paid
 
     PENDING --> [*]: cleanup cron<br/>(>30 min inativo)
 
@@ -221,13 +213,9 @@ stateDiagram-v2
 
     COMPLETED --> [*]: Expiração TTL<br/>(7 dias)
 
-    FAILED --> REFUNDED: Admin manual refund<br/>(via dashboard)
+    FAILED --> REFUNDED: Admin manual refund<br/>(via dashboard AbacatePay)
 
     FAILED --> [*]: Expiração<br/>(permanece no DB)
-
-    REFUNDED --> REFUND_FAILED: Erro em<br/>refund (Stripe only)
-
-    REFUND_FAILED --> [*]: Manual intervention<br/>needed
 
     REFUNDED --> [*]: Refund confirmado
 
@@ -264,11 +252,11 @@ stateDiagram-v2
 ```
 
 **Transições principais:**
-- `PENDING` → `PAID`: Pagamento confirmado (webhook Stripe/AbacatePay ou bypass)
+- `PENDING` → `PAID`: Pagamento confirmado (webhook AbacatePay ou bypass)
 - `PAID` → `PROCESSING`: Inngest inicia orquestração
 - `PROCESSING` → `COMPLETED`: Pipeline sucesso → SearchResult criada
 - `PROCESSING` → `FAILED`: Erro em qualquer etapa
-- `FAILED` → `REFUNDED`: Refund manual pelo admin (Stripe via API, AbacatePay via dashboard)
+- `FAILED` → `REFUNDED`: Refund manual pelo admin (via dashboard AbacatePay)
 - `PENDING` → [*]: Cleanup de pedidos com >30 min inativo (cron)
 
 ---
@@ -355,8 +343,7 @@ npx prisma migrate dev    # Aplicar migrations
 
 ### Backend APIs
 - **`/api/purchases`** — POST: criar compra, GET: listar/stream
-- **`/api/webhooks/stripe`** — POST: receber eventos Stripe
-- **`/api/webhooks/abacatepay`** — POST: receber eventos AbacatePay
+- **`/api/webhooks/abacatepay`** — POST: receber eventos AbacatePay (`billing.paid`)
 - **`/api/process-search/[code]`** — POST: fallback síncrono (MOCK/TEST/INNGEST_DEV)
 - **`/api/auth/**`** — Login (Google), auto-login (magic code)
 
