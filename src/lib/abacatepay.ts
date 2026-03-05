@@ -17,6 +17,7 @@ function getAbacate() {
 
 export interface CreateCheckoutParams {
   email?: string
+  name?: string
   externalRef: string // purchase code
   successUrl: string
   cancelUrl: string
@@ -77,6 +78,7 @@ export async function createCheckout(
     returnUrl: params.cancelUrl,
     completionUrl: params.successUrl,
     customer: {
+      name: params.name || 'Cliente EOPIX',
       email: customerEmail,
     },
   }

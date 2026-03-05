@@ -143,6 +143,27 @@ export function adminFindPurchaseByCode(code: string, adminCookie: string) {
   )
 }
 
+// --- User Auth (Register / Login) ---
+
+interface AuthResponse {
+  success: boolean
+  error?: string
+}
+
+export function registerUser(name: string, email: string, password: string) {
+  return apiCall<AuthResponse>('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, password }),
+  })
+}
+
+export function loginUser(email: string, password: string) {
+  return apiCall<AuthResponse>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
 // --- Admin Login ---
 
 interface AdminLoginResponse {

@@ -90,8 +90,9 @@ export async function POST(request: NextRequest) {
       attempts++
     }
 
-    // Get or create user — email is optional, generates guest placeholder if absent
-    const userEmail = email ? email.toLowerCase() : `guest-${code.toLowerCase()}@guest.eopix.app`
+    // Get user from session (if authenticated) or create guest
+    const session = await getSession()
+    const userEmail = session?.email || (email ? email.toLowerCase() : `guest-${code.toLowerCase()}@guest.eopix.app`)
     let user = await prisma.user.findUnique({
       where: { email: userEmail },
     })
@@ -156,7 +157,8 @@ export async function POST(request: NextRequest) {
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       const { sessionId, checkoutUrl } = await createCheckout({
-        email: email || undefined,
+        email: userEmail,
+        name: user.name || undefined,
         externalRef: code,
         successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
         cancelUrl: `${appUrl}/compra/confirmacao?code=${code}&cancelled=true`,

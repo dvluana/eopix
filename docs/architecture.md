@@ -144,11 +144,11 @@ graph LR
     end
 
     subgraph "Auth Context"
-        G["🔐 Google<br/>Sign-In"]
+        EP["🔐 Email+Senha<br/>(bcrypt)"]
         JWT["🎫 eopix_session<br/>(HMAC-SHA256)"]
         MC["✨ MagicCode<br/>(auto-login)"]
         AU["👨‍💼 AdminUser<br/>(bcrypt)"]
-        G -->|OAuth| JWT
+        EP -->|register/login| JWT
         MC -->|code-based| JWT
         AU -->|password| JWT
     end
@@ -187,7 +187,7 @@ graph LR
 - **Purchase Context**: Gerenciam pedidos e validações
 - **Payment Context**: Integração AbacatePay e webhooks
 - **Report Pipeline**: Inngest orquestra consultas de dados
-- **Auth Context**: Google OAuth + sessão + magic code + admin
+- **Auth Context**: Email+Senha (bcrypt) + sessão + magic code + admin
 - **Display & Admin**: SSE polling, relatório, painel administrativo
 - **Compliance**: LGPD, auditoria, leads
 
@@ -345,7 +345,7 @@ npx prisma migrate dev    # Aplicar migrations
 - **`/api/purchases`** — POST: criar compra, GET: listar/stream
 - **`/api/webhooks/abacatepay`** — POST: receber eventos AbacatePay (`billing.paid`)
 - **`/api/process-search/[code]`** — POST: fallback síncrono (MOCK/TEST/INNGEST_DEV)
-- **`/api/auth/**`** — Login (Google), auto-login (magic code)
+- **`/api/auth/**`** — Register/Login (email+senha), auto-login (magic code)
 
 ### Inngest Jobs
 - **`search/process`** — Main pipeline (check-cache → process-all)

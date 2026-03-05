@@ -11,7 +11,7 @@ Consulta de risco para CPF/CNPJ com compra unitária, processamento assíncrono 
 - IA: OpenAI (`gpt-4o-mini`)
 - Busca web: Serper
 - Dados cadastrais/juridicos/financeiros: APIFull
-- Auth: Google Sign-In + sessao + auto-login por codigo de compra
+- Auth: Email+Senha (bcrypt) + sessao + auto-login por codigo de compra
 
 ## Regras Operacionais
 

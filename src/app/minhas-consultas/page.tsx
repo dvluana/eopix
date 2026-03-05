@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import Footer from '@/components/Footer';
-import GoogleLoginButton from '@/components/GoogleLoginButton';
+import AuthForm from '@/components/AuthForm';
 import { usePurchasePolling } from '@/lib/hooks/use-purchase-polling';
 import { PROCESSING_STEPS } from '@/types/domain';
 import type { Purchase } from '@/types/domain';
@@ -333,10 +333,7 @@ export default function Page() {
     checkSession();
   }, []);
 
-  // ============================================
-  // GOOGLE LOGIN
-  // ============================================
-  const handleGoogleLoginSuccess = async () => {
+  const handleLoginSuccess = async () => {
     setIsAuthenticated(true);
     await fetchPurchases();
   };
@@ -414,11 +411,12 @@ export default function Page() {
               textAlign: 'center',
               margin: '0 0 24px 0'
             }}>
-              Entre com sua conta Google para acessar suas consultas.
+              Entre com sua conta para acessar suas consultas.
             </p>
 
-            <GoogleLoginButton
-              onSuccess={handleGoogleLoginSuccess}
+            <AuthForm
+              mode="login"
+              onSuccess={handleLoginSuccess}
             />
           </div>
         </main>

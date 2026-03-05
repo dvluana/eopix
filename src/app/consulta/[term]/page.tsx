@@ -32,45 +32,118 @@ export default function Page({ params }: PageProps) {
   const documentType = getDocumentType(params.term);
 
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoggedIn, setIsLoggedIn] = React.useState<boolean | null>(null); // null = checking
+  const [authMode, setAuthMode] = React.useState<'register' | 'login'>('register');
+  const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [authError, setAuthError] = React.useState('');
 
-  const handlePurchase = async (e?: React.FormEvent) => {
+  // Check session on mount
+  React.useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+        }
+      } catch {
+        setIsLoggedIn(false);
+      }
+    };
+    checkSession();
+  }, []);
+
+  const createPurchase = async () => {
+    const res = await fetch('/api/purchases', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        term: params.term,
+        termsAccepted: true,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Erro ao criar compra');
+    }
+
+    if (data.checkoutUrl) {
+      window.location.href = data.checkoutUrl;
+    } else {
+      router.push(`/compra/confirmacao?code=${data.code}`);
+    }
+  };
+
+  const handlePurchaseLoggedIn = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    setIsLoading(true);
+    try {
+      await createPurchase();
+    } catch (err) {
+      console.error('Purchase error:', err);
+      alert(err instanceof Error ? err.message : 'Erro ao processar compra. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegisterAndPurchase = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setAuthError('');
+
+    if (authMode === 'register') {
+      if (!name || name.length < 2) {
+        setAuthError('Nome deve ter pelo menos 2 caracteres');
+        return;
+      }
+      if (password.length < 8) {
+        setAuthError('Senha deve ter pelo menos 8 caracteres');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setAuthError('As senhas nao coincidem');
+        return;
+      }
+    }
 
     if (!email) {
-      alert('Por favor, insira seu e-mail');
+      setAuthError('E-mail obrigatorio');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/purchases', {
+      // Step 1: Register or Login
+      const authEndpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+      const authBody = authMode === 'register'
+        ? { name, email, password }
+        : { email, password };
+
+      const authRes = await fetch(authEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          term: params.term,
-          email,
-          termsAccepted: true,
-        }),
+        body: JSON.stringify(authBody),
       });
 
-      const data = await res.json();
+      const authData = await authRes.json();
 
-      if (!res.ok) {
-        alert(data.error || 'Erro ao criar compra');
+      if (!authRes.ok) {
+        setAuthError(authData.error || 'Erro ao processar');
         return;
       }
 
-      // Redireciona para checkout ou confirmação
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
-        router.push(`/compra/confirmacao?code=${data.code}`);
-      }
+      // Step 2: Create purchase (now authenticated)
+      await createPurchase();
     } catch (err) {
       console.error('Purchase error:', err);
-      alert('Erro ao processar compra. Tente novamente.');
+      setAuthError(err instanceof Error ? err.message : 'Erro ao processar compra. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -205,60 +278,235 @@ export default function Page({ params }: PageProps) {
           {/* Lead capture form - apenas em modo manutenção */}
           {isMaintenance && <LeadCaptureForm />}
 
-          {/* Form de compra com email */}
-          <form onSubmit={handlePurchase} style={{ width: '100%' }}>
-            <label
-              htmlFor="email"
-              className="caption"
-              style={{
-                display: 'block',
-                textAlign: 'left',
-                marginBottom: 'var(--primitive-space-2)',
+          {/* Auth + Purchase Form */}
+          {isLoggedIn === null ? (
+            /* Still checking session */
+            <div style={{ padding: '20px 0' }}>
+              <div style={{
+                width: '24px',
+                height: '24px',
+                border: '2px solid var(--color-border-subtle)',
+                borderTopColor: 'var(--primitive-yellow)',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto',
+              }} />
+            </div>
+          ) : isLoggedIn ? (
+            /* Logged in: just the purchase button */
+            <form onSubmit={handlePurchaseLoggedIn} style={{ width: '100%' }}>
+              <button
+                type="submit"
+                disabled={isMaintenance || isLoading}
+                className="btn btn--primary btn--lg"
+                style={{
+                  width: '100%',
+                  fontSize: '18px',
+                  padding: '18px 32px',
+                  marginBottom: 'var(--primitive-space-3)',
+                  opacity: (isMaintenance || isLoading) ? 0.5 : 1,
+                  cursor: (isMaintenance || isLoading) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isLoading ? 'Processando...' : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
+              </button>
+            </form>
+          ) : (
+            /* Not logged in: registration/login form + purchase */
+            <form onSubmit={handleRegisterAndPurchase} style={{ width: '100%' }}>
+              {authError && (
+                <div style={{
+                  color: '#CC3333',
+                  fontSize: '13px',
+                  marginBottom: 'var(--primitive-space-3)',
+                  textAlign: 'center',
+                  fontFamily: 'var(--font-family-body)',
+                }}>
+                  {authError}
+                </div>
+              )}
+
+              {authMode === 'register' && (
+                <>
+                  <label htmlFor="name" className="caption" style={{
+                    display: 'block', textAlign: 'left',
+                    marginBottom: 'var(--primitive-space-1)',
+                    color: 'var(--color-text-secondary)', fontWeight: 600,
+                  }}>
+                    Nome
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    autoComplete="name"
+                    placeholder="Seu nome"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={isMaintenance}
+                    required
+                    minLength={2}
+                    style={{
+                      width: '100%', padding: '14px 16px',
+                      marginBottom: 'var(--primitive-space-3)',
+                      background: 'var(--color-bg-subtle)',
+                      border: '1px solid var(--color-border-default)',
+                      borderRadius: 'var(--primitive-radius-md)',
+                      color: 'var(--color-text-primary)',
+                      fontFamily: 'var(--font-family-body)',
+                      fontSize: '16px', outline: 'none', boxSizing: 'border-box',
+                    }}
+                  />
+                </>
+              )}
+
+              <label htmlFor="email" className="caption" style={{
+                display: 'block', textAlign: 'left',
+                marginBottom: 'var(--primitive-space-1)',
+                color: 'var(--color-text-secondary)', fontWeight: 600,
+              }}>
+                E-mail
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isMaintenance}
+                required
+                style={{
+                  width: '100%', padding: '14px 16px',
+                  marginBottom: 'var(--primitive-space-3)',
+                  background: 'var(--color-bg-subtle)',
+                  border: '1px solid var(--color-border-default)',
+                  borderRadius: 'var(--primitive-radius-md)',
+                  color: 'var(--color-text-primary)',
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '16px', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+
+              <label htmlFor="password" className="caption" style={{
+                display: 'block', textAlign: 'left',
+                marginBottom: 'var(--primitive-space-1)',
+                color: 'var(--color-text-secondary)', fontWeight: 600,
+              }}>
+                Senha
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
+                placeholder={authMode === 'register' ? 'Minimo 8 caracteres' : 'Sua senha'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isMaintenance}
+                required
+                minLength={authMode === 'register' ? 8 : 1}
+                style={{
+                  width: '100%', padding: '14px 16px',
+                  marginBottom: 'var(--primitive-space-3)',
+                  background: 'var(--color-bg-subtle)',
+                  border: '1px solid var(--color-border-default)',
+                  borderRadius: 'var(--primitive-radius-md)',
+                  color: 'var(--color-text-primary)',
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '16px', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+
+              {authMode === 'register' && (
+                <>
+                  <label htmlFor="confirmPassword" className="caption" style={{
+                    display: 'block', textAlign: 'left',
+                    marginBottom: 'var(--primitive-space-1)',
+                    color: 'var(--color-text-secondary)', fontWeight: 600,
+                  }}>
+                    Confirmar Senha
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Repita a senha"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isMaintenance}
+                    required
+                    minLength={8}
+                    style={{
+                      width: '100%', padding: '14px 16px',
+                      marginBottom: 'var(--primitive-space-3)',
+                      background: 'var(--color-bg-subtle)',
+                      border: '1px solid var(--color-border-default)',
+                      borderRadius: 'var(--primitive-radius-md)',
+                      color: 'var(--color-text-primary)',
+                      fontFamily: 'var(--font-family-body)',
+                      fontSize: '16px', outline: 'none', boxSizing: 'border-box',
+                    }}
+                  />
+                </>
+              )}
+
+              <button
+                type="submit"
+                disabled={isMaintenance || isLoading}
+                className="btn btn--primary btn--lg"
+                style={{
+                  width: '100%',
+                  fontSize: '18px',
+                  padding: '18px 32px',
+                  marginBottom: 'var(--primitive-space-3)',
+                  opacity: (isMaintenance || isLoading) ? 0.5 : 1,
+                  cursor: (isMaintenance || isLoading) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isLoading ? 'Processando...' : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
+              </button>
+
+              {/* Toggle between register/login */}
+              <p className="caption" style={{
+                textAlign: 'center',
                 color: 'var(--color-text-secondary)',
-                fontWeight: 600,
-              }}
-            >
-              Insira seu e-mail
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isMaintenance}
-              required
-              style={{
-                width: '100%',
-                padding: '14px 16px',
-                marginBottom: 'var(--primitive-space-4)',
-                background: 'var(--color-bg-subtle)',
-                border: '1px solid var(--color-border-default)',
-                borderRadius: 'var(--primitive-radius-md)',
-                color: 'var(--color-text-primary)',
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '16px',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
-            <button
-              type="submit"
-              disabled={isMaintenance || isLoading}
-              className="btn btn--primary btn--lg"
-              style={{
-                width: '100%',
-                fontSize: '18px',
-                padding: '18px 32px',
-                marginBottom: 'var(--primitive-space-3)',
-                opacity: (isMaintenance || isLoading) ? 0.5 : 1,
-                cursor: (isMaintenance || isLoading) ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {isLoading ? 'Processando...' : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
-            </button>
-          </form>
+                marginTop: 'var(--primitive-space-2)',
+              }}>
+                {authMode === 'register' ? (
+                  <>
+                    Ja possui conta?{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                      style={{
+                        background: 'none', border: 'none',
+                        color: 'var(--color-text-accent)',
+                        textDecoration: 'underline', cursor: 'pointer',
+                        fontFamily: 'inherit', fontSize: 'inherit', padding: 0,
+                      }}
+                    >
+                      Realize o login aqui
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Nao possui conta?{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setAuthMode('register'); setAuthError(''); }}
+                      style={{
+                        background: 'none', border: 'none',
+                        color: 'var(--color-text-accent)',
+                        textDecoration: 'underline', cursor: 'pointer',
+                        fontFamily: 'inherit', fontSize: 'inherit', padding: 0,
+                      }}
+                    >
+                      Cadastre-se
+                    </button>
+                  </>
+                )}
+              </p>
+            </form>
+          )}
 
           {/* Aviso de termos */}
           <p className="caption text-muted" style={{ fontStyle: 'italic', lineHeight: 1.5 }}>
@@ -588,13 +836,14 @@ export default function Page({ params }: PageProps) {
 
           <button
             onClick={() => {
-              // Scroll to email field if empty, otherwise submit
-              if (!email) {
-                document.getElementById('email')?.focus();
-                document.getElementById('email')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
+              if (isLoggedIn) {
+                handlePurchaseLoggedIn();
+              } else {
+                // Scroll to the auth form
+                const firstField = document.getElementById(authMode === 'register' ? 'name' : 'email');
+                firstField?.focus();
+                firstField?.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }
-              handlePurchase();
             }}
             disabled={isLoading}
             className="btn btn--primary btn--lg"
@@ -651,6 +900,14 @@ export default function Page({ params }: PageProps) {
           </p>
         </div>
       </footer>
+
+      {/* CSS for spinner animation */}
+      <style jsx global>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

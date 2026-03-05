@@ -15,6 +15,7 @@ export function getPaymentProvider(): PaymentProvider {
 
 export interface CreateCheckoutParams {
   email?: string
+  name?: string
   externalRef: string
   successUrl: string
   cancelUrl: string

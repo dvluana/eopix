@@ -36,7 +36,9 @@
 - [x] Configurar GitHub Secrets: `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`
 
 ### Auth
-- [ ] Testar Google OAuth com domínio real (localhost OK, produção pendente)
+- [x] Substituir Google OAuth por Email+Senha (bcrypt)
+- [ ] Implementar reset de senha (iteração futura)
+- [ ] Remover `GOOGLE_CLIENT_ID` e `NEXT_PUBLIC_GOOGLE_CLIENT_ID` do Vercel (se configurados)
 
 ---
 

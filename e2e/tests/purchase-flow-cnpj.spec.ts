@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { createPurchase, markPaid, processSearch, adminFindPurchaseByCode, getPurchase } from '../helpers/api-client'
 import { getAdminCookie } from '../helpers/admin-auth'
-import { TEST_CNPJS, TEST_EMAIL } from '../helpers/test-data'
+import { TEST_CNPJS, TEST_EMAIL, TEST_USER } from '../helpers/test-data'
 
 test.describe('Purchase Flow — CNPJ', () => {
   test('CNPJ Sol: full flow from landing to report', async ({ page }) => {
@@ -17,7 +17,11 @@ test.describe('Purchase Flow — CNPJ', () => {
     // 2. Navigate to /consulta/{term}
     await page.waitForURL(`**/consulta/${cnpj}`, { timeout: 10_000 })
 
-    // 3. Click purchase button (no email required)
+    // 3. Fill registration form + click purchase button
+    await page.locator('#name').fill(TEST_USER.name)
+    await page.locator('#email').fill(`cnpj-sol-${Date.now()}@eopix.test`)
+    await page.locator('#password').fill(TEST_USER.password)
+    await page.locator('#confirmPassword').fill(TEST_USER.password)
     await page.locator('button:has-text("DESBLOQUEAR")').first().click()
 
     // 4. Redirect to confirmation

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
-import GoogleLoginButton from '@/components/GoogleLoginButton';
+import AuthForm from '@/components/AuthForm';
 import { PROCESSING_STEPS } from '@/types/domain';
 
 type PageState =
@@ -281,7 +281,7 @@ function ConfirmacaoContent() {
               </span>
             </div>
 
-            {/* Botão ou Google Login fallback */}
+            {/* Botão ou Login fallback */}
             {autoLoginFailed ? (
               <div style={{ marginTop: 'var(--primitive-space-6)' }}>
                 <p style={{
@@ -292,7 +292,8 @@ function ConfirmacaoContent() {
                 }}>
                   Para acompanhar seu relatorio, faca login:
                 </p>
-                <GoogleLoginButton
+                <AuthForm
+                  mode="login"
                   onSuccess={handleGoToConsultas}
                 />
               </div>

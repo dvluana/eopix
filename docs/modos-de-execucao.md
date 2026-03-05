@@ -188,7 +188,8 @@ Variável de ambiente: `NEXT_PUBLIC_SENTRY_DSN`
 
 ## Auth Atual
 
-- Login principal: Google Sign-In (`/api/auth/google`)
+- Registro: Email + Senha (`/api/auth/register`) — bcrypt hash, Zod validation
+- Login: Email + Senha (`/api/auth/login`) — bcrypt compare
 - Sessão por cookie (`eopix_session`, HMAC-SHA256)
 - Auto-login por código de compra: `/api/auth/auto-login`
 - Admin: bcrypt password (`/api/admin/login`)

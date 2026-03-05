@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { createPurchase, markPaid, processSearch, adminFindPurchaseByCode, getPurchase } from '../helpers/api-client'
 import { getAdminCookie } from '../helpers/admin-auth'
-import { TEST_CPFS, TEST_EMAIL } from '../helpers/test-data'
+import { TEST_CPFS, TEST_EMAIL, TEST_USER } from '../helpers/test-data'
 
 test.describe('Purchase Flow — CPF', () => {
   test.describe.configure({ mode: 'serial' })
@@ -19,7 +19,11 @@ test.describe('Purchase Flow — CPF', () => {
     // 2. Should navigate to /consulta/{term}
     await page.waitForURL(`**/consulta/${cpf}`, { timeout: 10_000 })
 
-    // 3. Click purchase button (no email required)
+    // 3. Fill registration form + click purchase button
+    await page.locator('#name').fill(TEST_USER.name)
+    await page.locator('#email').fill(`cpf-sol-${Date.now()}@eopix.test`)
+    await page.locator('#password').fill(TEST_USER.password)
+    await page.locator('#confirmPassword').fill(TEST_USER.password)
     await page.locator('button:has-text("DESBLOQUEAR")').first().click()
 
     // 4. Should redirect to /compra/confirmacao?code=XXX

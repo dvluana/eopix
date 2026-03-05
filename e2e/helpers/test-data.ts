@@ -19,6 +19,12 @@ export const TEST_CNPJS = {
 
 export const TEST_EMAIL = 'e2e-test@eopix.test'
 
+export const TEST_USER = {
+  name: 'E2E Test User',
+  email: 'e2e-test@eopix.test',
+  password: 'E2eTestPass!2026',
+} as const
+
 export const ADMIN_CREDENTIALS = {
   email: 'e2e-admin@eopix.test',
   password: 'E2eAdminPass!2026',
