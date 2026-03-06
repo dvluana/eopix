@@ -78,8 +78,6 @@ function getFailureMessage(reason: string | null): string {
 function getRefundMessage(reason: string | null): string {
   const messages: Record<string, string> = {
     MANUAL_ADMIN: 'Reembolso manual (admin)',
-    AUTO_FAILED_PAYMENT: 'Reembolso automático (falha)',
-    AUTO_TIMEOUT: 'Reembolso automático (timeout)',
   }
   return reason ? (messages[reason] || reason) : 'Motivo não registrado'
 }
@@ -615,17 +613,18 @@ export default function ComprasPage() {
       <Dialog open={!!refundPurchase} onOpenChange={() => setRefundPurchase(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar Reembolso</DialogTitle>
+            <DialogTitle>Reembolso</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja reembolsar a compra {refundPurchase?.code}?
-              <br />
-              Valor: {refundPurchase ? formatCurrency(refundPurchase.amount) : ''}
+              Compra {refundPurchase?.code} — {refundPurchase ? formatCurrency(refundPurchase.amount) : ''}
+              <br /><br />
+              Reembolsos devem ser feitos diretamente pelo dashboard do AbacatePay.
+              Após processar o reembolso lá, atualize o status aqui.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRefundPurchase(null)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setRefundPurchase(null)}>Fechar</Button>
             <Button variant="destructive" onClick={handleRefund} disabled={refundLoading}>
-              {refundLoading ? 'Processando...' : 'Confirmar Reembolso'}
+              {refundLoading ? 'Processando...' : 'Marcar como Reembolsado'}
             </Button>
           </DialogFooter>
         </DialogContent>

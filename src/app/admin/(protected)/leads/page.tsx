@@ -4,14 +4,8 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { RefreshCw, Download } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { RefreshCw, Download, Search } from 'lucide-react'
 import { AdminError } from '../../_components/AdminError'
 import { formatDate } from '../../_components/admin-utils'
 
@@ -74,14 +68,21 @@ export default function LeadsPage() {
   const handleExport = () => {
     if (!data?.leads.length) return
 
+    const escapeCSV = (val: string) => {
+      if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+        return `"${val.replace(/"/g, '""')}"`
+      }
+      return val
+    }
+
     const csv = [
       ['Email', 'Documento', 'Motivo', 'Data'].join(','),
       ...data.leads.map((lead) =>
         [
-          lead.email,
-          lead.term || '',
-          reasonLabels[lead.reason] || lead.reason,
-          formatDate(lead.createdAt),
+          escapeCSV(lead.email),
+          escapeCSV(lead.term || ''),
+          escapeCSV(reasonLabels[lead.reason] || lead.reason),
+          escapeCSV(formatDate(lead.createdAt)),
         ].join(',')
       ),
     ].join('\n')
@@ -149,18 +150,17 @@ export default function LeadsPage() {
       {/* Filters */}
       <Card style={{ marginBottom: '16px' }}>
         <CardContent style={{ paddingTop: '16px' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <Select value={reasonFilter} onValueChange={(v) => { setReasonFilter(v); setPage(1); }}>
-              <SelectTrigger style={{ width: '200px' }}>
-                <SelectValue placeholder="Filtrar por motivo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os motivos</SelectItem>
-                <SelectItem value="API_DOWN">API Indisponivel</SelectItem>
-                <SelectItem value="MAINTENANCE">Manutencao</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <form onSubmit={(e) => { e.preventDefault(); setPage(1); fetchData(); }} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Input
+              value={reasonFilter === 'all' ? '' : reasonFilter}
+              onChange={(e) => setReasonFilter(e.target.value || 'all')}
+              placeholder="Filtrar por motivo (ex: API_DOWN)"
+              style={{ width: '280px' }}
+            />
+            <Button type="submit" variant="secondary" size="sm">
+              <Search size={16} />
+            </Button>
+          </form>
         </CardContent>
       </Card>
 

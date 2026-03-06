@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isValidCPF, isValidCNPJ, cleanDocument, formatDocument } from '@/lib/validators'
 import { requireAdmin } from '@/lib/auth'
+import { z } from 'zod'
 
-interface AddBlocklistRequest {
-  term: string
-  associatedName?: string
-  reason: 'SOLICITACAO_TITULAR' | 'JUDICIAL' | 'HOMONIMO'
-}
+const addBlocklistSchema = z.object({
+  term: z.string().min(1, 'Documento obrigatorio'),
+  associatedName: z.string().optional(),
+  reason: z.enum(['SOLICITACAO_TITULAR', 'JUDICIAL', 'HOMONIMO'], {
+    error: 'Motivo invalido',
+  }),
+})
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdmin(request)
@@ -68,22 +71,13 @@ export async function POST(request: NextRequest) {
   if (authResult instanceof NextResponse) return authResult
 
   try {
-    const body = await request.json() as AddBlocklistRequest
-    const { term, associatedName, reason } = body
-
-    if (!term) {
-      return NextResponse.json(
-        { error: 'Documento obrigatorio' },
-        { status: 400 }
-      )
+    const body = await request.json()
+    const parsed = addBlocklistSchema.safeParse(body)
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message || 'Dados invalidos'
+      return NextResponse.json({ error: msg }, { status: 400 })
     }
-
-    if (!reason || !['SOLICITACAO_TITULAR', 'JUDICIAL', 'HOMONIMO'].includes(reason)) {
-      return NextResponse.json(
-        { error: 'Motivo invalido' },
-        { status: 400 }
-      )
-    }
+    const { term, associatedName, reason } = parsed.data
 
     const cleanedTerm = cleanDocument(term)
 

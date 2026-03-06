@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
-
-const PROCESSING_STEPS = [
-  { step: 1, label: 'Dados cadastrais' },
-  { step: 2, label: 'Dados financeiros' },
-  { step: 3, label: 'Processos judiciais' },
-  { step: 4, label: 'Menções na web' },
-  { step: 5, label: 'Gerando resumo' },
-  { step: 6, label: 'Finalizando' },
-]
+import { PROCESSING_STEPS } from '@/types/domain'
 
 interface RouteParams {
   params: Promise<{ id: string }>
