@@ -6,9 +6,10 @@
  *
  * 1. Cria branch Neon com compute endpoint (retorna connection_uri)
  * 2. Roda: npx prisma migrate deploy na branch
- * 3. Sobe dev server na porta 3001 com DATABASE_URL da branch
- * 4. Executa Playwright
- * 5. Branch se deleta sozinha pelo TTL (ou cleanup CI)
+ * 3. Build Next.js (produção — rápido no CI vs dev mode)
+ * 4. Sobe servidor na porta 3001 com DATABASE_URL da branch
+ * 5. Executa Playwright
+ * 6. Branch se deleta sozinha pelo TTL (ou cleanup CI)
  */
 
 import { execSync, spawn } from 'child_process'
@@ -53,17 +54,26 @@ async function main() {
     })
     console.log(`✓ Migrations executadas`)
 
-    // 3. Subir servidor de teste (porta 3001)
-    console.log(`\n3️⃣  Subindo servidor Next.js na porta 3001...`)
+    // 3. Build Next.js (produção — muito mais rápido que dev mode no CI)
+    console.log(`\n3️⃣  Fazendo build Next.js...`)
+    execSync('npm run build', {
+      env: { ...process.env, DATABASE_URL: connectionString, DIRECT_URL: connectionString },
+      stdio: 'inherit',
+      cwd: process.cwd()
+    })
+    console.log(`✓ Build concluído`)
+
+    // 4. Subir servidor production (porta 3001)
+    console.log(`\n4️⃣  Subindo servidor Next.js (production) na porta 3001...`)
     serverProcess = await startTestServer(connectionString, 3001)
     console.log(`✓ Servidor rodando em http://localhost:3001`)
 
-    // Wait for server to be ready (120s for CI cold start)
-    await waitForServer('http://localhost:3001', 120000)
+    // Wait for server to be ready (30s — production start is fast)
+    await waitForServer('http://localhost:3001', 30000)
     console.log(`✓ Servidor pronto`)
 
-    // 4. Rodar Playwright
-    console.log(`\n4️⃣  Executando testes Playwright...`)
+    // 5. Rodar Playwright
+    console.log(`\n5️⃣  Executando testes Playwright...`)
     execSync('npx playwright test --config e2e/playwright.config.ts', {
       env: {
         ...process.env,
@@ -144,7 +154,7 @@ async function createNeonBranch(
  */
 function startTestServer(databaseUrl: string, port: number): Promise<any> {
   return new Promise((resolve, reject) => {
-    const server = spawn('npm', ['run', 'dev'], {
+    const server = spawn('npm', ['start'], {
       env: {
         ...process.env,
         DATABASE_URL: databaseUrl,
@@ -160,7 +170,7 @@ function startTestServer(databaseUrl: string, port: number): Promise<any> {
     server.stdout?.on('data', (data) => {
       const message = data.toString()
       console.log(message)
-      if (message.includes('Ready in') || message.includes('compiled')) {
+      if (message.includes('Ready in') || message.includes('started server') || message.includes('Listening on')) {
         resolve(server)
       }
     })

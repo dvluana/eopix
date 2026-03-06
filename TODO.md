@@ -34,6 +34,9 @@
 
 ### CI/CD
 - [x] Configurar GitHub Secrets: `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY`
+- [x] Fix Neon API v2 URL + compute endpoint + connection_uri em `test-with-branch.ts`
+- [x] Fix DIRECT_URL para prisma migrate deploy no CI
+- [x] CI E2E: trocar `npm run dev` por `npm run build && npm start` em `startTestServer()` — dev mode trava no GitHub Actions runner
 
 ### Auth
 - [x] Substituir Google OAuth por Email+Senha (bcrypt)
