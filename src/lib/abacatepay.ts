@@ -48,9 +48,12 @@ export async function createCheckout(
     }
   }
 
+  const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
+
   console.log('[AbacatePay] Creating billing:', {
     email: params.email,
     externalRef: params.externalRef,
+    priceCents,
   })
 
   // Customer email — use provided email or a placeholder (AbacatePay checkout collects real email)
@@ -68,8 +71,10 @@ export async function createCheckout(
     methods: ['PIX'],
     products: [
       {
-        id: process.env.ABACATEPAY_PRODUCT_ID,
+        externalId: 'relatorio-risco',
+        name: 'Relatório de Risco CPF/CNPJ',
         quantity: 1,
+        price: priceCents,
       },
     ],
     externalId: params.externalRef,
