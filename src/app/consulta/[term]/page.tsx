@@ -97,6 +97,8 @@ export default function Page({ params }: PageProps) {
         termsAccepted: true,
         cellphone: cellphone.replace(/\D/g, ''),
         buyerTaxId: buyerTaxId.replace(/\D/g, ''),
+        name,
+        email,
       }),
     });
 

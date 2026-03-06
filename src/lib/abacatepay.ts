@@ -15,6 +15,30 @@ function getAbacate() {
   return abacateInstance
 }
 
+function formatTaxIdForAbacatePay(taxId?: string): string | undefined {
+  if (!taxId) return undefined
+  const clean = taxId.replace(/\D/g, '')
+  if (clean.length === 11) {
+    return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  }
+  if (clean.length === 14) {
+    return clean.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+  }
+  return taxId
+}
+
+function formatCellphoneForAbacatePay(phone?: string): string | undefined {
+  if (!phone) return undefined
+  const clean = phone.replace(/\D/g, '')
+  if (clean.length === 11) {
+    return clean.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+  }
+  if (clean.length === 10) {
+    return clean.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+  }
+  return phone
+}
+
 export interface CreateCheckoutParams {
   email?: string
   name?: string
@@ -52,6 +76,9 @@ export async function createCheckout(
 
   console.log('[AbacatePay] Creating billing:', {
     email: params.email,
+    name: params.name,
+    cellphone: params.cellphone,
+    taxId: params.taxId,
     externalRef: params.externalRef,
     priceCents,
   })
@@ -82,9 +109,9 @@ export async function createCheckout(
     completionUrl: params.successUrl,
     customer: {
       name: params.name || 'Cliente EOPIX',
-      cellphone: params.cellphone || '11999999999',
+      cellphone: formatCellphoneForAbacatePay(params.cellphone) || '(11) 99999-9999',
       email: customerEmail,
-      taxId: params.taxId || '00000000000',
+      taxId: formatTaxIdForAbacatePay(params.taxId) || '000.000.000-00',
     },
   }
 

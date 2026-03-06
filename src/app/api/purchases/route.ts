@@ -10,6 +10,7 @@ import { isBypassMode, isBypassPayment } from '@/lib/mock-mode'
 interface CreatePurchaseRequest {
   term: string
   email?: string
+  name?: string
   cellphone?: string
   buyerTaxId?: string
   termsAccepted: boolean
@@ -27,7 +28,7 @@ function generateCode(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as CreatePurchaseRequest
-    const { term, email, cellphone, buyerTaxId, termsAccepted } = body
+    const { term, email, name, cellphone, buyerTaxId, termsAccepted } = body
 
     // Validate inputs
     if (!term || !termsAccepted) {
@@ -141,7 +142,12 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       user = await prisma.user.create({
-        data: { email: userEmail },
+        data: { email: userEmail, name: name || undefined },
+      })
+    } else if (name && !user.name) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { name },
       })
     }
 
@@ -200,7 +206,7 @@ export async function POST(request: NextRequest) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       const { sessionId, checkoutUrl } = await createCheckout({
         email: userEmail,
-        name: user.name || undefined,
+        name: name || user.name || undefined,
         cellphone: cleanedCellphone,
         taxId: cleanedBuyerTaxId,
         externalRef: code,
