@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { isMockMode, isTestMode } from '@/lib/mock-mode'
-import { getPaymentProvider, getProviderDisplayName } from '@/lib/payment'
+import { getProviderDisplayName } from '@/lib/payment'
 
 interface BalanceInfo {
   current: number | string
@@ -86,15 +86,14 @@ function getMode(): 'mock' | 'test' | 'live' {
 export async function GET() {
   const mode = getMode()
 
-  const provider = getPaymentProvider()
-  const providerName = getProviderDisplayName(provider)
+  const providerName = getProviderDisplayName()
 
   // In mock mode, always return healthy with simulated data
   if (mode === 'mock') {
     return NextResponse.json({
       status: 'healthy',
       mode: 'mock',
-      paymentProvider: provider,
+      paymentProvider: 'abacatepay',
       timestamp: new Date().toISOString(),
       services: [
         { service: 'database', status: 'up', latency: 10 },
@@ -184,7 +183,7 @@ export async function GET() {
   return NextResponse.json({
     status: anyDown ? 'unhealthy' : allUp ? 'healthy' : 'degraded',
     mode,
-    paymentProvider: provider,
+    paymentProvider: 'abacatepay',
     timestamp: new Date().toISOString(),
     services: results,
   })

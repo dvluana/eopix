@@ -1,16 +1,11 @@
 /**
- * Payment provider abstraction layer.
- * Delegates to Stripe or AbacatePay based on PAYMENT_PROVIDER env var.
+ * Payment provider layer — AbacatePay only.
  */
 
-export type PaymentProvider = 'stripe' | 'abacatepay'
+export type PaymentProvider = 'abacatepay'
 
 export function getPaymentProvider(): PaymentProvider {
-  const provider = process.env.PAYMENT_PROVIDER || 'abacatepay'
-  if (provider !== 'stripe' && provider !== 'abacatepay') {
-    throw new Error(`Invalid PAYMENT_PROVIDER: ${provider}. Must be "stripe" or "abacatepay"`)
-  }
-  return provider
+  return 'abacatepay'
 }
 
 export interface CreateCheckoutParams {
@@ -37,33 +32,17 @@ export interface RefundResponse {
 export async function createCheckout(
   params: CreateCheckoutParams
 ): Promise<CheckoutResponse> {
-  const provider = getPaymentProvider()
-
-  if (provider === 'abacatepay') {
-    const { createCheckout: abacateCheckout } = await import('./abacatepay')
-    return abacateCheckout(params)
-  }
-
-  const { createCheckoutSession } = await import('./stripe')
-  return createCheckoutSession(params)
+  const { createCheckout: abacateCheckout } = await import('./abacatepay')
+  return abacateCheckout(params)
 }
 
 export async function processRefund(
   externalId: string,
-  provider?: PaymentProvider
 ): Promise<RefundResponse> {
-  const effectiveProvider = provider || getPaymentProvider()
-
-  if (effectiveProvider === 'abacatepay') {
-    const { processRefund: abacateRefund } = await import('./abacatepay')
-    return abacateRefund(externalId)
-  }
-
-  const { refundPayment } = await import('./stripe')
-  return refundPayment(externalId)
+  const { processRefund: abacateRefund } = await import('./abacatepay')
+  return abacateRefund(externalId)
 }
 
-export function getProviderDisplayName(provider?: PaymentProvider): string {
-  const p = provider || getPaymentProvider()
-  return p === 'abacatepay' ? 'AbacatePay' : 'Stripe'
+export function getProviderDisplayName(): string {
+  return 'AbacatePay'
 }

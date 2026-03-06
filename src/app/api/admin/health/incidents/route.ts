@@ -19,9 +19,9 @@ if (isMockMode && incidents.length === 0) {
   incidents.push(
     {
       id: 'inc_1',
-      service: 'stripe',
+      service: 'abacatepay',
       status: 'resolved',
-      message: 'Lentidao temporaria na API Stripe',
+      message: 'Lentidao temporaria na API AbacatePay',
       startedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
       resolvedAt: new Date(Date.now() - 47 * 60 * 60 * 1000),
     },
