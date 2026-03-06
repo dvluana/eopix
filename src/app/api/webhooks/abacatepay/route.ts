@@ -14,6 +14,7 @@ interface AbacateBillingPaidEvent {
     }
     billing: {
       id: string
+      externalId?: string
       amount: number
       status: string
       frequency: string
@@ -75,8 +76,8 @@ export async function POST(request: NextRequest) {
 
     if (event.event === 'billing.paid') {
       const billing = event.data.billing
-      // externalId on the product is the purchase code
-      const purchaseCode = billing.products[0]?.externalId
+      // Purchase code: billing-level externalId (new), fallback to product externalId (legacy)
+      const purchaseCode = billing.externalId || billing.products[0]?.externalId
 
       if (!purchaseCode) {
         console.warn('[AbacatePay Webhook] No externalId in products')
