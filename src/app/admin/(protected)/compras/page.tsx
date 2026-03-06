@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/dialog'
 import { RefreshCw, Search, Undo2, CheckCircle2, Play, MoreVertical, Eye, FileText, Ban } from 'lucide-react'
 import { useToast } from '../../_components/Toast'
+import { StatusBadge } from '../../_components/StatusBadge'
+import { formatCurrency, formatDate } from '../../_components/admin-utils'
 
 interface Purchase {
   id: string
@@ -63,24 +65,6 @@ interface PurchaseDetails {
   processingLogs: ProcessingLog[]
 }
 
-function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(cents / 100)
-}
-
-function formatDate(dateString: string | null): string {
-  if (!dateString) return '-'
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(dateString))
-}
-
 function getFailureMessage(reason: string | null): string {
   const messages: Record<string, string> = {
     PAYMENT_RISK: 'Reprovado por análise de risco',
@@ -98,21 +82,6 @@ function getRefundMessage(reason: string | null): string {
     AUTO_TIMEOUT: 'Reembolso automático (timeout)',
   }
   return reason ? (messages[reason] || reason) : 'Motivo não registrado'
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
-    COMPLETED: { variant: 'default', label: 'Concluido' },
-    PROCESSING: { variant: 'secondary', label: 'Processando' },
-    PAID: { variant: 'secondary', label: 'Pago' },
-    PENDING: { variant: 'outline', label: 'Pendente' },
-    FAILED: { variant: 'destructive', label: 'Falhou' },
-    REFUNDED: { variant: 'destructive', label: 'Reembolsado' },
-    REFUND_FAILED: { variant: 'destructive', label: 'Reembolso Falhou' },
-  }
-
-  const { variant, label } = config[status] || { variant: 'outline' as const, label: status }
-  return <Badge variant={variant}>{label}</Badge>
 }
 
 export default function ComprasPage() {

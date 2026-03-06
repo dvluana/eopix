@@ -12,6 +12,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RefreshCw, Download } from 'lucide-react'
+import { AdminError } from '../../_components/AdminError'
+import { formatDate } from '../../_components/admin-utils'
 
 interface Lead {
   id: string
@@ -36,19 +38,10 @@ const reasonLabels: Record<string, string> = {
   MAINTENANCE: 'Manutencao',
 }
 
-function formatDate(dateString: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(dateString))
-}
-
 export default function LeadsPage() {
   const [data, setData] = React.useState<LeadsData | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const [reasonFilter, setReasonFilter] = React.useState('all')
   const [page, setPage] = React.useState(1)
 
@@ -65,7 +58,9 @@ export default function LeadsPage() {
       if (!res.ok) throw new Error('Erro ao carregar dados')
       const json = await res.json()
       setData(json)
+      setError(null)
     } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados')
       console.error('Error fetching leads:', err)
     } finally {
       setLoading(false)
@@ -100,6 +95,21 @@ export default function LeadsPage() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+  }
+
+  if (error && !data) {
+    return (
+      <div>
+        {/* keep the header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <div>
+            <h1 style={{ fontFamily: 'var(--font-family-heading)', fontSize: '28px', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>Leads</h1>
+            <p style={{ fontFamily: 'var(--font-family-body)', fontSize: '14px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>Leads capturados durante indisponibilidades</p>
+          </div>
+        </div>
+        <AdminError message={error} onRetry={fetchData} />
+      </div>
+    )
   }
 
   return (

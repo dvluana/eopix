@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import {
   DollarSign,
   ShoppingCart,
@@ -13,6 +12,9 @@ import {
   XCircle,
   RefreshCw,
 } from 'lucide-react'
+import { StatusBadge } from '../_components/StatusBadge'
+import { formatCurrency, formatDate } from '../_components/admin-utils'
+import { AdminError } from '../_components/AdminError'
 
 interface DashboardData {
   purchases: {
@@ -55,37 +57,6 @@ interface DashboardData {
   }>
 }
 
-function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(cents / 100)
-}
-
-function formatDate(dateString: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(dateString))
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
-    COMPLETED: { variant: 'default', label: 'Concluido' },
-    PROCESSING: { variant: 'secondary', label: 'Processando' },
-    PAID: { variant: 'secondary', label: 'Pago' },
-    PENDING: { variant: 'outline', label: 'Pendente' },
-    FAILED: { variant: 'destructive', label: 'Falhou' },
-    REFUNDED: { variant: 'destructive', label: 'Reembolsado' },
-  }
-
-  const { variant, label } = config[status] || { variant: 'outline' as const, label: status }
-
-  return <Badge variant={variant}>{label}</Badge>
-}
-
 export default function AdminDashboard() {
   const [data, setData] = React.useState<DashboardData | null>(null)
   const [loading, setLoading] = React.useState(true)
@@ -119,13 +90,7 @@ export default function AdminDashboard() {
   }
 
   if (error) {
-    return (
-      <div style={{ textAlign: 'center', padding: '40px' }}>
-        <XCircle size={48} style={{ color: 'var(--color-text-tertiary)', marginBottom: '16px' }} />
-        <p style={{ color: 'var(--color-text-secondary)' }}>{error}</p>
-        <button onClick={fetchData} style={{ marginTop: '16px' }}>Tentar novamente</button>
-      </div>
-    )
+    return <AdminError message={error} onRetry={fetchData} />
   }
 
   if (!data) return null

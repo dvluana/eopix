@@ -11,6 +11,8 @@ import {
   RefreshCw,
   Activity,
 } from 'lucide-react'
+import { AdminError } from '../../_components/AdminError'
+import { formatDate } from '../../_components/admin-utils'
 
 interface HealthService {
   service: string
@@ -77,20 +79,11 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant={variant}>{label}</Badge>
 }
 
-function formatDate(dateString: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(dateString))
-}
-
 export default function HealthPage() {
   const [health, setHealth] = React.useState<HealthData | null>(null)
   const [incidents, setIncidents] = React.useState<IncidentsData | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
 
   const fetchData = React.useCallback(async () => {
     try {
@@ -108,7 +101,10 @@ export default function HealthPage() {
       if (incidentsRes.ok) {
         setIncidents(await incidentsRes.json())
       }
+
+      setError(null)
     } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados')
       console.error('Error fetching health data:', err)
     } finally {
       setLoading(false)
@@ -129,6 +125,10 @@ export default function HealthPage() {
         <RefreshCw className="animate-spin" size={32} />
       </div>
     )
+  }
+
+  if (error) {
+    return <AdminError message={error} onRetry={fetchData} />
   }
 
   return (

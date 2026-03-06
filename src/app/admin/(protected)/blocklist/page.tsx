@@ -24,6 +24,8 @@ import {
 } from '@/components/ui/dialog'
 import { Plus, Trash2, RefreshCw, Search } from 'lucide-react'
 import { useToast } from '../../_components/Toast'
+import { AdminError } from '../../_components/AdminError'
+import { formatDateShort } from '../../_components/admin-utils'
 
 interface BlocklistItem {
   id: string
@@ -49,18 +51,11 @@ const reasonLabels: Record<string, string> = {
   HOMONIMO: 'Homonimo',
 }
 
-function formatDate(dateString: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(dateString))
-}
-
 export default function BlocklistPage() {
   const { toast } = useToast()
   const [data, setData] = React.useState<BlocklistData | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const [searchQuery, setSearchQuery] = React.useState('')
   const [page, setPage] = React.useState(1)
   const [deleteItem, setDeleteItem] = React.useState<BlocklistItem | null>(null)
@@ -86,7 +81,9 @@ export default function BlocklistPage() {
       if (!res.ok) throw new Error('Erro ao carregar dados')
       const json = await res.json()
       setData(json)
+      setError(null)
     } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados')
       console.error('Error fetching blocklist:', err)
     } finally {
       setLoading(false)
@@ -166,6 +163,21 @@ export default function BlocklistPage() {
     } finally {
       setDeleteLoading(false)
     }
+  }
+
+  if (error && !data) {
+    return (
+      <div>
+        {/* keep the header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <div>
+            <h1 style={{ fontFamily: 'var(--font-family-heading)', fontSize: '28px', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>Blocklist</h1>
+            <p style={{ fontFamily: 'var(--font-family-body)', fontSize: '14px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>Documentos bloqueados para consulta</p>
+          </div>
+        </div>
+        <AdminError message={error} onRetry={fetchData} />
+      </div>
+    )
   }
 
   return (
@@ -300,7 +312,7 @@ export default function BlocklistPage() {
                       <td style={{ padding: '12px 8px' }}>
                         <Badge variant="secondary">{reasonLabels[item.reason] || item.reason}</Badge>
                       </td>
-                      <td style={{ padding: '12px 8px', fontSize: '13px' }}>{formatDate(item.createdAt)}</td>
+                      <td style={{ padding: '12px 8px', fontSize: '13px' }}>{formatDateShort(item.createdAt)}</td>
                       <td style={{ padding: '12px 8px', textAlign: 'right' }}>
                         <Button
                           variant="ghost"
