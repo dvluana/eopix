@@ -26,7 +26,7 @@ interface HealthService {
 
 interface HealthData {
   status: 'healthy' | 'unhealthy' | 'degraded'
-  mode: 'mock' | 'live'
+  mode: 'mock' | 'test' | 'live'
   timestamp: string
   services: HealthService[]
 }
