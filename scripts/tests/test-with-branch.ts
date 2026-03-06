@@ -62,8 +62,8 @@ async function main() {
     serverProcess = await startTestServer(connectionString, 3001)
     console.log(`✓ Servidor rodando em http://localhost:3001`)
 
-    // Wait for server to be ready
-    await waitForServer('http://localhost:3001', 30000)
+    // Wait for server to be ready (120s for CI cold start)
+    await waitForServer('http://localhost:3001', 120000)
     console.log(`✓ Servidor pronto`)
 
     // 5. Rodar Playwright
@@ -170,8 +170,8 @@ function startTestServer(databaseUrl: string, port: number): Promise<any> {
         ...process.env,
         DATABASE_URL: databaseUrl,
         PORT: port.toString(),
-        MOCK_MODE: 'false',
-        TEST_MODE: 'true'
+        MOCK_MODE: process.env.MOCK_MODE || 'false',
+        TEST_MODE: process.env.TEST_MODE || 'true',
       },
       stdio: 'pipe',
       cwd: process.cwd()
@@ -210,7 +210,7 @@ async function waitForServer(url: string, timeoutMs: number): Promise<void> {
 
   while (Date.now() - startTime < timeoutMs) {
     try {
-      const response = await fetch(url, { timeout: 5000 })
+      const response = await fetch(url, { signal: AbortSignal.timeout(5000) })
       if (response.ok) return
     } catch (e) {
       // Ignore

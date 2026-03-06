@@ -40,16 +40,22 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          DIRECT_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
 
-      - name: Run E2E tests (MOCK mode)
-        run: npm run test:e2e:mock
+      - name: Run E2E tests (MOCK mode with Neon branch)
+        run: npm run test:e2e
         env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ env.NEON_PROJECT_ID }}
           MOCK_MODE: 'true'
           JWT_SECRET: e2e-test-secret-not-for-production
           ADMIN_EMAILS: e2e-admin@eopix.test
+          CI: 'true'
 
       - name: Upload Playwright report
         if: failure()
@@ -81,6 +87,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          DIRECT_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
