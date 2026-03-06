@@ -142,13 +142,41 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       user = await prisma.user.create({
-        data: { email: userEmail, name: name || undefined },
+        data: { email: userEmail, name: name || undefined, cellphone: cleanedCellphone || undefined },
       })
-    } else if (name && !user.name) {
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: { name },
-      })
+    } else {
+      // Update name/cellphone if provided and missing
+      const updates: { name?: string; cellphone?: string } = {}
+      if (name && !user.name) updates.name = name
+      if (cleanedCellphone && !user.cellphone) updates.cellphone = cleanedCellphone
+      if (Object.keys(updates).length > 0) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: updates,
+        })
+      }
+    }
+
+    // For logged-in users: fill missing checkout data from stored profile/history
+    let checkoutCellphone = cleanedCellphone
+    let checkoutBuyerTaxId = cleanedBuyerTaxId
+
+    if (session && (!checkoutCellphone || !checkoutBuyerTaxId)) {
+      // Use stored cellphone from User profile
+      if (!checkoutCellphone && user.cellphone) {
+        checkoutCellphone = user.cellphone
+      }
+      // Use buyer tax ID from most recent completed purchase
+      if (!checkoutBuyerTaxId) {
+        const lastPurchase = await prisma.purchase.findFirst({
+          where: { userId: user.id, status: 'COMPLETED', buyerCpfCnpj: { not: null } },
+          orderBy: { createdAt: 'desc' },
+          select: { buyerCpfCnpj: true },
+        })
+        if (lastPurchase?.buyerCpfCnpj) {
+          checkoutBuyerTaxId = lastPurchase.buyerCpfCnpj
+        }
+      }
     }
 
     // Get price from env
@@ -207,8 +235,8 @@ export async function POST(request: NextRequest) {
       const { sessionId, checkoutUrl } = await createCheckout({
         email: userEmail,
         name: name || user.name || undefined,
-        cellphone: cleanedCellphone,
-        taxId: cleanedBuyerTaxId,
+        cellphone: checkoutCellphone,
+        taxId: checkoutBuyerTaxId,
         externalRef: code,
         successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
         cancelUrl: `${appUrl}/`,

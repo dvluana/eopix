@@ -89,17 +89,20 @@ export default function Page({ params }: PageProps) {
   }, []);
 
   const createPurchase = async () => {
+    // Only send fields with actual values — logged-in users rely on backend session data
+    const body: Record<string, unknown> = {
+      term: params.term,
+      termsAccepted: true,
+    };
+    if (cellphone) body.cellphone = cellphone.replace(/\D/g, '');
+    if (buyerTaxId) body.buyerTaxId = buyerTaxId.replace(/\D/g, '');
+    if (name) body.name = name;
+    if (email) body.email = email;
+
     const res = await fetch('/api/purchases', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        term: params.term,
-        termsAccepted: true,
-        cellphone: cellphone.replace(/\D/g, ''),
-        buyerTaxId: buyerTaxId.replace(/\D/g, ''),
-        name,
-        email,
-      }),
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
@@ -358,65 +361,8 @@ export default function Page({ params }: PageProps) {
               }} />
             </div>
           ) : isLoggedIn ? (
-            /* Logged in: payment fields + purchase button */
+            /* Logged in: just the purchase button — backend pulls stored data */
             <form onSubmit={handlePurchaseLoggedIn} style={{ width: '100%' }}>
-              <label htmlFor="cellphone-logged" className="caption" style={{
-                display: 'block', textAlign: 'left',
-                marginBottom: 'var(--primitive-space-1)',
-                color: 'var(--color-text-secondary)', fontWeight: 600,
-              }}>
-                Celular
-              </label>
-              <input
-                id="cellphone-logged"
-                type="tel"
-                autoComplete="tel"
-                placeholder="(11) 99999-9999"
-                value={cellphone}
-                onChange={(e) => setCellphone(formatPhone(e.target.value))}
-                disabled={isMaintenance}
-                required
-                style={{
-                  width: '100%', padding: '14px 16px',
-                  marginBottom: 'var(--primitive-space-3)',
-                  background: 'var(--color-bg-subtle)',
-                  border: '1px solid var(--color-border-default)',
-                  borderRadius: 'var(--primitive-radius-md)',
-                  color: 'var(--color-text-primary)',
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '16px', outline: 'none', boxSizing: 'border-box',
-                }}
-              />
-
-              <label htmlFor="buyerTaxId-logged" className="caption" style={{
-                display: 'block', textAlign: 'left',
-                marginBottom: 'var(--primitive-space-1)',
-                color: 'var(--color-text-secondary)', fontWeight: 600,
-              }}>
-                Seu CPF ou CNPJ
-              </label>
-              <input
-                id="buyerTaxId-logged"
-                type="text"
-                inputMode="numeric"
-                autoComplete="off"
-                placeholder="000.000.000-00"
-                value={buyerTaxId}
-                onChange={(e) => setBuyerTaxId(formatTaxId(e.target.value))}
-                disabled={isMaintenance}
-                required
-                style={{
-                  width: '100%', padding: '14px 16px',
-                  marginBottom: 'var(--primitive-space-3)',
-                  background: 'var(--color-bg-subtle)',
-                  border: '1px solid var(--color-border-default)',
-                  borderRadius: 'var(--primitive-radius-md)',
-                  color: 'var(--color-text-primary)',
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '16px', outline: 'none', boxSizing: 'border-box',
-                }}
-              />
-
               <button
                 type="submit"
                 disabled={isMaintenance || isLoading}
