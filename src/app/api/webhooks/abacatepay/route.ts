@@ -34,6 +34,13 @@ interface AbacateBillingPaidEvent {
 }
 
 export async function POST(request: NextRequest) {
+  console.log('[AbacatePay Webhook] Request received:', {
+    url: request.url,
+    method: request.method,
+    hasSignature: !!request.headers.get('x-webhook-signature'),
+    contentType: request.headers.get('content-type'),
+  })
+
   try {
     // Layer 1: Validate webhook secret from query string
     if (!validateWebhookSecret(request.url)) {
@@ -137,22 +144,25 @@ async function handlePaymentSuccess(
     return
   }
 
-  // Skip if already processed
-  if (['PAID', 'PROCESSING', 'COMPLETED', 'REFUNDED'].includes(purchase.status)) {
+  // Skip if already past PAID (processing or done)
+  if (['PROCESSING', 'COMPLETED', 'REFUNDED'].includes(purchase.status)) {
     console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} already processed (${purchase.status})`)
     return
   }
 
-  await prisma.purchase.update({
-    where: { id: purchase.id },
-    data: {
-      status: 'PAID',
-      paidAt: new Date(),
-      paymentProvider: 'abacatepay',
-      paymentExternalId: billingId,
-      buyerName: customerName || undefined,
-    },
-  })
+  // Update to PAID (idempotent if already PAID from a previous retry)
+  if (purchase.status === 'PENDING') {
+    await prisma.purchase.update({
+      where: { id: purchase.id },
+      data: {
+        status: 'PAID',
+        paidAt: new Date(),
+        paymentProvider: 'abacatepay',
+        paymentExternalId: billingId,
+        buyerName: customerName || undefined,
+      },
+    })
+  }
 
   // Capture email from checkout — update guest user with real email
   if (customerEmail && purchase.user.email.includes('@guest.eopix.app')) {
@@ -180,21 +190,19 @@ async function handlePaymentSuccess(
 
   console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} updated to PAID`)
 
-  // Trigger Inngest job
-  try {
-    const { inngest } = await import('@/lib/inngest')
-    await inngest.send({
-      name: 'search/process',
-      data: {
-        purchaseId: purchase.id,
-        purchaseCode: purchase.code,
-        term: purchase.term,
-        type: purchase.term.length === 11 ? 'CPF' : 'CNPJ',
-        email: purchase.user.email,
-      },
-    })
-    console.log(`[AbacatePay Webhook] Inngest job triggered for purchase ${purchaseCode}`)
-  } catch (err) {
-    console.error('[AbacatePay Webhook] Failed to trigger Inngest job:', err)
-  }
+  // Trigger Inngest job — re-throw on failure so webhook returns 500
+  // and AbacatePay retries delivery. PAID purchases are not skipped above,
+  // so retries will re-attempt the Inngest send.
+  const { inngest } = await import('@/lib/inngest')
+  await inngest.send({
+    name: 'search/process',
+    data: {
+      purchaseId: purchase.id,
+      purchaseCode: purchase.code,
+      term: purchase.term,
+      type: purchase.term.length === 11 ? 'CPF' : 'CNPJ',
+      email: purchase.user.email,
+    },
+  })
+  console.log(`[AbacatePay Webhook] Inngest job triggered for purchase ${purchaseCode}`)
 }
