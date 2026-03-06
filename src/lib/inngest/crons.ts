@@ -1,4 +1,5 @@
 import { inngest } from './client'
+import { processSearch } from './process-search'
 import { prisma } from '../prisma'
 
 // Cleanup expired search results (daily at 03:00)
@@ -160,8 +161,9 @@ export const anonymizePurchases = inngest.createFunction(
   }
 )
 
-// Export all functions
+// Export all functions (processSearch + crons)
 export const functions = [
+  processSearch,
   cleanupSearchResults,
   cleanupLeads,
   cleanupMagicCodes,
