@@ -23,6 +23,8 @@ export const TEST_USER = {
   name: 'E2E Test User',
   email: 'e2e-test@eopix.test',
   password: 'E2eTestPass!2026',
+  cellphone: '11999999999',
+  taxId: '52998224725',
 } as const
 
 export const ADMIN_CREDENTIALS = {

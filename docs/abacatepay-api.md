@@ -61,10 +61,10 @@ interface CreateBillingRequest {
   completionUrl: string;    // URL redirect apos pagamento
   customerId?: string;      // ID de cliente existente (cust_xxx)
   customer?: {              // OU criar cliente inline
-    name?: string;
-    cellphone?: string;
+    name: string;           // obrigatorio em prod
+    cellphone: string;      // obrigatorio em prod (digits only, ex: '11999999999')
     email: string;          // obrigatorio
-    taxId?: string;         // CPF ou CNPJ
+    taxId: string;          // obrigatorio em prod — CPF ou CNPJ (digits only)
   };
   allowCoupons?: boolean;   // default false
   coupons?: string[];       // codigos de cupom permitidos

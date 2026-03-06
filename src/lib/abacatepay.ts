@@ -18,6 +18,8 @@ function getAbacate() {
 export interface CreateCheckoutParams {
   email?: string
   name?: string
+  cellphone?: string // digits only, e.g. '11999999999'
+  taxId?: string // CPF/CNPJ for AbacatePay customer
   externalRef: string // purchase code
   successUrl: string
   cancelUrl: string
@@ -79,8 +81,9 @@ export async function createCheckout(
     completionUrl: params.successUrl,
     customer: {
       name: params.name || 'Cliente EOPIX',
-      cellphone: '00000000000',
+      cellphone: params.cellphone || '11999999999',
       email: customerEmail,
+      taxId: params.taxId || '00000000000',
     },
   }
 

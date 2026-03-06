@@ -24,6 +24,8 @@ test.describe('Purchase Flow — CPF', () => {
     await page.locator('#email').fill(`cpf-sol-${Date.now()}@eopix.test`)
     await page.locator('#password').fill(TEST_USER.password)
     await page.locator('#confirmPassword').fill(TEST_USER.password)
+    await page.locator('#cellphone').fill(TEST_USER.cellphone)
+    await page.locator('#buyerTaxId').fill(TEST_USER.taxId)
     await page.locator('button:has-text("DESBLOQUEAR")').first().click()
 
     // 4. Should redirect to /compra/confirmacao?code=XXX

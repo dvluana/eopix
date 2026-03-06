@@ -28,6 +28,8 @@ test.describe('Auth + Purchase Flow — Register & Login', () => {
     await page.locator('#email').fill(uniqueEmail)
     await page.locator('#password').fill(TEST_USER.password)
     await page.locator('#confirmPassword').fill(TEST_USER.password)
+    await page.locator('#cellphone').fill(TEST_USER.cellphone)
+    await page.locator('#buyerTaxId').fill(TEST_USER.taxId)
     await page.locator('button:has-text("DESBLOQUEAR")').first().click()
 
     // 4. Should redirect to /compra/confirmacao?code=XXX
@@ -77,6 +79,8 @@ test.describe('Auth + Purchase Flow — Register & Login', () => {
     // 11. Fill login form + click DESBLOQUEAR
     await page.locator('#email').fill(uniqueEmail)
     await page.locator('#password').fill(TEST_USER.password)
+    await page.locator('#cellphone').fill(TEST_USER.cellphone)
+    await page.locator('#buyerTaxId').fill(TEST_USER.taxId)
     await page.locator('button:has-text("DESBLOQUEAR")').first().click()
 
     // 12. Should redirect to /compra/confirmacao?code=XXX

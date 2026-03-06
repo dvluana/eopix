@@ -72,7 +72,7 @@ async function main() {
       env: {
         ...process.env,
         DATABASE_URL: connectionString,
-        PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3001'
+        BASE_URL: 'http://localhost:3001'
       },
       stdio: 'inherit',
       cwd: process.cwd()

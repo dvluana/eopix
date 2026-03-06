@@ -182,12 +182,10 @@ export function adminLogin(
     redirect: 'manual',
   }).then(async (res) => {
     const data = (await res.json().catch(() => ({}))) as AdminLoginResponse
-    const setCookie = res.headers.get('set-cookie')
-    const cookie = setCookie
-      ? setCookie
-          .split(',')
-          .map((c) => c.split(';')[0].trim())
-          .join('; ')
+    // Use getSetCookie() to correctly handle Expires dates containing commas
+    const setCookies = res.headers.getSetCookie?.() ?? []
+    const cookie = setCookies.length > 0
+      ? setCookies.map((c) => c.split(';')[0].trim()).join('; ')
       : undefined
     return { ok: res.ok, status: res.status, data, cookie }
   })

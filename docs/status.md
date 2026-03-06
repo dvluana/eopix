@@ -1,6 +1,6 @@
 # Status Vivo — EOPIX
 
-**Atualizado em:** 2026-03-07
+**Atualizado em:** 2026-03-08
 **Branch atual:** develop
 **Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
@@ -11,7 +11,7 @@
 - Relatório display (page.tsx)
 - Modos MOCK/TEST/LIVE
 - **lib/inngest.ts refatorado** (3 módulos + barrel export)
-- **E2E tests com Playwright** — 25/25 passando (smoke, purchase flows CPF/CNPJ, report content, error handling)
+- **E2E tests com Playwright** — 26/26 passando (smoke, purchase flows CPF/CNPJ, auth flow, report content, error handling)
 - **GitHub Actions CI** (mock obrigatório em PRs, integration nightly, Neon branching)
 - **Migration paymentProvider/paymentExternalId** aplicada no Neon develop
 - **Docs atualizados** (architecture, custos, modos — AbacatePay only)
@@ -38,6 +38,10 @@
 - **Botão "Painel Admin" na topbar** — `GET /api/purchases` retorna `isAdmin` (verifica `AdminUser` table + `ADMIN_EMAILS` env). `minhas-consultas` exibe botão amarelo/preto "Painel Admin" linkando para `/admin` (mesmo cookie `eopix_session`).
 - **Nav improvements** — Landing e consulta pages mostram "Minhas Consultas" (link) em vez de "Sair" na topbar quando logado. `minhas-consultas` usa classes `nav`/`nav__inner` padrão (grid consistente). Fix email uppercase e cor do botão na landing.
 - **Auditoria admin panel** — (1) JWT timing-safe: `hmacVerify()` usa `crypto.subtle.verify()` (constant-time) em vez de `===`. (2) Cookie `sameSite: 'strict'` (previne CSRF em rotas admin). (3) Rate limit no login admin: 5 tentativas/15 min por IP via `checkRateLimit()`. (4) Revenue dashboard conta só COMPLETED (antes incluía PAID/PROCESSING). (5) Paginação clampada 1-100 em purchases, blocklist, leads. (6) Lead reason filter aceita qualquer reason (antes hardcoded `['API_DOWN','MAINTENANCE']`).
+- **Fix JWT hmacSign encoding** — `hmacSign` convertia bytes HMAC via `base64urlEncode()` que usava `TextEncoder` (UTF-8), corrompendo bytes > 127. 100% dos JWTs eram inválidos. Corrigido: conversão direta bytes → `btoa()` → base64url. Verificado: 100/100 roundtrips OK.
+- **Campos do pagante no checkout** — `cellphone` e `buyerTaxId` adicionados ao form de consulta, validados no backend, passados ao AbacatePay como dados reais do customer (sem placeholders).
+- **E2E fixes** — Cookie parsing via `getSetCookie()` (fix vírgula em `Expires`). Admin rate limit bypass em dev/mock. E2E tests preenchem `#cellphone` e `#buyerTaxId`.
+- **E2E infra fixes** — (1) `test-with-branch.ts`: `PLAYWRIGHT_TEST_BASE_URL` → `BASE_URL` (CI integration usava porta errada). (2) `global-teardown.ts`: limpa todos os users `*@eopix.test` (antes só limpava `e2e-test@eopix.test`, acumulando ghost users). 26/26 E2E mock passando, teardown limpou 27 ghost users acumulados.
 
 ## Débitos técnicos / Próximos passos
 
@@ -45,6 +49,8 @@
 
 ## Últimas mudanças
 
+- **E2E infra fixes + validacao completa** (2026-03-08): (1) `test-with-branch.ts`: `PLAYWRIGHT_TEST_BASE_URL` → `BASE_URL` (Playwright config le `BASE_URL`, CI integration rodava na porta errada). (2) `global-teardown.ts`: limpa todos os users `LIKE '%@eopix.test'` com `ANY($1)` (antes só limpava `e2e-test@eopix.test` — browser tests criam emails unicos como `cpf-sol-{ts}@eopix.test`, acumulando ghost users). (3) E2E mock local: 26/26 passando, teardown limpou 27 ghost users acumulados. tsc e lint clean.
+- **Fix JWT + campos pagante + E2E** (2026-03-08): (1) Bug crítico `hmacSign`: conversão bytes HMAC via `base64urlEncode()` usava `TextEncoder` (UTF-8) que expandia bytes > 127 para 2 bytes — corrompia 100% das signatures. Fix: `btoa()` direto nos bytes brutos. Verificado 100/100 roundtrips. (2) Campos `cellphone` e `buyerTaxId` no form de consulta — passados ao AbacatePay como dados reais do customer. (3) E2E cookie parsing: `set-cookie.split(',')` quebrava em `Expires=Sun, 05...` — substituído por `getSetCookie()`. (4) Admin rate limit: bypass em `isBypassMode || NODE_ENV=development` (E2E fazia muitos logins). (5) E2E tests preenchem novos campos `#cellphone` e `#buyerTaxId`. tsc e lint clean.
 - **Auditoria admin panel** (2026-03-07): (1) `hmacVerify()` refatorada para usar `crypto.subtle.verify()` — comparação constant-time, elimina timing attack no JWT. (2) Cookie `sameSite` de `'lax'` para `'strict'` — previne CSRF cross-origin. (3) Rate limit no login admin (5 tentativas/15 min por IP) — previne brute force. (4) Revenue dashboard corrigido: agrega só status `COMPLETED` (antes incluía PAID/PROCESSING, distorcendo receita). (5) Paginação admin clampada: `limit` em 1-100 em purchases, blocklist, leads (previne queries abusivas). (6) Lead reason filter: removido hardcoded `['API_DOWN','MAINTENANCE']`, aceita qualquer reason string. Débitos documentados no TODO: audit logging, admin CRUD, RBAC, timezone fix. tsc e lint clean.
 - **Fix flash login + bloqueio duplicata + admin button + nav** (2026-03-06): (1) `minhas-consultas` isAuthenticated tri-state (null→spinner, false→login, true→lista) — elimina flash de 200ms do form. (2) `POST /api/purchases` checa Purchase COMPLETED + SearchResult não expirado para mesmo term/userId → 409 com `existingReportId`. `/consulta/[term]` trata 409 redirecionando pro relatório. (3) `GET /api/purchases` retorna `isAdmin` (via `isAdminEmail()` — AdminUser table + ADMIN_EMAILS env). Botão amarelo "Painel Admin" na topbar de minhas-consultas para admins. (4) Landing e consulta: "Sair" substituído por "Minhas Consultas" (link). Nav de minhas-consultas migrada para classes `nav`/`nav__inner`. Fix email uppercase (removido `nav__link` com text-transform) e cor do botão na landing. tsc e lint clean.
 - **Substituir Google OAuth por Email+Senha** (2026-03-05): (1) Google OAuth removido completamente — `GoogleLoginButton.tsx`, `/api/auth/google`, `@react-oauth/google`, `google-auth-library` deletados. (2) Novas rotas: `/api/auth/register` (nome+email+senha, bcrypt, Zod) e `/api/auth/login` (email+senha, bcrypt). (3) `AuthForm.tsx` componente reutilizável (modo register/login com toggle). (4) `/consulta/[term]` refatorado: se logado → só botão "DESBLOQUEAR"; se não → form registro (nome/email/senha/confirmar) + link "Ja possui conta?"; 1-clique register+purchase. (5) `User` model: `name` e `passwordHash` adicionados (nullable, backward compatible). (6) AbacatePay recebe nome+email real do comprador. (7) Confirmação e minhas-consultas usam `AuthForm` em vez de Google. (8) E2E tests atualizados (browser tests preenchem form registro). (9) Docs atualizados. `GOOGLE_CLIENT_ID` removido de `.env.*.example`. tsc e lint clean.

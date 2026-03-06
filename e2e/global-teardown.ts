@@ -26,30 +26,29 @@ export default async function globalTeardown() {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
     try {
-      // 1. Find test user
+      // 1. Find ALL test users (browser tests create unique emails like cpf-sol-{ts}@eopix.test)
       const { rows: users } = await pool.query(
-        'SELECT id FROM "User" WHERE email = $1',
-        [TEST_EMAIL]
+        `SELECT id, email FROM "User" WHERE email LIKE '%@eopix.test'`
       )
 
       if (users.length > 0) {
-        const userId = users[0].id
+        const userIds = users.map((u: { id: string }) => u.id)
 
         // 2. Get search result IDs linked to test purchases
         const { rows: purchases } = await pool.query(
-          'SELECT "searchResultId" FROM "Purchase" WHERE "userId" = $1 AND "searchResultId" IS NOT NULL',
-          [userId]
+          'SELECT "searchResultId" FROM "Purchase" WHERE "userId" = ANY($1) AND "searchResultId" IS NOT NULL',
+          [userIds]
         )
         const srIds = purchases.map((p: { searchResultId: string }) => p.searchResultId)
 
-        // 3. Unlink search results → delete purchases → delete search results → delete user
+        // 3. Unlink search results → delete purchases → delete search results → delete users
         await pool.query(
-          'UPDATE "Purchase" SET "searchResultId" = NULL WHERE "userId" = $1',
-          [userId]
+          'UPDATE "Purchase" SET "searchResultId" = NULL WHERE "userId" = ANY($1)',
+          [userIds]
         )
         await pool.query(
-          'DELETE FROM "Purchase" WHERE "userId" = $1',
-          [userId]
+          'DELETE FROM "Purchase" WHERE "userId" = ANY($1)',
+          [userIds]
         )
 
         if (srIds.length > 0) {
@@ -59,8 +58,8 @@ export default async function globalTeardown() {
           )
         }
 
-        await pool.query('DELETE FROM "User" WHERE id = $1', [userId])
-        console.log(`[global-teardown] Cleaned up test user: ${TEST_EMAIL}`)
+        await pool.query('DELETE FROM "User" WHERE id = ANY($1)', [userIds])
+        console.log(`[global-teardown] Cleaned up ${users.length} test user(s): ${users.map((u: { email: string }) => u.email).join(', ')}`)
       }
 
       // 4. Delete seeded admin

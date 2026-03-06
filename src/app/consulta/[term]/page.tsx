@@ -42,6 +42,32 @@ export default function Page({ params }: PageProps) {
   const [authError, setAuthError] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [cellphone, setCellphone] = React.useState('');
+  const [buyerTaxId, setBuyerTaxId] = React.useState('');
+
+  // Mask: (XX) XXXXX-XXXX
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  };
+
+  // Mask: CPF (XXX.XXX.XXX-XX) or CNPJ (XX.XXX.XXX/XXXX-XX)
+  const formatTaxId = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 14);
+    if (digits.length <= 11) {
+      if (digits.length <= 3) return digits;
+      if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+      if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+    }
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+    if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+    if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+  };
 
   // Check session on mount
   React.useEffect(() => {
@@ -69,6 +95,8 @@ export default function Page({ params }: PageProps) {
       body: JSON.stringify({
         term: params.term,
         termsAccepted: true,
+        cellphone: cellphone.replace(/\D/g, ''),
+        buyerTaxId: buyerTaxId.replace(/\D/g, ''),
       }),
     });
 
@@ -328,8 +356,65 @@ export default function Page({ params }: PageProps) {
               }} />
             </div>
           ) : isLoggedIn ? (
-            /* Logged in: just the purchase button */
+            /* Logged in: payment fields + purchase button */
             <form onSubmit={handlePurchaseLoggedIn} style={{ width: '100%' }}>
+              <label htmlFor="cellphone-logged" className="caption" style={{
+                display: 'block', textAlign: 'left',
+                marginBottom: 'var(--primitive-space-1)',
+                color: 'var(--color-text-secondary)', fontWeight: 600,
+              }}>
+                Celular
+              </label>
+              <input
+                id="cellphone-logged"
+                type="tel"
+                autoComplete="tel"
+                placeholder="(11) 99999-9999"
+                value={cellphone}
+                onChange={(e) => setCellphone(formatPhone(e.target.value))}
+                disabled={isMaintenance}
+                required
+                style={{
+                  width: '100%', padding: '14px 16px',
+                  marginBottom: 'var(--primitive-space-3)',
+                  background: 'var(--color-bg-subtle)',
+                  border: '1px solid var(--color-border-default)',
+                  borderRadius: 'var(--primitive-radius-md)',
+                  color: 'var(--color-text-primary)',
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '16px', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+
+              <label htmlFor="buyerTaxId-logged" className="caption" style={{
+                display: 'block', textAlign: 'left',
+                marginBottom: 'var(--primitive-space-1)',
+                color: 'var(--color-text-secondary)', fontWeight: 600,
+              }}>
+                Seu CPF ou CNPJ
+              </label>
+              <input
+                id="buyerTaxId-logged"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="000.000.000-00"
+                value={buyerTaxId}
+                onChange={(e) => setBuyerTaxId(formatTaxId(e.target.value))}
+                disabled={isMaintenance}
+                required
+                style={{
+                  width: '100%', padding: '14px 16px',
+                  marginBottom: 'var(--primitive-space-3)',
+                  background: 'var(--color-bg-subtle)',
+                  border: '1px solid var(--color-border-default)',
+                  borderRadius: 'var(--primitive-radius-md)',
+                  color: 'var(--color-text-primary)',
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '16px', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+
               <button
                 type="submit"
                 disabled={isMaintenance || isLoading}
@@ -517,6 +602,63 @@ export default function Page({ params }: PageProps) {
                   </div>
                 </>
               )}
+
+              <label htmlFor="cellphone" className="caption" style={{
+                display: 'block', textAlign: 'left',
+                marginBottom: 'var(--primitive-space-1)',
+                color: 'var(--color-text-secondary)', fontWeight: 600,
+              }}>
+                Celular
+              </label>
+              <input
+                id="cellphone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="(11) 99999-9999"
+                value={cellphone}
+                onChange={(e) => setCellphone(formatPhone(e.target.value))}
+                disabled={isMaintenance}
+                required
+                style={{
+                  width: '100%', padding: '14px 16px',
+                  marginBottom: 'var(--primitive-space-3)',
+                  background: 'var(--color-bg-subtle)',
+                  border: '1px solid var(--color-border-default)',
+                  borderRadius: 'var(--primitive-radius-md)',
+                  color: 'var(--color-text-primary)',
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '16px', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+
+              <label htmlFor="buyerTaxId" className="caption" style={{
+                display: 'block', textAlign: 'left',
+                marginBottom: 'var(--primitive-space-1)',
+                color: 'var(--color-text-secondary)', fontWeight: 600,
+              }}>
+                Seu CPF ou CNPJ
+              </label>
+              <input
+                id="buyerTaxId"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="000.000.000-00"
+                value={buyerTaxId}
+                onChange={(e) => setBuyerTaxId(formatTaxId(e.target.value))}
+                disabled={isMaintenance}
+                required
+                style={{
+                  width: '100%', padding: '14px 16px',
+                  marginBottom: 'var(--primitive-space-3)',
+                  background: 'var(--color-bg-subtle)',
+                  border: '1px solid var(--color-border-default)',
+                  borderRadius: 'var(--primitive-radius-md)',
+                  color: 'var(--color-text-primary)',
+                  fontFamily: 'var(--font-family-body)',
+                  fontSize: '16px', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
 
               <button
                 type="submit"

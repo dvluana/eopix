@@ -10,6 +10,8 @@ import { isBypassMode, isBypassPayment } from '@/lib/mock-mode'
 interface CreatePurchaseRequest {
   term: string
   email?: string
+  cellphone?: string
+  buyerTaxId?: string
   termsAccepted: boolean
 }
 
@@ -25,7 +27,7 @@ function generateCode(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as CreatePurchaseRequest
-    const { term, email, termsAccepted } = body
+    const { term, email, cellphone, buyerTaxId, termsAccepted } = body
 
     // Validate inputs
     if (!term || !termsAccepted) {
@@ -41,6 +43,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Validate buyer tax ID if provided
+    const cleanedBuyerTaxId = buyerTaxId ? cleanDocument(buyerTaxId) : undefined
+    if (cleanedBuyerTaxId && !isValidCPF(cleanedBuyerTaxId) && !isValidCNPJ(cleanedBuyerTaxId)) {
+      return NextResponse.json(
+        { error: 'CPF/CNPJ do pagante invalido' },
+        { status: 400 }
+      )
+    }
+
+    // Clean cellphone (digits only)
+    const cleanedCellphone = cellphone ? cellphone.replace(/\D/g, '') : undefined
 
     const cleanedTerm = cleanDocument(term)
     const isCpf = cleanedTerm.length === 11 && isValidCPF(cleanedTerm)
@@ -187,6 +201,8 @@ export async function POST(request: NextRequest) {
       const { sessionId, checkoutUrl } = await createCheckout({
         email: userEmail,
         name: user.name || undefined,
+        cellphone: cleanedCellphone,
+        taxId: cleanedBuyerTaxId,
         externalRef: code,
         successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
         cancelUrl: `${appUrl}/compra/confirmacao?code=${code}&cancelled=true`,

@@ -42,12 +42,14 @@ async function hmacSign(data: string, secret: string): Promise<string> {
     ['sign']
   )
   const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data))
+  // Convert raw bytes directly to base64url without TextEncoder re-encoding
+  // (base64urlEncode uses TextEncoder which corrupts bytes > 127)
   const bytes = new Uint8Array(signature)
-  let str = ''
+  let binary = ''
   for (let i = 0; i < bytes.length; i++) {
-    str += String.fromCharCode(bytes[i])
+    binary += String.fromCharCode(bytes[i])
   }
-  return base64urlEncode(str)
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
 async function hmacVerify(data: string, signature: string, secret: string): Promise<boolean> {
