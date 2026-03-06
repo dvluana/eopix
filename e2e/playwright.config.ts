@@ -36,6 +36,7 @@ export default defineConfig({
         env: {
           MOCK_MODE: process.env.MOCK_MODE || 'true',
           TEST_MODE: process.env.TEST_MODE || 'false',
+          BYPASS_PAYMENT: process.env.BYPASS_PAYMENT || 'true',
         },
       },
 })
