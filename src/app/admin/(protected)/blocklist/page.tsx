@@ -16,11 +16,14 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Plus, Trash2, RefreshCw, Search } from 'lucide-react'
+import { useToast } from '../../_components/Toast'
 
 interface BlocklistItem {
   id: string
@@ -55,10 +58,13 @@ function formatDate(dateString: string): string {
 }
 
 export default function BlocklistPage() {
+  const { toast } = useToast()
   const [data, setData] = React.useState<BlocklistData | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [searchQuery, setSearchQuery] = React.useState('')
   const [page, setPage] = React.useState(1)
+  const [deleteItem, setDeleteItem] = React.useState<BlocklistItem | null>(null)
+  const [deleteLoading, setDeleteLoading] = React.useState(false)
 
   // Form state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
@@ -101,7 +107,7 @@ export default function BlocklistPage() {
     e.preventDefault()
 
     if (!formTerm || !formReason) {
-      alert('Preencha todos os campos obrigatorios')
+      toast({ type: 'error', message: 'Preencha todos os campos obrigatorios' })
       return
     }
 
@@ -119,7 +125,7 @@ export default function BlocklistPage() {
 
       if (!res.ok) {
         const error = await res.json()
-        alert(error.error || 'Erro ao adicionar')
+        toast({ type: 'error', message: error.error || 'Erro ao adicionar' })
         return
       }
 
@@ -130,30 +136,35 @@ export default function BlocklistPage() {
       fetchData()
     } catch (err) {
       console.error('Error adding to blocklist:', err)
-      alert('Erro ao adicionar')
+      toast({ type: 'error', message: 'Erro ao adicionar' })
     } finally {
       setFormLoading(false)
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja remover este item?')) return
+  const handleDelete = async () => {
+    if (!deleteItem) return
 
     try {
-      const res = await fetch(`/api/admin/blocklist/${id}`, {
+      setDeleteLoading(true)
+      const res = await fetch(`/api/admin/blocklist/${deleteItem.id}`, {
         method: 'DELETE',
       })
 
       if (!res.ok) {
         const error = await res.json()
-        alert(error.error || 'Erro ao remover')
+        toast({ type: 'error', message: error.error || 'Erro ao remover' })
         return
       }
 
+      setDeleteItem(null)
+      toast({ type: 'success', message: 'Item removido da blocklist' })
       fetchData()
     } catch (err) {
       console.error('Error deleting from blocklist:', err)
-      alert('Erro ao remover')
+      toast({ type: 'error', message: 'Erro ao remover' })
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -294,7 +305,7 @@ export default function BlocklistPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => setDeleteItem(item)}
                         >
                           <Trash2 size={16} />
                         </Button>
@@ -332,6 +343,24 @@ export default function BlocklistPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteItem} onOpenChange={() => setDeleteItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Remocao</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja remover {deleteItem?.term} da blocklist?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteItem(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteLoading}>
+              {deleteLoading ? 'Removendo...' : 'Remover'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

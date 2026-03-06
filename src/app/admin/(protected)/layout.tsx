@@ -1,4 +1,5 @@
 import { AdminSidebar } from '../_components/AdminSidebar'
+import { AdminProviders } from '../_components/AdminProviders'
 import { requireAdminAuth } from '@/lib/server-auth'
 
 export default async function ProtectedAdminLayout({
@@ -28,7 +29,7 @@ export default async function ProtectedAdminLayout({
           minHeight: '100vh',
         }}
       >
-        {children}
+        <AdminProviders>{children}</AdminProviders>
       </main>
     </div>
   )

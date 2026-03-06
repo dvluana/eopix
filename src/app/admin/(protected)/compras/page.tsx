@@ -21,6 +21,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { RefreshCw, Search, Undo2, CheckCircle2, Play, MoreVertical, Eye, FileText, Ban } from 'lucide-react'
+import { useToast } from '../../_components/Toast'
 
 interface Purchase {
   id: string
@@ -115,6 +116,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function ComprasPage() {
+  const { toast } = useToast()
   const [data, setData] = React.useState<PurchasesData | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [searchQuery, setSearchQuery] = React.useState('')
@@ -212,7 +214,7 @@ export default function ComprasPage() {
 
       if (!res.ok) {
         const error = await res.json()
-        alert(error.error || 'Erro ao processar reembolso')
+        toast({ type: 'error', message: error.error || 'Erro ao processar reembolso' })
         return
       }
 
@@ -220,7 +222,7 @@ export default function ComprasPage() {
       fetchData()
     } catch (err) {
       console.error('Error processing refund:', err)
-      alert('Erro ao processar reembolso')
+      toast({ type: 'error', message: 'Erro ao processar reembolso' })
     } finally {
       setRefundLoading(false)
     }
@@ -237,7 +239,7 @@ export default function ComprasPage() {
 
       if (!res.ok) {
         const error = await res.json()
-        alert(error.error || 'Erro ao marcar como pago')
+        toast({ type: 'error', message: error.error || 'Erro ao marcar como pago' })
         return
       }
 
@@ -245,7 +247,7 @@ export default function ComprasPage() {
       fetchData()
     } catch (err) {
       console.error('Error marking as paid:', err)
-      alert('Erro ao marcar como pago')
+      toast({ type: 'error', message: 'Erro ao marcar como pago' })
     } finally {
       setMarkPaidLoading(false)
     }
@@ -262,7 +264,7 @@ export default function ComprasPage() {
 
       if (!res.ok) {
         const error = await res.json()
-        alert(error.error || 'Erro ao processar')
+        toast({ type: 'error', message: error.error || 'Erro ao processar' })
         return
       }
 
@@ -270,7 +272,7 @@ export default function ComprasPage() {
       fetchData()
     } catch (err) {
       console.error('Error processing:', err)
-      alert('Erro ao processar')
+      toast({ type: 'error', message: 'Erro ao processar' })
     } finally {
       setProcessLoading(false)
     }
@@ -287,7 +289,7 @@ export default function ComprasPage() {
 
       if (!res.ok) {
         const error = await res.json()
-        alert(error.error || 'Erro ao processar')
+        toast({ type: 'error', message: error.error || 'Erro ao processar' })
         return
       }
 
@@ -295,7 +297,7 @@ export default function ComprasPage() {
       fetchData()
     } catch (err) {
       console.error('Error processing now:', err)
-      alert('Erro ao processar')
+      toast({ type: 'error', message: 'Erro ao processar' })
     } finally {
       setProcessNowLoading(false)
     }
@@ -352,16 +354,16 @@ export default function ComprasPage() {
 
       if (!res.ok) {
         const error = await res.json()
-        alert(error.error || 'Erro ao bloquear documento')
+        toast({ type: 'error', message: error.error || 'Erro ao bloquear documento' })
         return
       }
 
       setBlockPurchase(null)
       setBlockReason('')
-      alert('Documento bloqueado com sucesso')
+      toast({ type: 'success', message: 'Documento bloqueado com sucesso' })
     } catch (err) {
       console.error('Error blocking document:', err)
-      alert('Erro ao bloquear documento')
+      toast({ type: 'error', message: 'Erro ao bloquear documento' })
     } finally {
       setBlockLoading(false)
     }
@@ -831,7 +833,7 @@ export default function ComprasPage() {
                         overflow: 'auto',
                         fontSize: 'var(--primitive-size-micro)',
                       }}>
-                        {JSON.stringify(JSON.parse(detailsData.purchase.failureDetails), null, 2)}
+                        {(() => { try { return JSON.stringify(JSON.parse(detailsData.purchase.failureDetails), null, 2) } catch { return detailsData.purchase.failureDetails } })()}
                       </pre>
                     </details>
                   )}
@@ -847,7 +849,7 @@ export default function ComprasPage() {
                         overflow: 'auto',
                         fontSize: 'var(--primitive-size-micro)',
                       }}>
-                        {JSON.stringify(JSON.parse(detailsData.purchase.refundDetails), null, 2)}
+                        {(() => { try { return JSON.stringify(JSON.parse(detailsData.purchase.refundDetails), null, 2) } catch { return detailsData.purchase.refundDetails } })()}
                       </pre>
                     </details>
                   )}
