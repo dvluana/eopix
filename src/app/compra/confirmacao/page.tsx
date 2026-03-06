@@ -3,7 +3,7 @@
 import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import AuthForm from '@/components/AuthForm';
 import { PROCESSING_STEPS } from '@/types/domain';
@@ -11,6 +11,7 @@ import { PROCESSING_STEPS } from '@/types/domain';
 type PageState =
   | 'loading'           // Carregando dados
   | 'not_found'         // Código inválido
+  | 'cancelled'         // Pagamento cancelado pelo usuário
   | 'approved'          // Pagamento feito, processando relatório
   | 'completed'         // Relatório pronto
 
@@ -27,6 +28,7 @@ function ConfirmacaoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const purchaseCode = searchParams.get('code') || '';
+  const isCancelled = searchParams.get('cancelled') === 'true';
 
   const [pageState, setPageState] = React.useState<PageState>('loading');
   const [purchaseData, setPurchaseData] = React.useState<PurchaseData | null>(null);
@@ -91,8 +93,10 @@ function ConfirmacaoContent() {
         // 3. Determinar estado baseado no status
         if (data.status === 'COMPLETED' || data.hasReport) {
           setPageState('completed');
+        } else if (isCancelled && data.status === 'PENDING') {
+          setPageState('cancelled');
         } else {
-          setPageState('approved'); // PENDING, PAID, ou PROCESSING — pagamento já feito
+          setPageState('approved'); // PAID ou PROCESSING — pagamento já feito
         }
       } catch (err) {
         console.error('Erro ao buscar compra:', err);
@@ -101,7 +105,7 @@ function ConfirmacaoContent() {
     };
 
     fetchAndProcess();
-  }, [purchaseCode]);
+  }, [purchaseCode, isCancelled]);
 
   const handleGoToConsultas = () => {
     router.push('/minhas-consultas');
@@ -149,6 +153,66 @@ function ConfirmacaoContent() {
   // Renderizar conteúdo baseado no estado
   const renderContent = () => {
     switch (pageState) {
+      case 'cancelled':
+        return (
+          <>
+            {/* Ícone X */}
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'var(--color-status-error, #DC2626)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto'
+            }}>
+              <XCircle size={24} color="#FFFFFF" />
+            </div>
+
+            {/* Título */}
+            <h1 style={{
+              fontFamily: 'var(--font-family-heading)',
+              fontSize: '28px',
+              fontWeight: 'var(--primitive-weight-bold)',
+              color: 'var(--color-text-primary)',
+              marginTop: 'var(--primitive-space-4)',
+              marginBottom: 0
+            }}>
+              Pagamento nao concluido
+            </h1>
+
+            {/* Descrição */}
+            <p style={{
+              fontFamily: 'var(--font-family-body)',
+              fontSize: '15px',
+              color: 'var(--color-text-secondary)',
+              marginTop: 'var(--primitive-space-4)',
+              lineHeight: 1.6
+            }}>
+              O pagamento foi cancelado. Voce pode tentar novamente a qualquer momento.
+            </p>
+
+            {/* Botão */}
+            <Link
+              href="/"
+              className="btn btn--primary"
+              style={{
+                marginTop: 'var(--primitive-space-6)',
+                width: '100%',
+                fontSize: '14px',
+                padding: '16px',
+                fontWeight: 'var(--primitive-weight-bold)',
+                display: 'block',
+                textAlign: 'center',
+                textDecoration: 'none'
+              }}
+            >
+              TENTAR NOVAMENTE
+            </Link>
+          </>
+        );
+
       case 'approved': {
         const currentStep = purchaseData?.processingStep || 0;
         const progressPercent = currentStep > 0 ? (currentStep / 6) * 100 : 0;
