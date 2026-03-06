@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Criar sessão (mesmo cookie JWT usado pelo sistema atual)
-    await createSession(email)
+    // Criar sessão admin com duração reduzida (8h)
+    await createSession(email, { durationHours: 8 })
 
     return NextResponse.json({ success: true })
   } catch (error) {

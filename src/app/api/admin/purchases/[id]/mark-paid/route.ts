@@ -24,7 +24,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Find purchase with user
     const purchase = await prisma.purchase.findUnique({
       where: { id },
-      include: { user: true },
+      select: { id: true, code: true, status: true, searchResultId: true },
     })
 
     if (!purchase) {

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const purchase = await prisma.purchase.findUnique({
       where: { id },
-      include: { user: true },
+      include: { user: { select: { email: true, name: true } } },
     })
 
     if (!purchase) {

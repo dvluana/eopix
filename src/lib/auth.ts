@@ -1,7 +1,11 @@
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-insecure'
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET
+  if (!secret) throw new Error('JWT_SECRET env var is required')
+  return secret
+}
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase())
 const SESSION_COOKIE = 'eopix_session'
 const SESSION_DURATION_DAYS = 30
@@ -75,13 +79,16 @@ async function hmacVerify(data: string, signature: string, secret: string): Prom
 /**
  * Creates a session token (JWT-like) and sets it as httpOnly cookie
  */
-export async function createSession(email: string): Promise<string> {
+export async function createSession(email: string, options?: { durationHours?: number }): Promise<string> {
   const now = Math.floor(Date.now() / 1000)
-  const exp = now + SESSION_DURATION_DAYS * 24 * 60 * 60
+  const durationSeconds = options?.durationHours
+    ? options.durationHours * 60 * 60
+    : SESSION_DURATION_DAYS * 24 * 60 * 60
+  const exp = now + durationSeconds
 
   const header = base64urlEncode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
   const payload = base64urlEncode(JSON.stringify({ email, iat: now, exp }))
-  const signature = await hmacSign(`${header}.${payload}`, JWT_SECRET)
+  const signature = await hmacSign(`${header}.${payload}`, getJwtSecret())
 
   const token = `${header}.${payload}.${signature}`
 
@@ -91,7 +98,7 @@ export async function createSession(email: string): Promise<string> {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     path: '/',
-    maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
+    maxAge: durationSeconds,
   })
 
   return token
@@ -116,7 +123,7 @@ export async function getSession(request?: NextRequest): Promise<SessionPayload 
     const [header, payload, signature] = token.split('.')
     if (!header || !payload || !signature) return null
 
-    const isValid = await hmacVerify(`${header}.${payload}`, signature, JWT_SECRET)
+    const isValid = await hmacVerify(`${header}.${payload}`, signature, getJwtSecret())
     if (!isValid) return null
 
     const data = JSON.parse(base64urlDecode(payload)) as SessionPayload
