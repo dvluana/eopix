@@ -47,6 +47,30 @@
 
 ---
 
+## Hotfixes Produção (2026-03-11)
+
+### Bugs críticos (código pronto, falta deploy)
+- [x] `processSearch` não registrado no Inngest `serve()` — adicionado ao array `functions` em `crons.ts`
+- [x] Webhook handler engolia erros do Inngest (retornava 200) — agora re-throws, retorna 500 para AbacatePay retry
+- [x] Webhook: purchases PAID permitidas no retry (antes skipava PAID, não re-triggerava Inngest)
+- [x] Webhook: request logging adicionado para debug
+- [x] UX checkout logado: removidos campos cellphone/buyerTaxId — backend resolve do perfil/última compra
+- [x] `cellphone` adicionado ao model User — migration criada e aplicada no Neon develop
+- [x] `createPurchase` só envia campos com valor (não envia strings vazias)
+
+### Falta fazer (deploy)
+- [ ] Substituir wip commit por commits atômicos (git reset --soft + re-commit)
+- [ ] Rodar E2E mock (26/26) — falhas anteriores eram servidor não-mock pré-existente
+- [ ] Aplicar migration `add_user_cellphone` no Neon main (produção)
+- [ ] Atualizar `docs/status.md`
+- [ ] Merge develop → main + push
+- [ ] Recuperar purchase RUVW8B (resetar para PAID + re-processar via admin)
+- [ ] Verificar config webhook AbacatePay no dashboard (URL + secret + evento)
+- [ ] Verificar no Inngest dashboard que `process-search` aparece nas funções registradas
+- [ ] Fazer compra teste end-to-end após deploy
+
+---
+
 ## Cleanup
 - [x] Deletar branch Neon orphan `br-cold-field-aik2eumi`
 

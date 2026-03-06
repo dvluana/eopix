@@ -1,0 +1,169 @@
+{
+  "backup_date": "2026-03-11",
+  "branch": "main",
+  "project": "sweet-haze-72592464",
+  "note": "Backup antes de limpar users birdjoga@gmail.com e luana@uxnaut.com.br + todas as purchases",
+
+  "User": [
+    {
+      "id": "cmlfjxslx000204icr5wn5fan",
+      "email": "teste@teste.com",
+      "createdAt": "2026-02-09T19:15:21.237Z",
+      "name": null,
+      "passwordHash": null
+    },
+    {
+      "id": "cmme4tlj6000104k05o220v0z",
+      "email": "luanacrdl@gmail.com",
+      "createdAt": "2026-03-06T00:04:07.362Z",
+      "name": "Luana Lopes",
+      "passwordHash": "$2b$10$NynD0ssUueoG.OPZHcbEveFgXIKNY8084v.6pmuK.gcSQtBhtcNGW"
+    },
+    {
+      "id": "cmme4tmlq000304k0xuxaltxx",
+      "email": "guest-5zalpa@guest.eopix.app",
+      "createdAt": "2026-03-06T00:04:08.750Z",
+      "name": null,
+      "passwordHash": null
+    },
+    {
+      "id": "cmme7swqb000004jvx85ms94y",
+      "email": "birdjoga@gmail.com",
+      "createdAt": "2026-03-06T01:27:34.067Z",
+      "name": "Luana Lopes",
+      "passwordHash": "$2b$10$P0XbGglqqRg01FJs7U.76eW51x2Z1FFVhJsvC1vc2URgkG.nLy5vS"
+    },
+    {
+      "id": "cmme87dfb000004ju1j0bdq3u",
+      "email": "luana@uxnaut.com.br",
+      "createdAt": "2026-03-06T01:38:48.886Z",
+      "name": "Luana Lopes",
+      "passwordHash": "$2b$10$gzQFuFE5269BdmojainsKOkKjcsdjfXzzan.Vr3654TrDkDRo0D8q"
+    }
+  ],
+
+  "Purchase": [
+    {
+      "id": "cmlfjxssn000304icwmabj1yj",
+      "userId": "cmlfjxslx000204icr5wn5fan",
+      "code": "PD37TT",
+      "term": "12345678909",
+      "amount": 2990,
+      "status": "FAILED",
+      "paymentProvider": "stripe"
+    },
+    {
+      "id": "cmlfr9gj9000004l12wjwh6lk",
+      "userId": "cmlfjxslx000204icr5wn5fan",
+      "code": "J3DRNR",
+      "term": "33000167000101",
+      "amount": 2990,
+      "status": "FAILED",
+      "paymentProvider": "stripe"
+    },
+    {
+      "id": "test-paid-001",
+      "userId": "cmlfjxslx000204icr5wn5fan",
+      "code": "PAID01",
+      "term": "12345678909",
+      "amount": 1990,
+      "status": "PAID",
+      "paymentProvider": "stripe"
+    },
+    {
+      "id": "test-completed-001",
+      "userId": "cmlfjxslx000204icr5wn5fan",
+      "code": "COMP01",
+      "term": "12345678909",
+      "amount": 1990,
+      "status": "COMPLETED",
+      "paymentProvider": "stripe"
+    },
+    {
+      "id": "test-pending-001",
+      "userId": "cmlfjxslx000204icr5wn5fan",
+      "code": "PEND01",
+      "term": "12345678909",
+      "amount": 1990,
+      "status": "FAILED",
+      "paymentProvider": "stripe"
+    },
+    {
+      "id": "cmme7sxwg000104jv8mnkfgjc",
+      "userId": "cmme7swqb000004jvx85ms94y",
+      "code": "VCG9QK",
+      "term": "92615155253",
+      "amount": 2990,
+      "status": "PENDING",
+      "paymentProvider": "abacatepay"
+    },
+    {
+      "id": "cmme87eaq000104ju0klvksqa",
+      "userId": "cmme87dfb000004ju1j0bdq3u",
+      "code": "QBY85Y",
+      "term": "33923798000100",
+      "amount": 2990,
+      "status": "PENDING",
+      "paymentProvider": "abacatepay"
+    }
+  ],
+
+  "AdminUser": [
+    {
+      "id": "e0c62022-a10d-4e9e-979a-a430142ce3f7",
+      "email": "luanacrdl@gmail.com",
+      "name": "Luana",
+      "role": "admin",
+      "active": true
+    },
+    {
+      "id": "461dd163-3bd6-488b-8624-e4d6fbcdbcc0",
+      "email": "kevinpickard@erosco.com.br",
+      "name": "Kevin",
+      "role": "admin",
+      "active": true
+    },
+    {
+      "id": "c84108a9-fb3c-4a95-8f3f-b8aaaca65936",
+      "email": "carolinabandeira@erosco.com.br",
+      "name": "Carolina",
+      "role": "admin",
+      "active": true
+    }
+  ],
+
+  "RateLimit": [
+    {
+      "id": "cmlfjqjuf000004icjx2r93ge",
+      "identifier": "186.225.225.98",
+      "action": "search",
+      "count": 1
+    },
+    {
+      "id": "cmlipft7k000004l5e68kw1sn",
+      "identifier": "191.7.203.34",
+      "action": "search",
+      "count": 1
+    },
+    {
+      "id": "cmme4t9hl000004k0b580xv4l",
+      "identifier": "186.225.224.112",
+      "action": "search",
+      "count": 3
+    },
+    {
+      "id": "cmme4tm75000204k0ygh9k6by",
+      "identifier": "186.225.224.112",
+      "action": "purchase",
+      "count": 2
+    }
+  ],
+
+  "SearchResult": [],
+  "WebhookLog": [],
+  "MagicCode": [],
+  "ApiRequestLog": [],
+  "LeadCapture": [],
+  "Blocklist": [],
+  "LgpdRequest": []
+}
