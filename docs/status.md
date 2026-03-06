@@ -1,7 +1,7 @@
 # Status Vivo — EOPIX
 
-**Atualizado em:** 2026-03-08
-**Branch atual:** develop
+**Atualizado em:** 2026-03-09
+**Branch atual:** develop (merged to main for production)
 **Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
 ## O que está funcionando ✓
@@ -42,6 +42,8 @@
 - **Campos do pagante no checkout** — `cellphone` e `buyerTaxId` adicionados ao form de consulta, validados no backend, passados ao AbacatePay como dados reais do customer (sem placeholders).
 - **E2E fixes** — Cookie parsing via `getSetCookie()` (fix vírgula em `Expires`). Admin rate limit bypass em dev/mock. E2E tests preenchem `#cellphone` e `#buyerTaxId`.
 - **E2E infra fixes** — (1) `test-with-branch.ts`: `PLAYWRIGHT_TEST_BASE_URL` → `BASE_URL` (CI integration usava porta errada). (2) `global-teardown.ts`: limpa todos os users `*@eopix.test` (antes só limpava `e2e-test@eopix.test`, acumulando ghost users). 26/26 E2E mock passando, teardown limpou 27 ghost users acumulados.
+- **CI E2E production build** — `startTestServer()` usa `npm start` (pre-built) em vez de `npm run dev` (travava no GitHub Actions). Build step separado no script.
+- **Merge develop → main** — 5 commits merged via fast-forward. Vercel production deploy triggered. Neon main com 5/5 migrations em dia (idêntico ao develop).
 
 ## Débitos técnicos / Próximos passos
 
@@ -49,6 +51,7 @@
 
 ## Últimas mudanças
 
+- **Merge develop → main + CI fix** (2026-03-09): (1) `startTestServer()` em `test-with-branch.ts`: `npm run dev` → `npm start` (pre-built), dev mode travava no GitHub Actions runner. Build step separado (`npm run build`) antes do server start. (2) 5 commits merged develop → main via fast-forward (E2E infra, JWT, CI Neon branching, DIRECT_URL, production build). Vercel auto-deploy triggered. Neon main 5/5 migrations OK.
 - **E2E infra fixes + validacao completa** (2026-03-08): (1) `test-with-branch.ts`: `PLAYWRIGHT_TEST_BASE_URL` → `BASE_URL` (Playwright config le `BASE_URL`, CI integration rodava na porta errada). (2) `global-teardown.ts`: limpa todos os users `LIKE '%@eopix.test'` com `ANY($1)` (antes só limpava `e2e-test@eopix.test` — browser tests criam emails unicos como `cpf-sol-{ts}@eopix.test`, acumulando ghost users). (3) E2E mock local: 26/26 passando, teardown limpou 27 ghost users acumulados. tsc e lint clean.
 - **Fix JWT + campos pagante + E2E** (2026-03-08): (1) Bug crítico `hmacSign`: conversão bytes HMAC via `base64urlEncode()` usava `TextEncoder` (UTF-8) que expandia bytes > 127 para 2 bytes — corrompia 100% das signatures. Fix: `btoa()` direto nos bytes brutos. Verificado 100/100 roundtrips. (2) Campos `cellphone` e `buyerTaxId` no form de consulta — passados ao AbacatePay como dados reais do customer. (3) E2E cookie parsing: `set-cookie.split(',')` quebrava em `Expires=Sun, 05...` — substituído por `getSetCookie()`. (4) Admin rate limit: bypass em `isBypassMode || NODE_ENV=development` (E2E fazia muitos logins). (5) E2E tests preenchem novos campos `#cellphone` e `#buyerTaxId`. tsc e lint clean.
 - **Auditoria admin panel** (2026-03-07): (1) `hmacVerify()` refatorada para usar `crypto.subtle.verify()` — comparação constant-time, elimina timing attack no JWT. (2) Cookie `sameSite` de `'lax'` para `'strict'` — previne CSRF cross-origin. (3) Rate limit no login admin (5 tentativas/15 min por IP) — previne brute force. (4) Revenue dashboard corrigido: agrega só status `COMPLETED` (antes incluía PAID/PROCESSING, distorcendo receita). (5) Paginação admin clampada: `limit` em 1-100 em purchases, blocklist, leads (previne queries abusivas). (6) Lead reason filter: removido hardcoded `['API_DOWN','MAINTENANCE']`, aceita qualquer reason string. Débitos documentados no TODO: audit logging, admin CRUD, RBAC, timezone fix. tsc e lint clean.
