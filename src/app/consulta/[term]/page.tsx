@@ -62,16 +62,6 @@ export default function Page({ params }: PageProps) {
     checkSession();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {
-      // ignore
-    }
-    setIsLoggedIn(false);
-    setUserEmail('');
-  };
-
   const createPurchase = async () => {
     const res = await fetch('/api/purchases', {
       method: 'POST',

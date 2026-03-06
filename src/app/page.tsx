@@ -38,15 +38,6 @@ export default function LandingPage() {
     checkSession();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {
-      // ignore
-    }
-    setUserEmail('');
-  };
-
   // Typewriter effect
   React.useEffect(() => {
     let currentIndex = 0;
