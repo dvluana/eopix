@@ -84,6 +84,14 @@
 - [x] Nav consistente: landing/consulta mostram "Minhas Consultas", grid padrão nav__inner
 - [x] Auditoria admin: timing-safe JWT, sameSite strict, rate limit login, revenue fix, pagination clamp, lead filter fix
 
+### Admin panel refactor (concluído 2026-03-11)
+- [x] Health endpoint: fix APIFull/Serper parsing, add Inngest check, remove Brevo
+- [x] Security: remove JWT dev-secret fallback, reduce admin session to 8h, fix over-fetching
+- [x] Stripe cleanup: delete webhook/stripe.ts, rewrite payment.ts, update Prisma default
+- [x] Toast system: Radix Toast, replace 16 alert() + 1 confirm()
+- [x] Shared components: StatusBadge, AdminError, admin-utils extracted
+- [x] Cleanup: Zod blocklist, CSV escape, free-text leads filter, refund UX, dead code
+
 ### Débitos da auditoria admin (futuro)
 - [ ] Audit logging (tabela AdminActionLog — rastrear mark-paid, refund, etc.)
 - [ ] Admin user CRUD via UI (criar/desativar admin sem acesso direto ao DB)
@@ -92,6 +100,9 @@
 - [ ] Log de login falhado com IP/timestamp
 - [ ] Padronizar formato de erro nas respostas admin (`{error}` vs `{message}`)
 - [ ] Fix timezone dashboard (usar Intl.DateTimeFormat em vez de toLocaleString→Date roundtrip)
+- [ ] Mobile responsiveness (collapsible sidebar, breakpoints)
+- [ ] Incidents persistence (move from in-memory to DB)
+- [ ] Session invalidation mechanism (revoke tokens server-side)
 
 ---
 
