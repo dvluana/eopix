@@ -79,6 +79,7 @@ export async function createCheckout(
     completionUrl: params.successUrl,
     customer: {
       name: params.name || 'Cliente EOPIX',
+      cellphone: '00000000000',
       email: customerEmail,
     },
   }
