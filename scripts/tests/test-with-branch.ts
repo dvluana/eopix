@@ -47,7 +47,7 @@ async function main() {
     // 2. Rodar migrations
     console.log(`\n2️⃣  Rodando migrations Prisma...`)
     execSync('npx prisma migrate deploy', {
-      env: { ...process.env, DATABASE_URL: connectionString },
+      env: { ...process.env, DATABASE_URL: connectionString, DIRECT_URL: connectionString },
       stdio: 'inherit',
       cwd: process.cwd()
     })
@@ -68,6 +68,7 @@ async function main() {
       env: {
         ...process.env,
         DATABASE_URL: connectionString,
+        DIRECT_URL: connectionString,
         BASE_URL: 'http://localhost:3001'
       },
       stdio: 'inherit',
@@ -147,6 +148,7 @@ function startTestServer(databaseUrl: string, port: number): Promise<any> {
       env: {
         ...process.env,
         DATABASE_URL: databaseUrl,
+        DIRECT_URL: databaseUrl,
         PORT: port.toString(),
         MOCK_MODE: process.env.MOCK_MODE || 'false',
         TEST_MODE: process.env.TEST_MODE || 'true',
