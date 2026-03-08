@@ -44,6 +44,8 @@ prompt-base.md
 /raw/
 /raw.bak
 /json
+tmp-*.png
+*.bak
 
 # test data with personal information
 docs/DADOS-TESTE.md
