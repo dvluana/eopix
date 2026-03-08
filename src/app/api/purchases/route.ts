@@ -316,9 +316,8 @@ export async function POST(request: NextRequest) {
       console.error(`[${provider}] Error:`, checkoutError)
       // Deletar purchase órfã (sem pagamento associado)
       await prisma.purchase.delete({ where: { id: purchase.id } })
-      const debugMsg = checkoutError instanceof Error ? checkoutError.message : String(checkoutError)
       return NextResponse.json(
-        { error: 'Erro ao criar pagamento. Tente novamente.', debug: debugMsg },
+        { error: 'Erro ao criar pagamento. Tente novamente.' },
         { status: 500 }
       )
     }
