@@ -43,7 +43,7 @@ export const processSearch = inngest.createFunction(
   {
     id: 'process-search',
     retries: 10,
-    concurrency: { limit: 10 },
+    concurrency: { limit: 5 },
   },
   { event: 'search/process' },
   async ({ event, step }) => {
