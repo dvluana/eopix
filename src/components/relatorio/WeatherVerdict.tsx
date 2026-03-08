@@ -19,9 +19,9 @@ export default function WeatherVerdict({
         </div>
         <div className="rel__verdict-label">VEREDICTO</div>
         <p className="rel__verdict-text">
-          Ceu limpo. Nenhuma ocorrencia encontrada.
+          Céu limpo. Nenhuma ocorrência encontrada.
         </p>
-        <div className="rel__verdict-stamp">CEU LIMPO</div>
+        <div className="rel__verdict-stamp">CÉU LIMPO</div>
         {closingMessage && (
           <p className="rel__verdict-subtext">{closingMessage}</p>
         )}
@@ -36,11 +36,11 @@ export default function WeatherVerdict({
       </div>
       <div className="rel__verdict-label">VEREDICTO</div>
       <p className="rel__verdict-text">
-        Encontramos pontos de atencao que merecem sua avaliacao.
+        Encontramos pontos de atenção que merecem sua avaliação.
       </p>
-      <div className="rel__verdict-stamp">ATENCAO</div>
+      <div className="rel__verdict-stamp">ATENÇÃO</div>
       <div className="rel__verdict-count">
-        {totalOccurrences} OCORRENCIA{totalOccurrences !== 1 ? "S" : ""}
+        {totalOccurrences} OCORRÊNCIA{totalOccurrences !== 1 ? "S" : ""}
       </div>
       {closingMessage && (
         <p className="rel__verdict-subtext">{closingMessage}</p>
