@@ -60,6 +60,7 @@ export interface MockPurchase {
   createdAt: string
   hasReport: boolean
   reportId: string | null
+  reportName: string | null
 }
 
 export const MOCK_PURCHASES: MockPurchase[] = [
@@ -73,6 +74,7 @@ export const MOCK_PURCHASES: MockPurchase[] = [
     createdAt: hoursAgo(0.1), // ~6 minutes ago
     hasReport: false,
     reportId: null,
+    reportName: null,
   },
   {
     id: 'mock-purchase-02',
@@ -84,6 +86,7 @@ export const MOCK_PURCHASES: MockPurchase[] = [
     createdAt: hoursAgo(2),
     hasReport: false,
     reportId: null,
+    reportName: null,
   },
   {
     id: 'mock-purchase-03',
@@ -95,6 +98,7 @@ export const MOCK_PURCHASES: MockPurchase[] = [
     createdAt: hoursAgo(48),
     hasReport: false,
     reportId: null,
+    reportName: null,
   },
   {
     id: 'mock-purchase-04',
@@ -106,6 +110,7 @@ export const MOCK_PURCHASES: MockPurchase[] = [
     createdAt: hoursAgo(1),
     hasReport: true,
     reportId: 'mock-report-cpf-chuva',
+    reportName: 'Joao Carlos da Silva',
   },
   {
     id: 'mock-purchase-05',
@@ -117,6 +122,7 @@ export const MOCK_PURCHASES: MockPurchase[] = [
     createdAt: hoursAgo(3),
     hasReport: true,
     reportId: 'mock-report-cpf-sol',
+    reportName: 'Maria Aparecida Santos',
   },
   {
     id: 'mock-purchase-06',
@@ -128,6 +134,7 @@ export const MOCK_PURCHASES: MockPurchase[] = [
     createdAt: hoursAgo(6),
     hasReport: true,
     reportId: 'mock-report-cnpj-chuva',
+    reportName: 'EMPRESA PROBLEMATICA LTDA',
   },
   {
     id: 'mock-purchase-07',
@@ -139,6 +146,7 @@ export const MOCK_PURCHASES: MockPurchase[] = [
     createdAt: hoursAgo(12),
     hasReport: true,
     reportId: 'mock-report-cnpj-sol',
+    reportName: 'TECH SOLUTIONS SERVICOS DE TI LTDA',
   },
   {
     id: 'mock-purchase-08',
@@ -150,6 +158,7 @@ export const MOCK_PURCHASES: MockPurchase[] = [
     createdAt: hoursAgo(24),
     hasReport: true,
     reportId: 'mock-report-cpf-parcial',
+    reportName: 'Ana Paula Ferreira',
   },
 ]
 
