@@ -271,7 +271,7 @@ export default function BlocklistPage() {
       <div className="adm-card">
         <div className="adm-card__header">
           <p className="adm-card__title">
-            {data ? `${data.pagination.total} registros` : 'Carregando...'}
+            {data ? `${data.pagination.total} registros` : 'Escaneando...'}
           </p>
         </div>
         <div className="adm-card__body">

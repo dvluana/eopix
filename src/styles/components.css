@@ -2410,26 +2410,7 @@
   justify-content: center;
 }
 
-.conf-loading {
-  text-align: center;
-}
-
-.conf-spinner {
-  animation: conf-spin 1s linear infinite;
-  color: var(--color-text-secondary);
-}
-
-@keyframes conf-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.conf-loading__text {
-  font-family: var(--font-family-body);
-  font-size: 16px;
-  color: var(--color-text-secondary);
-  margin-top: 16px;
-}
+/* Old spinner CSS removed — replaced by EopixLoader */
 
 .conf-not-found {
   text-align: center;
@@ -3513,27 +3494,7 @@
 }
 
 /* ===== LOADING & ERROR STATES ===== */
-.rel__loading {
-  text-align: center;
-  margin-top: 60px;
-}
-
-.rel__spinner {
-  display: inline-block;
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--color-border-subtle);
-  border-top-color: var(--color-accent-primary);
-  border-radius: 50%;
-  animation: rel__spin 1s linear infinite;
-}
-
-.rel__loading-text {
-  margin-top: 24px;
-  font-family: var(--font-family-body);
-  font-size: 16px;
-  color: var(--color-text-secondary);
-}
+/* Old rel__spinner/loading CSS removed — replaced by EopixLoader */
 
 .rel__error-card {
   background: var(--primitive-white);
@@ -4205,10 +4166,6 @@
 }
 
 /* ===== KEYFRAMES ===== */
-@keyframes rel__spin {
-  to { transform: rotate(360deg); }
-}
-
 @keyframes rel__stamp-slam {
   0% { transform: scale(2.5) rotate(-15deg); opacity: 0; }
   50% { transform: scale(0.9) rotate(1deg); opacity: 1; }
@@ -4276,4 +4233,141 @@
     flex-direction: column;
     align-items: center;
   }
+}
+
+
+/* ============================================
+   EOPIX Loader — Document Scanner
+   Unified loader component for all pages.
+   Sizes: sm (inline/buttons), md (sections), lg (full-page)
+   ============================================ */
+
+.epl {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Centering wrapper for full-page loaders */
+.epl-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  width: 100%;
+}
+
+/* Inline wrapper for button loaders */
+.epl-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Document container */
+.epl__doc {
+  position: relative;
+  border: 2px solid var(--primitive-black);
+  background: var(--primitive-paper);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.epl__doc--sm {
+  width: 20px;
+  height: 24px;
+  padding: 3px 2px;
+  gap: 2px;
+}
+
+.epl__doc--md {
+  width: 36px;
+  height: 44px;
+  padding: 6px 5px;
+  gap: 4px;
+}
+
+.epl__doc--lg {
+  width: 52px;
+  height: 64px;
+  padding: 8px 7px;
+  gap: 5px;
+}
+
+/* Scan bar — sweeps top to bottom and back */
+.epl__scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primitive-yellow);
+  box-shadow:
+    0 0 6px rgba(255, 214, 0, 0.5),
+    0 0 2px rgba(255, 214, 0, 0.8);
+  animation: epl-sweep 1.8s ease-in-out infinite;
+  z-index: 1;
+}
+
+.epl__doc--lg .epl__scan {
+  height: 3px;
+  box-shadow:
+    0 0 10px rgba(255, 214, 0, 0.5),
+    0 0 3px rgba(255, 214, 0, 0.9);
+}
+
+@keyframes epl-sweep {
+  0%, 100% { top: -2px; }
+  50% { top: calc(100% - 2px); }
+}
+
+/* Data lines — glow yellow as scan bar passes */
+.epl__line {
+  height: 2px;
+  background: var(--primitive-very-light);
+  animation: epl-glow 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.epl__doc--sm .epl__line {
+  height: 1.5px;
+}
+
+.epl__doc--lg .epl__line {
+  height: 3px;
+}
+
+@keyframes epl-glow {
+  0%, 20%, 100% {
+    background: var(--primitive-very-light);
+  }
+  8%, 14% {
+    background: var(--primitive-yellow);
+    box-shadow: 0 0 3px rgba(255, 214, 0, 0.3);
+  }
+}
+
+/* Text label below the scanner */
+.epl__text {
+  font-family: var(--font-family-body);
+  font-size: var(--primitive-size-caption);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* Blinking cursor */
+.epl__cursor {
+  animation: epl-blink 0.8s step-end infinite;
+  color: var(--primitive-yellow);
+  font-weight: var(--primitive-weight-bold);
+}
+
+@keyframes epl-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }

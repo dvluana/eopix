@@ -11,6 +11,7 @@ import {
   XCircle,
   RefreshCw,
 } from 'lucide-react'
+import EopixLoader from '@/components/EopixLoader'
 import { AdminPageHeader } from '../_components/AdminPageHeader'
 import { AdminDataTable, Column } from '../_components/AdminDataTable'
 import { StatusBadge } from '../_components/StatusBadge'
@@ -101,7 +102,7 @@ export default function AdminDashboard() {
   }, [fetchData])
 
   if (loading) {
-    return <div className="adm-loading" style={{ height: '400px' }}><RefreshCw className="animate-spin" size={32} /></div>
+    return <div className="adm-loading" style={{ height: '400px' }}><EopixLoader size="lg" text="Carregando dashboard" /></div>
   }
 
   if (error) {

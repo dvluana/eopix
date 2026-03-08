@@ -3,11 +3,12 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle, Loader2, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import TopBar from '@/components/TopBar';
 import Footer from '@/components/Footer';
 import AuthForm from '@/components/AuthForm';
 import ProcessingTracker from '@/components/ProcessingTracker';
+import EopixLoader from '@/components/EopixLoader';
 
 type PageState =
   | 'loading'              // Carregando dados
@@ -141,9 +142,8 @@ function ConfirmacaoContent() {
   if (pageState === 'loading') {
     return (
       <div className="conf-page conf-page--center">
-        <div className="conf-loading">
-          <Loader2 size={32} className="conf-spinner" />
-          <p className="conf-loading__text">Carregando...</p>
+        <div className="epl-center">
+          <EopixLoader size="lg" text="Carregando" />
         </div>
       </div>
     );
@@ -188,7 +188,7 @@ function ConfirmacaoContent() {
         return (
           <>
             <div className="conf-card__icon conf-card__icon--waiting">
-              <Loader2 size={24} color="#000" className="conf-spinner" />
+              <EopixLoader size="sm" />
             </div>
             <h1 className="conf-card__title">Confirmando seu pagamento...</h1>
             <p className="conf-card__desc">

@@ -2,7 +2,6 @@
 
 import React from 'react'
 import {
-  Loader2,
   CheckCircle,
   XCircle,
   Clock,
@@ -13,6 +12,7 @@ import {
   Radio,
   ArrowRight,
 } from 'lucide-react'
+import EopixLoader from '@/components/EopixLoader'
 import { AdminPageHeader } from '../../_components/AdminPageHeader'
 import { AdminError } from '../../_components/AdminError'
 import { formatDate } from '../../_components/admin-utils'
@@ -70,7 +70,7 @@ function StepProgress({ step }: { step: number }) {
                 {isDone ? (
                   <CheckCircle size={12} />
                 ) : isCurrent ? (
-                  <Loader2 size={12} className="animate-spin" />
+                  <EopixLoader size="sm" />
                 ) : (
                   <span>{s.step}</span>
                 )}

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
 import UserNav from '@/components/UserNav';
 import Footer from '@/components/Footer';
+import EopixLoader from '@/components/EopixLoader';
 import {
   DossierHeader,
   WeatherVerdict,
@@ -68,9 +69,8 @@ export default function Page() {
             </svg>
             Minhas Consultas
           </button>
-          <div className="rel__loading">
-            <div className="rel__spinner" />
-            <p className="rel__loading-text">Carregando relatório...</p>
+          <div className="epl-center">
+            <EopixLoader size="lg" text="Carregando relatório" />
           </div>
         </main>
         <Footer />

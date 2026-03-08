@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { cleanDocument, isValidCPF, isValidCNPJ, isValidEmail } from '@/lib/validators'
 import LogoFundoPreto from '@/components/LogoFundoPreto'
+import EopixLoader from '@/components/EopixLoader'
 
 interface RegisterModalProps {
   open: boolean
@@ -280,7 +281,7 @@ export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading,
                   className="rm-submit btn btn--cta btn--full"
                 >
                   {isLoading
-                    ? 'Processando...'
+                    ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span>
                     : mode === 'register'
                       ? 'CONTINUAR PARA PAGAMENTO \u00B7 R$ 29,90'
                       : hideToggle

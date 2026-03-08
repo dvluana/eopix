@@ -8,6 +8,7 @@ import { usePurchasePolling } from '@/lib/hooks/use-purchase-polling';
 import type { Purchase } from '@/types/domain';
 import ProcessingTracker from '@/components/ProcessingTracker';
 import NovaConsultaModal from '@/components/NovaConsultaModal';
+import EopixLoader from '@/components/EopixLoader';
 
 // ============================================
 // CARD DE CONSULTA
@@ -157,8 +158,8 @@ export default function Page() {
   // ============================================
   if (isAuthenticated === null) {
     return (
-      <div className="mc-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="conf-spinner" style={{ width: '24px', height: '24px', border: '2px solid var(--primitive-gray-200)', borderTopColor: 'var(--primitive-yellow-500)', borderRadius: '50%' }} />
+      <div className="mc-page epl-center">
+        <EopixLoader size="md" />
       </div>
     );
   }

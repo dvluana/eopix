@@ -154,7 +154,7 @@ export default function LeadsPage() {
       <div className="adm-card">
         <div className="adm-card__header">
           <p className="adm-card__title">
-            {data ? `${data.pagination.total} leads` : 'Carregando...'}
+            {data ? `${data.pagination.total} leads` : 'Escaneando...'}
           </p>
         </div>
         <div className="adm-card__body">

@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { maskDocument, cleanDocument, isValidCPF, isValidCNPJ, formatDocument } from '@/lib/validators'
+import EopixLoader from '@/components/EopixLoader'
 
 interface NovaConsultaModalProps {
   open: boolean
@@ -174,7 +175,7 @@ export default function NovaConsultaModal({ open, onOpenChange }: NovaConsultaMo
                     disabled={isLoading || cleanDocument(document).length < 11}
                     className="btn btn--cta btn--full"
                   >
-                    {isLoading ? 'Validando...' : 'CONSULTAR'}
+                    {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Validando...</span> : 'CONSULTAR'}
                   </button>
                 </form>
               )}
@@ -198,7 +199,7 @@ export default function NovaConsultaModal({ open, onOpenChange }: NovaConsultaMo
                     disabled={isLoading}
                     className="btn btn--cta btn--full"
                   >
-                    {isLoading ? 'Processando...' : 'DESBLOQUEAR RELAT\u00D3RIO \u00B7 R$ 29,90'}
+                    {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'DESBLOQUEAR RELAT\u00D3RIO \u00B7 R$ 29,90'}
                   </button>
 
                   <button

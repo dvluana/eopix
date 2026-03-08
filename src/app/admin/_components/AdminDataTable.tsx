@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { RefreshCw } from 'lucide-react'
+import EopixLoader from '@/components/EopixLoader'
 
 export interface Column {
   key: string
@@ -29,7 +29,7 @@ export function AdminDataTable<T>({
   if (loading) {
     return (
       <div className="adm-loading">
-        <RefreshCw className="animate-spin" size={24} />
+        <EopixLoader size="md" />
       </div>
     )
   }

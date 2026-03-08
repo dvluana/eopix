@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import EopixLoader from '@/components/EopixLoader'
 
 interface AuthFormProps {
   mode: 'register' | 'login'
@@ -164,7 +165,7 @@ export default function AuthForm({ mode: initialMode, onSuccess, hideToggle }: A
         style={{ marginTop: 'var(--primitive-space-2)' }}
       >
         {isLoading
-          ? 'Processando...'
+          ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span>
           : mode === 'register'
             ? 'Criar conta'
             : 'Entrar'

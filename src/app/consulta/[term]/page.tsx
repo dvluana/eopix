@@ -7,6 +7,7 @@ import TopBar from '@/components/TopBar';
 import MaintenanceCallout from '@/components/MaintenanceCallout';
 import LeadCaptureForm from '@/components/LeadCaptureForm';
 import RegisterModal, { type RegisterData } from '@/components/RegisterModal';
+import EopixLoader from '@/components/EopixLoader';
 import { formatDocument } from '@/lib/validators';
 
 /* ── Social proof: aligned with landing tone (calote, "confia", practical) ── */
@@ -417,8 +418,8 @@ export default function Page({ params }: PageProps) {
                 {/* CTA — preserve "DESBLOQUEAR" text for E2E */}
                 <div className="c-hero__cta-wrap">
                   {isLoggedIn === null ? (
-                    <div style={{ padding: '16px 0' }}>
-                      <div className="c-spinner" />
+                    <div style={{ padding: '16px 0', display: 'flex', justifyContent: 'center' }}>
+                      <EopixLoader size="sm" />
                     </div>
                   ) : isLoggedIn ? (
                     <form onSubmit={handlePurchaseLoggedIn}>
@@ -427,7 +428,7 @@ export default function Page({ params }: PageProps) {
                         disabled={isMaintenance || isLoading}
                         className="btn btn--cta btn--lg btn--full btn--glow consulta-cta"
                       >
-                        {isLoading ? 'Processando...' : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
+                        {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
                       </button>
                     </form>
                   ) : (
@@ -610,7 +611,7 @@ export default function Page({ params }: PageProps) {
                   disabled={isLoading}
                   className="btn btn--cta btn--lg btn--full consulta-cta"
                 >
-                  {isLoading ? 'Processando...' : 'DESBLOQUEAR AGORA POR R$ 29,90'}
+                  {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'DESBLOQUEAR AGORA POR R$ 29,90'}
                 </button>
                 <p className="c-final__note">Pagamento 100% seguro &middot; Relatório em até 3 minutos</p>
               </section>
@@ -988,9 +989,6 @@ export default function Page({ params }: PageProps) {
         .c-hero__terms a { color: rgba(255,255,255,0.3); text-decoration: underline; }
         .c-hero__terms a:hover { color: rgba(255,255,255,0.5); }
 
-        /* Spinner */
-        .c-spinner { width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.15); border-top-color: var(--primitive-yellow-500); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         /* ═══════════════════════════════════════════════
            PREVIEW — Redacted report on paper

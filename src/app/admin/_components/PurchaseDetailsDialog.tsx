@@ -8,7 +8,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, AlertTriangle, Clock, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Clock, RotateCcw } from 'lucide-react'
+import EopixLoader from '@/components/EopixLoader'
 import { StatusBadge } from './StatusBadge'
 import { formatCurrency, formatDate } from './admin-utils'
 
@@ -164,7 +165,7 @@ export function PurchaseDetailsDialog({ purchase, onClose, onListRefresh }: Purc
         </DialogHeader>
 
         {loading ? (
-          <div className="adm-loading"><RefreshCw className="animate-spin" size={24} /></div>
+          <div className="adm-loading"><EopixLoader size="md" /></div>
         ) : data && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Stuck Warning */}
@@ -239,7 +240,7 @@ export function PurchaseDetailsDialog({ purchase, onClose, onListRefresh }: Purc
                         {log.label}
                       </span>
                       {log.status === 'in_progress' && (
-                        <RefreshCw className="animate-spin" size={12} style={{ marginLeft: 'auto' }} />
+                        <span style={{ marginLeft: 'auto' }}><EopixLoader size="sm" /></span>
                       )}
                     </div>
                   ))}

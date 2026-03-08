@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Activity,
 } from 'lucide-react'
+import EopixLoader from '@/components/EopixLoader'
 import { AdminPageHeader } from '../../_components/AdminPageHeader'
 import { AdminError } from '../../_components/AdminError'
 import { formatDate } from '../../_components/admin-utils'
@@ -123,7 +124,7 @@ export default function HealthPage() {
   if (loading) {
     return (
       <div className="adm-loading" style={{ height: '400px' }}>
-        <RefreshCw className="animate-spin" size={32} />
+        <EopixLoader size="lg" text="Verificando serviços" />
       </div>
     )
   }

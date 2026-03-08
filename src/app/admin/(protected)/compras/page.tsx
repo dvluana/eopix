@@ -20,6 +20,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Search, Undo2, CheckCircle2, Play, MoreVertical, Eye, FileText, Ban } from 'lucide-react'
+import EopixLoader from '@/components/EopixLoader'
 import { useToast } from '../../_components/Toast'
 import { AdminPageHeader } from '../../_components/AdminPageHeader'
 import { AdminFilterBar } from '../../_components/AdminFilterBar'
@@ -276,7 +277,7 @@ export default function ComprasPage() {
 
       <div className="adm-card">
         <div className="adm-card__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p className="adm-card__title">{data ? `${data.pagination.total} compras` : 'Carregando...'}</p>
+          <p className="adm-card__title">{data ? `${data.pagination.total} compras` : 'Escaneando...'}</p>
           <Button variant="secondary" size="sm" onClick={handleBatchProcess} disabled={batchProcessing}>
             {batchProcessing ? 'Reprocessando...' : 'Reprocessar FAILED'}
           </Button>
@@ -365,7 +366,7 @@ export default function ComprasPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setRefundPurchase(null)}>Fechar</Button>
             <Button variant="destructive" onClick={handleRefund} disabled={refundLoading}>
-              {refundLoading ? 'Processando...' : 'Marcar como Reembolsado'}
+              {refundLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'Marcar como Reembolsado'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -384,7 +385,7 @@ export default function ComprasPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setMarkPaidPurchase(null)}>Cancelar</Button>
             <Button onClick={handleMarkPaid} disabled={markPaidLoading}>
-              {markPaidLoading ? 'Processando...' : 'Confirmar'}
+              {markPaidLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'Confirmar'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -403,7 +404,7 @@ export default function ComprasPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setProcessPurchase(null)}>Cancelar</Button>
             <Button onClick={handleProcess} disabled={processLoading}>
-              {processLoading ? 'Processando...' : 'Confirmar'}
+              {processLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'Confirmar'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -422,7 +423,7 @@ export default function ComprasPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setProcessNowPurchase(null)}>Cancelar</Button>
             <Button onClick={handleProcessNow} disabled={processNowLoading}>
-              {processNowLoading ? 'Processando...' : 'Confirmar'}
+              {processNowLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'Confirmar'}
             </Button>
           </DialogFooter>
         </DialogContent>

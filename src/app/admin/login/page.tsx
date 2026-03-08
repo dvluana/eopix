@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import LogoFundoPreto from '@/components/LogoFundoPreto'
+import EopixLoader from '@/components/EopixLoader'
 
 function EyeIcon({ open }: { open: boolean }) {
   if (open) {
@@ -111,7 +112,7 @@ export default function AdminLoginPage() {
               disabled={loading}
               className="adm-login__submit"
             >
-              {loading ? 'Entrando...' : 'ENTRAR'}
+              {loading ? <span className="epl-inline"><EopixLoader size="sm" />Entrando...</span> : 'ENTRAR'}
             </button>
           </form>
         </div>
