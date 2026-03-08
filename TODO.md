@@ -7,7 +7,7 @@
 - [ ] Configurar webhook produção no dashboard AbacatePay:
   - URL: `https://{DOMINIO}/api/webhooks/abacatepay`
   - Secret: gerar com `openssl rand -hex 32`
-  - Evento: `billing.paid`
+  - Evento: `checkout.completed`
 
 ### Saldos de API (pré-pago)
 - [ ] Colocar saldo na APIFull (dashboard: app.apifull.com.br) — mínimo R$30 (~2-3 consultas CPF)
@@ -20,6 +20,7 @@
   PAYMENT_PROVIDER=abacatepay
   ABACATEPAY_API_KEY=abc_XXX
   ABACATEPAY_WEBHOOK_SECRET=XXX
+  ABACATEPAY_PRODUCT_ID=prod_CxQkybBBLkBt26UQMhCwKPZr
   NEXT_PUBLIC_APP_URL=https://{DOMINIO}
   APIFULL_API_KEY=XXX
   SERPER_API_KEY=XXX
@@ -91,6 +92,34 @@
 - [x] Toast system: Radix Toast, replace 16 alert() + 1 confirm()
 - [x] Shared components: StatusBadge, AdminError, admin-utils extracted
 - [x] Cleanup: Zod blocklist, CSV escape, free-text leads filter, refund UX, dead code
+
+### Documentation System (concluído 2026-03-12)
+- [x] `docs/wiki/`: 7 páginas operacionais (setup, testing, deploy, admin, inngest, claude-workflow)
+- [x] `docs/specs/`: 3 specs de produto vivas (purchase-flow, report-pipeline, auth)
+- [x] `docs/external/abacatepay/`: docs crawleadas reorganizadas (de docs/payment/)
+- [x] `.claude/rules/`: 4 regras por path (inngest, payment, admin, purchases)
+- [x] CLAUDE.md atualizado com ponteiros para wiki/specs
+- [x] Hook check-docs: lembra de atualizar docs quando edita código mapeado
+- [x] MkDocs Material: `pip install mkdocs-material && npm run docs` para wiki visual
+- [x] Custom skills: `/commit` e `/deploy`
+
+### Modal de Cadastro + AbacatePay v1 Customer (2026-03-07)
+- [x] Reverter AbacatePay v2 → v1 (`/v1/billing/create`, produtos inline)
+- [x] Criar `RegisterModal.tsx` — modal Radix Dialog (fullscreen mobile, centered desktop)
+- [x] Campos: nome, email, celular (mask), CPF/CNPJ (mask), senha (eye toggle), confirmar senha
+- [x] Adicionar `customer` inline no body v1 (name, email, cellphone, taxId formatados)
+- [x] Backend: purchases route aceita name/cellphone/buyerTaxId, passa ao AbacatePay
+- [x] Backend: register route aceita cellphone, salva no User
+- [x] Consulta page: form inline substituído por botão que abre modal
+- [x] Ambos CTAs (hero + bottom) abrem o modal para não-logados
+- [x] E2E tests: atualizar para preencher campos do modal (26/26 passando)
+- [x] Teste manual: fluxo completo com AbacatePay v1 dev key (checkout sandbox OK — customer data correto)
+
+### DX — Developer Experience (concluído 2026-03-12)
+- [x] Scripts simplificados: `npm run dev` (mock, auto MOCK_MODE=true) + `npm run dev:live` (tudo real + Inngest auto)
+- [x] Inngest Dev Server integrado: `dev:live` inicia Next.js + Inngest automaticamente via `concurrently`
+- [x] `npm run inngest` avulso para rodar dashboard Inngest separado quando necessário
+- [x] Documentação `modos-de-execucao.md` atualizada com scripts e quando usar cada um
 
 ### Débitos da auditoria admin (futuro)
 - [ ] Audit logging (tabela AdminActionLog — rastrear mark-paid, refund, etc.)

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
-import { adminFindPurchaseByCode, markPaid, processSearch, getPurchase } from '../helpers/api-client'
-import { getAdminCookie } from '../helpers/admin-auth'
-import { TEST_CPFS, TEST_USER } from '../helpers/test-data'
+import { getPurchase } from '../helpers/api-client'
+import { completePurchase } from '../helpers/complete-purchase'
+import { TEST_CPFS, TEST_USER, TEST_BUYER } from '../helpers/test-data'
 
 test.describe('Auth + Purchase Flow — Register & Login', () => {
   test.describe.configure({ mode: 'serial' })
@@ -23,34 +23,29 @@ test.describe('Auth + Purchase Flow — Register & Login', () => {
     // 2. Navigate to /consulta/{cpf}
     await page.waitForURL(`**/consulta/${TEST_CPFS.sol}`, { timeout: 10_000 })
 
-    // 3. Fill registration form + click DESBLOQUEAR
-    await page.locator('#name').fill(TEST_USER.name)
-    await page.locator('#email').fill(uniqueEmail)
-    await page.locator('#password').fill(TEST_USER.password)
-    await page.locator('#confirmPassword').fill(TEST_USER.password)
-    await page.locator('#cellphone').fill(TEST_USER.cellphone)
-    await page.locator('#buyerTaxId').fill(TEST_USER.taxId)
+    // 3. Click DESBLOQUEAR → opens registration modal
     await page.locator('button:has-text("DESBLOQUEAR")').first().click()
+    await expect(page.locator('.rm-content')).toBeVisible({ timeout: 5_000 })
 
-    // 4. Should redirect to /compra/confirmacao?code=XXX
+    // 4. Fill registration modal fields
+    await page.locator('#reg-name').fill(TEST_BUYER.name)
+    await page.locator('#reg-email').fill(uniqueEmail)
+    await page.locator('#reg-cellphone').fill(TEST_BUYER.cellphone)
+    await page.locator('#reg-taxId').fill(TEST_BUYER.taxId)
+    await page.locator('#reg-password').fill(TEST_USER.password)
+    await page.locator('#reg-confirm-password').fill(TEST_USER.password)
+    await page.locator('.rm-submit').click()
+
+    // 5. Should redirect to /compra/confirmacao?code=XXX
     await page.waitForURL('**/compra/confirmacao?code=*', { timeout: 15_000 })
     const url1 = new URL(page.url())
     const code1 = url1.searchParams.get('code')!
     expect(code1).toBeTruthy()
 
-    // 5. Admin: mark paid + process
-    const adminCookie = await getAdminCookie()
-    const list1 = await adminFindPurchaseByCode(code1, adminCookie)
-    expect(list1.ok).toBeTruthy()
-    const purchaseId1 = list1.data.purchases[0].id
+    // 6. Complete purchase (bypass-aware)
+    await completePurchase(code1)
 
-    const paid1 = await markPaid(purchaseId1, adminCookie)
-    expect(paid1.ok).toBeTruthy()
-
-    const process1 = await processSearch(code1)
-    expect(process1.ok).toBeTruthy()
-
-    // 6. Verify purchase COMPLETED
+    // 7. Verify purchase COMPLETED
     const final1 = await getPurchase(code1)
     expect(final1.ok).toBeTruthy()
     expect(final1.data.status).toBe('COMPLETED')
@@ -60,48 +55,42 @@ test.describe('Auth + Purchase Flow — Register & Login', () => {
     // Phase 2: Logout + Login + Purchase (CPF Chuva)
     // ============================
 
-    // 7. Logout via API
+    // 8. Logout via API
     await page.request.post('/api/auth/logout')
 
-    // 8. Landing page → type CPF Chuva → submit
+    // 9. Landing page → type CPF Chuva → submit
     await page.goto('/')
     const searchInput2 = page.locator('.search-bar__input').first()
     await expect(searchInput2).toBeVisible({ timeout: 10_000 })
     await searchInput2.fill(TEST_CPFS.chuva)
     await page.locator('.search-bar__button').first().click()
 
-    // 9. Navigate to /consulta/{cpf}
+    // Navigate to /consulta/{cpf}
     await page.waitForURL(`**/consulta/${TEST_CPFS.chuva}`, { timeout: 10_000 })
 
-    // 10. Toggle to login mode
-    await page.locator('button:has-text("Realize o login aqui")').click()
-
-    // 11. Fill login form + click DESBLOQUEAR
-    await page.locator('#email').fill(uniqueEmail)
-    await page.locator('#password').fill(TEST_USER.password)
-    await page.locator('#cellphone').fill(TEST_USER.cellphone)
-    await page.locator('#buyerTaxId').fill(TEST_USER.taxId)
+    // 10. Click DESBLOQUEAR → opens modal
     await page.locator('button:has-text("DESBLOQUEAR")').first().click()
+    await expect(page.locator('.rm-content')).toBeVisible({ timeout: 5_000 })
 
-    // 12. Should redirect to /compra/confirmacao?code=XXX
+    // 11. Toggle to login mode in modal
+    await page.locator('.rm-toggle-btn:has-text("Faça login")').click()
+
+    // 12. Fill login form in modal + submit
+    await page.locator('#reg-email').fill(uniqueEmail)
+    await page.locator('#reg-password').fill(TEST_USER.password)
+    await page.locator('.rm-submit').click()
+
+    // 13. Should redirect to /compra/confirmacao?code=XXX
     await page.waitForURL('**/compra/confirmacao?code=*', { timeout: 15_000 })
     const url2 = new URL(page.url())
     const code2 = url2.searchParams.get('code')!
     expect(code2).toBeTruthy()
     expect(code2).not.toBe(code1) // Different purchase
 
-    // 13. Admin: mark paid + process
-    const list2 = await adminFindPurchaseByCode(code2, adminCookie)
-    expect(list2.ok).toBeTruthy()
-    const purchaseId2 = list2.data.purchases[0].id
+    // 14. Complete purchase (bypass-aware)
+    await completePurchase(code2)
 
-    const paid2 = await markPaid(purchaseId2, adminCookie)
-    expect(paid2.ok).toBeTruthy()
-
-    const process2 = await processSearch(code2)
-    expect(process2.ok).toBeTruthy()
-
-    // 14. Verify purchase COMPLETED
+    // 15. Verify purchase COMPLETED
     const final2 = await getPurchase(code2)
     expect(final2.ok).toBeTruthy()
     expect(final2.data.status).toBe('COMPLETED')

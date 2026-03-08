@@ -47,16 +47,21 @@ export async function createCompletedPurchase(
   }
   const purchaseId = listRes.data.purchases[0].id
 
-  // 3. Mark as paid
-  const paidRes = await markPaid(purchaseId, adminCookie)
-  if (!paidRes.ok) {
-    throw new Error(`Failed to mark paid: ${JSON.stringify(paidRes.data)}`)
+  // 3. Mark as paid (skip if already PAID from bypass mode)
+  const checkRes = await getPurchase(code)
+  if (checkRes.ok && checkRes.data.status !== 'PAID' && checkRes.data.status !== 'COMPLETED') {
+    const paidRes = await markPaid(purchaseId, adminCookie)
+    if (!paidRes.ok) {
+      throw new Error(`Failed to mark paid: ${JSON.stringify(paidRes.data)}`)
+    }
   }
 
-  // 4. Process search (sync fallback)
-  const processRes = await processSearch(code)
-  if (!processRes.ok) {
-    throw new Error(`Failed to process search: ${JSON.stringify(processRes.data)}`)
+  // 4. Process search (sync fallback) — skip if already completed
+  if (!checkRes.ok || checkRes.data.status !== 'COMPLETED') {
+    const processRes = await processSearch(code)
+    if (!processRes.ok) {
+      throw new Error(`Failed to process search: ${JSON.stringify(processRes.data)}`)
+    }
   }
 
   // 5. Verify completion

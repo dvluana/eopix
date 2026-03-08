@@ -20,11 +20,14 @@ export const TEST_CNPJS = {
 export const TEST_EMAIL = 'e2e-test@eopix.test'
 
 export const TEST_USER = {
-  name: 'E2E Test User',
   email: 'e2e-test@eopix.test',
   password: 'E2eTestPass!2026',
+} as const
+
+export const TEST_BUYER = {
+  name: 'Teste E2E',
   cellphone: '11999999999',
-  taxId: '52998224725',
+  taxId: '11144477735',
 } as const
 
 export const ADMIN_CREDENTIALS = {

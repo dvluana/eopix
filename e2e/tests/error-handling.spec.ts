@@ -66,6 +66,6 @@ test.describe('Error Handling', () => {
   test('confirmation page handles invalid code gracefully', async ({ page }) => {
     await page.goto('/compra/confirmacao?code=NONEXIST')
     // Should show not_found state
-    await expect(page.locator('text=nao encontrado')).toBeVisible({ timeout: 10_000 })
+    await expect(page.locator('text=não encontrado')).toBeVisible({ timeout: 10_000 })
   })
 })

@@ -43,11 +43,16 @@ describe('purchase workflow validations', () => {
   })
 
   it('blocks process transitions for invalid states', () => {
-    const invalidStatuses = ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED', 'REFUND_FAILED']
+    const invalidStatuses = ['PENDING', 'COMPLETED', 'REFUNDED', 'REFUND_FAILED']
     for (const status of invalidStatuses) {
       const result = validateCanProcess(status, false)
       expect(result.ok).toBe(false)
     }
+  })
+
+  it('allows reprocess from PROCESSING (stuck retry) and FAILED', () => {
+    expect(validateCanProcess('PROCESSING', false).ok).toBe(true)
+    expect(validateCanProcess('FAILED', false).ok).toBe(true)
   })
 
   it('blocks mark-paid-and-process transitions for invalid states', () => {

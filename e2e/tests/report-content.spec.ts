@@ -8,7 +8,7 @@ test.describe('Report Content Verification', () => {
 
     // Auto-login via confirmacao page (report API requires auth)
     await page.goto(`/compra/confirmacao?code=${code}`)
-    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('text=Relatório pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
     await expect(page.locator('text=Céu limpo')).toBeVisible({ timeout: 15_000 })
@@ -25,7 +25,7 @@ test.describe('Report Content Verification', () => {
 
     // Auto-login via confirmacao page (report API requires auth)
     await page.goto(`/compra/confirmacao?code=${code}`)
-    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('text=Relatório pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
 
@@ -41,7 +41,7 @@ test.describe('Report Content Verification', () => {
 
     // Auto-login via confirmacao page (report API requires auth)
     await page.goto(`/compra/confirmacao?code=${code}`)
-    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('text=Relatório pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
     await expect(page.locator('text=Céu limpo')).toBeVisible({ timeout: 15_000 })
@@ -53,7 +53,7 @@ test.describe('Report Content Verification', () => {
 
     // Auto-login via confirmacao page (report API requires auth)
     await page.goto(`/compra/confirmacao?code=${code}`)
-    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('text=Relatório pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
     await expect(page.locator('text=pontos de atenção')).toBeVisible({ timeout: 15_000 })
@@ -64,7 +64,7 @@ test.describe('Report Content Verification', () => {
 
     // Auto-login via confirmacao page (report API requires auth)
     await page.goto(`/compra/confirmacao?code=${code}`)
-    await expect(page.locator('text=Relatorio pronto!')).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('text=Relatório pronto!')).toBeVisible({ timeout: 15_000 })
 
     await page.goto(reportUrl)
 

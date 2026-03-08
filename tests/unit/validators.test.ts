@@ -79,16 +79,28 @@ describe('Document Formatting', () => {
     expect(formatCNPJ('11222333000181')).toBe('11.222.333/0001-81')
   })
 
-  it('should auto-format CPF', () => {
+  it('should auto-format valid CPF', () => {
     expect(formatDocument('12345678909')).toBe('123.456.789-09')
   })
 
-  it('should auto-format CNPJ', () => {
+  it('should auto-format valid CNPJ', () => {
     expect(formatDocument('11222333000181')).toBe('11.222.333/0001-81')
   })
 
-  it('should return original value for invalid document', () => {
+  it('should format 11-digit string as CPF even with invalid checksum', () => {
+    expect(formatDocument('99999999999')).toBe('999.999.999-99')
+    expect(formatDocument('12345678900')).toBe('123.456.789-00')
+  })
+
+  it('should format 14-digit string as CNPJ even with invalid checksum', () => {
+    expect(formatDocument('11111111111111')).toBe('11.111.111/1111-11')
+    expect(formatDocument('11222333000180')).toBe('11.222.333/0001-80')
+  })
+
+  it('should return original value for non-11/14 digit strings', () => {
     expect(formatDocument('123')).toBe('123')
+    expect(formatDocument('1234567890')).toBe('1234567890')
+    expect(formatDocument('123456789012345')).toBe('123456789012345')
   })
 })
 
