@@ -11,6 +11,7 @@ model User {
   email        String     @unique
   name         String?
   cellphone    String?
+  taxId        String?
   passwordHash String?
   createdAt    DateTime   @default(now())
   purchases    Purchase[]
@@ -53,6 +54,7 @@ model Purchase {
   refundAttempts        Int           @default(0)
   failureReason         String?
   failureDetails        String?
+  pendingPasswordHash   String?
   refundReason          String?
   refundDetails         String?
   searchResult          SearchResult? @relation(fields: [searchResultId], references: [id])
@@ -72,11 +74,14 @@ model Blocklist {
 }
 
 model LeadCapture {
-  id        String   @id @default(cuid())
-  email     String
-  term      String?
-  reason    String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  email      String
+  name       String?
+  phone      String?
+  buyerTaxId String?
+  term       String?
+  reason     String
+  createdAt  DateTime @default(now())
 }
 
 model MagicCode {
