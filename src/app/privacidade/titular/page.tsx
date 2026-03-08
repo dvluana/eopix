@@ -244,26 +244,7 @@ export default function Page() {
             <button
               type="button"
               onClick={handleVoltarInicio}
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                background: 'transparent',
-                border: '2px solid var(--color-text-primary)',
-                borderRadius: '8px',
-                padding: '12px 24px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--color-bg-inverse)';
-                e.currentTarget.style.color = 'var(--color-text-inverse)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--color-text-primary)';
-              }}
+              className="btn btn--outline"
             >
               Voltar para o início
             </button>
@@ -908,26 +889,7 @@ export default function Page() {
             <button
               type="submit"
               disabled={isSubmitting}
-              style={{
-                width: '100%',
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                background: 'var(--color-bg-accent)',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '14px 24px',
-                cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                opacity: isSubmitting ? 0.7 : 1,
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (!isSubmitting) e.currentTarget.style.filter = 'brightness(0.9)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.filter = 'brightness(1)';
-              }}
+              className="btn btn--primary btn--full"
             >
               {isSubmitting ? 'Enviando...' : 'Enviar solicitação'}
             </button>

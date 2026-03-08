@@ -1,19 +1,21 @@
 "use client"
 
 import React, { Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
-import LogoFundoPreto from '@/components/LogoFundoPreto';
+import TopBar from '@/components/TopBar';
+import Footer from '@/components/Footer';
 import AuthForm from '@/components/AuthForm';
-import { PROCESSING_STEPS } from '@/types/domain';
+import ProcessingTracker from '@/components/ProcessingTracker';
 
 type PageState =
-  | 'loading'           // Carregando dados
-  | 'not_found'         // Código inválido
-  | 'cancelled'         // Pagamento cancelado pelo usuário
-  | 'approved'          // Pagamento feito, processando relatório
-  | 'completed'         // Relatório pronto
+  | 'loading'              // Carregando dados
+  | 'not_found'            // Código inválido
+  | 'cancelled'            // Pagamento cancelado pelo usuário
+  | 'confirming_payment'   // Webhook não chegou ainda, aguardando confirmação
+  | 'approved'             // Pagamento confirmado, processando relatório
+  | 'completed'            // Relatório pronto
 
 interface PurchaseData {
   code: string
@@ -33,10 +35,11 @@ function ConfirmacaoContent() {
   const [pageState, setPageState] = React.useState<PageState>('loading');
   const [purchaseData, setPurchaseData] = React.useState<PurchaseData | null>(null);
   const [autoLoginFailed, setAutoLoginFailed] = React.useState(false);
+  const [confirmingSeconds, setConfirmingSeconds] = React.useState(0);
 
-  // Polling: atualizar progresso enquanto processando
+  // Polling: atualizar progresso enquanto processando ou aguardando confirmação
   React.useEffect(() => {
-    if (pageState !== 'approved' || !purchaseCode) return;
+    if ((pageState !== 'approved' && pageState !== 'confirming_payment') || !purchaseCode) return;
 
     const interval = setInterval(async () => {
       try {
@@ -47,6 +50,8 @@ function ConfirmacaoContent() {
 
         if (data.status === 'COMPLETED' || data.hasReport) {
           setPageState('completed');
+        } else if (pageState === 'confirming_payment' && (data.status === 'PAID' || data.status === 'PROCESSING')) {
+          setPageState('approved');
         }
       } catch {
         // silently ignore polling errors
@@ -55,6 +60,20 @@ function ConfirmacaoContent() {
 
     return () => clearInterval(interval);
   }, [pageState, purchaseCode]);
+
+  // Timer: contar segundos em confirming_payment para mostrar timeout
+  React.useEffect(() => {
+    if (pageState !== 'confirming_payment') {
+      setConfirmingSeconds(0);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setConfirmingSeconds(prev => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [pageState]);
 
   // Buscar dados e processar estado
   React.useEffect(() => {
@@ -65,7 +84,6 @@ function ConfirmacaoContent() {
       }
 
       try {
-        // 1. Buscar dados da compra
         const res = await fetch(`/api/purchases/${purchaseCode}`);
         if (!res.ok) {
           setPageState('not_found');
@@ -75,7 +93,7 @@ function ConfirmacaoContent() {
         const data = await res.json();
         setPurchaseData(data);
 
-        // 2. Tentar auto-login ANTES de setar estado
+        // Tentar auto-login ANTES de setar estado
         try {
           const loginRes = await fetch('/api/auth/auto-login', {
             method: 'POST',
@@ -90,13 +108,15 @@ function ConfirmacaoContent() {
           setAutoLoginFailed(true);
         }
 
-        // 3. Determinar estado baseado no status
+        // Determinar estado baseado no status
         if (data.status === 'COMPLETED' || data.hasReport) {
           setPageState('completed');
         } else if (isCancelled && data.status === 'PENDING') {
           setPageState('cancelled');
+        } else if (data.status === 'PENDING') {
+          setPageState('confirming_payment');
         } else {
-          setPageState('approved'); // PAID ou PROCESSING — pagamento já feito
+          setPageState('approved');
         }
       } catch (err) {
         console.error('Erro ao buscar compra:', err);
@@ -120,12 +140,10 @@ function ConfirmacaoContent() {
   // Estado: Loading
   if (pageState === 'loading') {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: 'var(--color-text-secondary)' }} />
-          <p style={{ fontFamily: 'var(--font-family-body)', fontSize: '16px', color: 'var(--color-text-secondary)', marginTop: '16px' }}>
-            Carregando...
-          </p>
+      <div className="conf-page conf-page--center">
+        <div className="conf-loading">
+          <Loader2 size={32} className="conf-spinner" />
+          <p className="conf-loading__text">Carregando...</p>
         </div>
       </div>
     );
@@ -134,15 +152,13 @@ function ConfirmacaoContent() {
   // Estado: Not Found
   if (pageState === 'not_found' || !purchaseCode) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          <h1 style={{ fontFamily: 'var(--font-family-heading)', fontSize: '24px', marginBottom: '16px' }}>
-            Codigo de compra nao encontrado
-          </h1>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '24px' }}>
+      <div className="conf-page conf-page--center">
+        <div className="conf-not-found">
+          <h1 className="conf-card__title">Código de compra não encontrado</h1>
+          <p className="conf-card__desc">
             Verifique o link ou acesse suas consultas.
           </p>
-          <Link href="/minhas-consultas" className="btn btn--primary">
+          <Link href="/minhas-consultas" className="btn btn--cta conf-card__btn">
             Ir para Minhas Consultas
           </Link>
         </div>
@@ -150,230 +166,88 @@ function ConfirmacaoContent() {
     );
   }
 
-  // Renderizar conteúdo baseado no estado
   const renderContent = () => {
     switch (pageState) {
       case 'cancelled':
         return (
           <>
-            {/* Ícone X */}
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              background: 'var(--color-status-error, #DC2626)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto'
-            }}>
+            <div className="conf-card__icon conf-card__icon--error">
               <XCircle size={24} color="#FFFFFF" />
             </div>
-
-            {/* Título */}
-            <h1 style={{
-              fontFamily: 'var(--font-family-heading)',
-              fontSize: '28px',
-              fontWeight: 'var(--primitive-weight-bold)',
-              color: 'var(--color-text-primary)',
-              marginTop: 'var(--primitive-space-4)',
-              marginBottom: 0
-            }}>
-              Pagamento nao concluido
-            </h1>
-
-            {/* Descrição */}
-            <p style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '15px',
-              color: 'var(--color-text-secondary)',
-              marginTop: 'var(--primitive-space-4)',
-              lineHeight: 1.6
-            }}>
-              O pagamento foi cancelado. Voce pode tentar novamente a qualquer momento.
+            <h1 className="conf-card__title">Pagamento não concluído</h1>
+            <p className="conf-card__desc">
+              O pagamento foi cancelado. Você pode tentar novamente a qualquer momento.
             </p>
-
-            {/* Botão */}
-            <Link
-              href="/"
-              className="btn btn--primary"
-              style={{
-                marginTop: 'var(--primitive-space-6)',
-                width: '100%',
-                fontSize: '14px',
-                padding: '16px',
-                fontWeight: 'var(--primitive-weight-bold)',
-                display: 'block',
-                textAlign: 'center',
-                textDecoration: 'none'
-              }}
-            >
+            <Link href="/" className="btn btn--cta conf-card__btn">
               TENTAR NOVAMENTE
             </Link>
           </>
         );
 
+      case 'confirming_payment':
+        return (
+          <>
+            <div className="conf-card__icon conf-card__icon--waiting">
+              <Loader2 size={24} color="#000" className="conf-spinner" />
+            </div>
+            <h1 className="conf-card__title">Confirmando seu pagamento...</h1>
+            <p className="conf-card__desc">
+              Estamos verificando a confirmação do seu pagamento. Isso geralmente leva alguns segundos.
+            </p>
+            <div className="conf-card__code">
+              <span className="conf-card__code-label">Código: </span>
+              <span className="conf-card__code-value">#{purchaseCode}</span>
+            </div>
+            {confirmingSeconds > 60 && (
+              <div className="conf-card__timeout">
+                <p>
+                  Está demorando mais que o esperado. Se você já pagou, entre em contato pelo email suporte@eopix.app com o código <strong>#{purchaseCode}</strong>.
+                </p>
+              </div>
+            )}
+          </>
+        );
+
       case 'approved': {
         const currentStep = purchaseData?.processingStep || 0;
-        const progressPercent = currentStep > 0 ? (currentStep / 6) * 100 : 0;
-        const currentStepInfo = PROCESSING_STEPS.find(s => s.step === currentStep);
+        const isFailed = purchaseData?.status === 'FAILED';
 
         return (
           <>
-            {/* Ícone de Check */}
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              background: 'var(--color-status-success)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto'
-            }}>
+            <div className="conf-card__icon conf-card__icon--success">
               <CheckCircle size={24} color="#FFFFFF" />
             </div>
-
-            {/* Título */}
-            <h1 style={{
-              fontFamily: 'var(--font-family-heading)',
-              fontSize: '28px',
-              fontWeight: 'var(--primitive-weight-bold)',
-              color: 'var(--color-text-primary)',
-              marginTop: 'var(--primitive-space-4)',
-              marginBottom: 0
-            }}>
-              Compra aprovada!
-            </h1>
-
-            {/* Descrição */}
-            <p style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '15px',
-              color: 'var(--color-text-secondary)',
-              marginTop: 'var(--primitive-space-4)',
-              lineHeight: 1.6
-            }}>
-              Pagamento confirmado! Estamos gerando seu relatorio.
+            <h1 className="conf-card__title">Compra aprovada!</h1>
+            <p className="conf-card__desc">
+              Pagamento confirmado! Estamos gerando seu relatório.
             </p>
 
-            {/* Progresso */}
-            <div style={{ marginTop: 'var(--primitive-space-5)', textAlign: 'left' }}>
-              {/* Label da etapa atual */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '8px',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    border: '2px solid var(--color-border-subtle)',
-                    borderTopColor: 'var(--primitive-yellow)',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                  }} />
-                  <span style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '12px',
-                    color: 'var(--color-text-secondary)',
-                  }}>
-                    {currentStepInfo ? currentStepInfo.label : 'Iniciando processamento...'}
-                  </span>
-                </div>
-                <span style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '11px',
-                  color: 'var(--color-text-tertiary)',
-                }}>
-                  {currentStep}/6
-                </span>
-              </div>
-
-              {/* Barra de progresso */}
-              <div style={{
-                height: '6px',
-                background: 'var(--color-bg-secondary)',
-                borderRadius: '3px',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  height: '100%',
-                  width: `${progressPercent}%`,
-                  background: 'linear-gradient(90deg, var(--primitive-yellow) 0%, #E6C200 100%)',
-                  borderRadius: '3px',
-                  transition: 'width 0.5s ease-out',
-                }} />
-              </div>
-
-              {/* Dots indicadores */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginTop: '8px',
-              }}>
-                {PROCESSING_STEPS.map((s) => (
-                  <div
-                    key={s.step}
-                    style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: currentStep >= s.step
-                        ? 'var(--primitive-yellow)'
-                        : 'var(--color-border-subtle)',
-                      transition: 'background 0.3s ease',
-                    }}
-                    title={s.label}
-                  />
-                ))}
-              </div>
+            <div className="conf-card__tracker">
+              <ProcessingTracker
+                currentStep={currentStep}
+                variant="full"
+                failed={isFailed}
+              />
             </div>
 
-            {/* Código */}
-            <div style={{
-              marginTop: 'var(--primitive-space-4)',
-              fontFamily: 'var(--font-family-body)'
-            }}>
-              <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
-                Codigo:{' '}
-              </span>
-              <span style={{ fontSize: '14px', fontWeight: 'var(--primitive-weight-bold)', color: 'var(--color-text-primary)' }}>
-                #{purchaseCode}
-              </span>
+            <div className="conf-card__code">
+              <span className="conf-card__code-label">Código: </span>
+              <span className="conf-card__code-value">#{purchaseCode}</span>
             </div>
 
-            {/* Botão ou Login fallback */}
             {autoLoginFailed ? (
-              <div style={{ marginTop: 'var(--primitive-space-6)' }}>
-                <p style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '13px',
-                  color: 'var(--color-text-secondary)',
-                  marginBottom: 'var(--primitive-space-3)',
-                }}>
-                  Para acompanhar seu relatorio, faca login:
+              <div className="conf-card__auth">
+                <p className="conf-card__auth-text">
+                  Para acompanhar seu relatório, faça login:
                 </p>
-                <AuthForm
-                  mode="login"
-                  onSuccess={handleGoToConsultas}
-                />
+                <AuthForm mode="login" onSuccess={handleGoToConsultas} />
               </div>
             ) : (
               <button
                 onClick={handleGoToConsultas}
-                className="btn btn--primary"
-                style={{
-                  marginTop: 'var(--primitive-space-6)',
-                  width: '100%',
-                  fontSize: '14px',
-                  padding: '16px',
-                  fontWeight: 'var(--primitive-weight-bold)'
-                }}
+                className="btn btn--cta conf-card__btn"
               >
-                ACOMPANHAR MEU RELATORIO
+                ACOMPANHAR MEU RELATÓRIO
               </button>
             )}
           </>
@@ -383,85 +257,30 @@ function ConfirmacaoContent() {
       case 'completed':
         return (
           <>
-            {/* Ícone de Check */}
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              background: 'var(--color-status-success)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto'
-            }}>
+            <div className="conf-card__icon conf-card__icon--success">
               <CheckCircle size={24} color="#FFFFFF" />
             </div>
-
-            {/* Título */}
-            <h1 style={{
-              fontFamily: 'var(--font-family-heading)',
-              fontSize: '28px',
-              fontWeight: 'var(--primitive-weight-bold)',
-              color: 'var(--color-text-primary)',
-              marginTop: 'var(--primitive-space-4)',
-              marginBottom: 0
-            }}>
-              Relatorio pronto!
-            </h1>
-
-            {/* Descrição */}
-            <p style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '15px',
-              color: 'var(--color-text-secondary)',
-              marginTop: 'var(--primitive-space-4)',
-              lineHeight: 1.6
-            }}>
-              Seu relatorio esta disponivel para visualizacao.
+            <h1 className="conf-card__title">Relatório pronto!</h1>
+            <p className="conf-card__desc">
+              Seu relatório está disponível para visualização.
             </p>
-
-            {/* Código */}
-            <div style={{
-              marginTop: 'var(--primitive-space-4)',
-              fontFamily: 'var(--font-family-body)'
-            }}>
-              <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
-                Codigo:{' '}
-              </span>
-              <span style={{ fontSize: '14px', fontWeight: 'var(--primitive-weight-bold)', color: 'var(--color-text-primary)' }}>
-                #{purchaseCode}
-              </span>
+            <div className="conf-card__code">
+              <span className="conf-card__code-label">Código: </span>
+              <span className="conf-card__code-value">#{purchaseCode}</span>
             </div>
-
-            {/* Botões */}
             {purchaseData?.reportId && (
               <button
                 onClick={handleViewReport}
-                className="btn btn--primary"
-                style={{
-                  marginTop: 'var(--primitive-space-6)',
-                  width: '100%',
-                  fontSize: '14px',
-                  padding: '16px',
-                  fontWeight: 'var(--primitive-weight-bold)'
-                }}
+                className="btn btn--cta conf-card__btn"
               >
-                VER RELATORIO
+                VER RELATÓRIO
               </button>
             )}
-
             <button
               onClick={handleGoToConsultas}
-              className="btn btn--secondary"
-              style={{
-                marginTop: 'var(--primitive-space-3)',
-                width: '100%',
-                fontSize: '14px',
-                padding: '16px',
-                fontWeight: 'var(--primitive-weight-bold)'
-              }}
+              className="btn btn--outline conf-card__btn conf-card__btn--secondary"
             >
-              VER TODOS OS RELATORIOS
+              VER TODOS OS RELATÓRIOS
             </button>
           </>
         );
@@ -472,80 +291,23 @@ function ConfirmacaoContent() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
-      {/* NAV */}
-      <nav className="nav" aria-label="Menu principal">
-        <div className="nav__inner">
-          <Link href="/" className="nav__logo" aria-label="E o Pix? - Pagina inicial">
-            <LogoFundoPreto />
-          </Link>
-        </div>
-      </nav>
-
-      {/* MAIN CONTENT */}
-      <main style={{
-        paddingTop: 'calc(64px + var(--primitive-space-10))',
-        paddingBottom: 'var(--primitive-space-12)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 'calc(100vh - 64px)'
-      }}>
-        <div style={{
-          maxWidth: '560px',
-          width: '100%',
-          margin: '0 var(--primitive-space-6)'
-        }}>
-          {/* CARD */}
-          <div style={{
-            background: 'var(--color-bg-primary)',
-            border: '1px solid var(--color-border-default)',
-            borderRadius: 'var(--primitive-radius-md)',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-            padding: 'var(--primitive-space-10)',
-            textAlign: 'center'
-          }}>
+    <div className="conf-page">
+      <TopBar />
+      <main className="conf-main">
+        <div className="conf-main__inner">
+          <div className="conf-card">
             {renderContent()}
           </div>
         </div>
       </main>
-
-      {/* FOOTER */}
-      <footer className="footer" role="contentinfo">
-        <div className="footer__inner">
-          <div className="footer__brand">
-            <LogoFundoPreto />
-          </div>
-          <p className="footer__legal">
-            Organizamos informacoes publicas. Nao garantimos veracidade. Nao fazemos juizo de valor. Decisao e responsabilidade sao sempre do usuario.
-            <br/>
-            Nao e detector de pilantra. E um espelho comercial. Se o reflexo incomodar, o problema nao e o espelho.
-          </p>
-          <ul className="footer__links">
-            <li><a href="#" className="footer__link">Termos de uso</a></li>
-            <li><a href="#" className="footer__link">Politica de privacidade</a></li>
-            <li><a href="#" className="footer__link">Contato</a></li>
-          </ul>
-          <p className="footer__copy">
-            2026 E o Pix? - Todos os direitos reservados.
-          </p>
-        </div>
-      </footer>
-
-      {/* CSS for spinner animation */}
-      <style jsx global>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+      <Footer />
     </div>
   );
 }
 
 export default function Page() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }} />}>
+    <Suspense fallback={<div className="conf-page" />}>
       <ConfirmacaoContent />
     </Suspense>
   );

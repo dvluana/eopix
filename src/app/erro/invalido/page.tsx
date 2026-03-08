@@ -92,25 +92,8 @@ export default function Page() {
         {/* Botão */}
         <button
           onClick={() => router.push('/minhas-consultas')}
-          style={{
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: 'var(--color-text-primary)',
-            background: 'var(--color-bg-accent)',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '16px 32px',
-            marginTop: '24px',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.filter = 'brightness(0.9)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.filter = 'brightness(1)';
-          }}
+          className="btn btn--primary"
+          style={{ marginTop: '24px' }}
         >
           Ir para Minhas Consultas
         </button>
