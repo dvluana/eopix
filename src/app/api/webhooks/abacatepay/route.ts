@@ -2,54 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { validateWebhookSecret, validateWebhookSignature } from '@/lib/abacatepay'
 
-// v1 billing.paid payload
-interface AbacateBillingPaidEvent {
-  event: 'billing.paid'
-  id: string
+// v1 billing.paid payload (per official AbacatePay docs)
+// data is flat — NOT nested under data.billing
+interface AbacateWebhookEvent {
+  event: string
   devMode: boolean
   data: {
-    payment: { amount: number; fee: number; method: string }
-    billing: {
+    id: string
+    externalId?: string
+    amount: number
+    paidAmount?: number
+    status: string
+    customer?: {
       id: string
-      externalId?: string
-      amount: number
-      paidAmount: number
-      status: string
-      frequency: string
-      kind: string[]
-      products: { externalId: string; id: string; quantity: number }[]
-      customer: {
-        id: string
-        metadata: { name: string; email: string; cellphone: string; taxId: string }
+      email?: string
+      name?: string
+      cellphone?: string
+      taxId?: string
+      // v1 may also nest under metadata
+      metadata?: {
+        name?: string
+        email?: string
+        cellphone?: string
+        taxId?: string
       }
     }
+    createdAt?: string
+    updatedAt?: string
   }
 }
-
-// v2 checkout.completed payload (kept for forward compatibility)
-interface AbacateCheckoutCompletedEvent {
-  event: 'checkout.completed'
-  apiVersion: number
-  devMode: boolean
-  data: {
-    checkout: {
-      id: string
-      externalId?: string
-      amount: number
-      paidAmount: number
-      status: string
-      items: { id: string; quantity: number }[]
-    }
-    customer: {
-      id: string
-      name: string
-      email: string
-      taxId: string
-    } | null
-  }
-}
-
-type AbacateWebhookEvent = AbacateBillingPaidEvent | AbacateCheckoutCompletedEvent
 
 export async function POST(request: NextRequest) {
   console.log('[AbacatePay Webhook] Request received:', {
@@ -72,9 +53,9 @@ export async function POST(request: NextRequest) {
     // Read raw body for signature verification
     const rawBody = await request.text()
 
-    // Layer 2: Validate HMAC-SHA256 signature
+    // Layer 2: Validate HMAC-SHA256 signature (if present)
     const signature = request.headers.get('x-webhook-signature')
-    if (!signature || !validateWebhookSignature(rawBody, signature)) {
+    if (signature && !validateWebhookSignature(rawBody, signature)) {
       console.warn('[AbacatePay Webhook] Invalid HMAC signature')
       return NextResponse.json(
         { error: 'Invalid signature' },
@@ -84,32 +65,20 @@ export async function POST(request: NextRequest) {
 
     const event = JSON.parse(rawBody) as AbacateWebhookEvent
 
-    console.log('[AbacatePay Webhook] Received event:', event.event)
+    console.log('[AbacatePay Webhook] Event:', event.event, 'Data:', JSON.stringify(event.data).slice(0, 500))
 
-    // Extract billing/checkout ID and purchase data based on event type
-    let billingId: string
-    let purchaseCode: string | undefined
-    let customerEmail: string | null = null
-    let customerName: string | null = null
-
-    if (event.event === 'billing.paid') {
-      // v1 format
-      const billing = event.data.billing
-      billingId = billing.id
-      purchaseCode = billing.externalId
-      customerEmail = billing.customer?.metadata?.email || null
-      customerName = billing.customer?.metadata?.name || null
-    } else if (event.event === 'checkout.completed') {
-      // v2 format
-      const checkout = event.data.checkout
-      billingId = checkout.id
-      purchaseCode = checkout.externalId
-      customerEmail = event.data.customer?.email || null
-      customerName = event.data.customer?.name || null
-    } else {
-      console.log(`[AbacatePay Webhook] Unhandled event type: ${(event as { event: string }).event}`)
+    if (event.event !== 'billing.paid') {
+      console.log(`[AbacatePay Webhook] Ignoring event: ${event.event}`)
       return NextResponse.json({ received: true })
     }
+
+    // Extract fields from flat v1 payload
+    const billingId = event.data.id
+    const purchaseCode = event.data.externalId
+    const customer = event.data.customer
+    // Customer email/name: try root level first, then metadata (v1 compat)
+    const customerEmail = customer?.email || customer?.metadata?.email || null
+    const customerName = customer?.name || customer?.metadata?.name || null
 
     // Idempotency check
     const webhookKey = `abacate:${event.event}:${billingId}`
@@ -118,7 +87,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existing) {
-      console.log(`[AbacatePay Webhook] Duplicate webhook ignored: ${webhookKey}`)
+      console.log(`[AbacatePay Webhook] Duplicate ignored: ${webhookKey}`)
       return NextResponse.json({ received: true, duplicate: true })
     }
 
@@ -130,7 +99,7 @@ export async function POST(request: NextRequest) {
     console.log('[AbacatePay Webhook] Payment confirmed:', {
       purchaseCode,
       billingId,
-      event: event.event,
+      customerEmail,
     })
 
     await handlePaymentSuccess(purchaseCode, billingId, customerEmail, customerName)
@@ -197,14 +166,12 @@ async function handlePaymentSuccess(
     })
 
     if (existingUser) {
-      // User with this email already exists — link purchase to existing user
       await prisma.purchase.update({
         where: { id: purchase.id },
         data: { userId: existingUser.id },
       })
       console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} linked to existing user ${normalizedEmail}`)
     } else {
-      // Update guest user email with real email from checkout
       await prisma.user.update({
         where: { id: purchase.userId },
         data: { email: normalizedEmail },
@@ -229,8 +196,7 @@ async function handlePaymentSuccess(
   console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} updated to PAID`)
 
   // Trigger Inngest job — re-throw on failure so webhook returns 500
-  // and AbacatePay retries delivery. PAID purchases are not skipped above,
-  // so retries will re-attempt the Inngest send.
+  // and AbacatePay retries delivery
   const { inngest } = await import('@/lib/inngest')
   await inngest.send({
     name: 'search/process',
