@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   DollarSign,
   ShoppingCart,
@@ -12,6 +11,8 @@ import {
   XCircle,
   RefreshCw,
 } from 'lucide-react'
+import { AdminPageHeader } from '../_components/AdminPageHeader'
+import { AdminDataTable, Column } from '../_components/AdminDataTable'
 import { StatusBadge } from '../_components/StatusBadge'
 import { formatCurrency, formatDate } from '../_components/admin-utils'
 import { AdminError } from '../_components/AdminError'
@@ -57,6 +58,24 @@ interface DashboardData {
   }>
 }
 
+type RecentPurchase = DashboardData['recentPurchases'][number]
+
+const recentColumns: Column[] = [
+  { key: 'code', label: 'Código' },
+  { key: 'term', label: 'Documento' },
+  { key: 'email', label: 'Email' },
+  { key: 'status', label: 'Status' },
+  { key: 'amount', label: 'Valor', align: 'right' },
+  { key: 'createdAt', label: 'Data', align: 'right' },
+]
+
+const stats = [
+  { key: 'revenue', label: 'Receita Total', icon: DollarSign, format: 'currency' as const },
+  { key: 'purchases', label: 'Compras', icon: ShoppingCart, format: 'number' as const },
+  { key: 'users', label: 'Usuários', icon: Users, format: 'number' as const },
+  { key: 'leads', label: 'Leads', icon: TrendingUp, format: 'number' as const },
+]
+
 export default function AdminDashboard() {
   const [data, setData] = React.useState<DashboardData | null>(null)
   const [loading, setLoading] = React.useState(true)
@@ -82,11 +101,7 @@ export default function AdminDashboard() {
   }, [fetchData])
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-        <RefreshCw className="animate-spin" size={32} />
-      </div>
-    )
+    return <div className="adm-loading" style={{ height: '400px' }}><RefreshCw className="animate-spin" size={32} /></div>
   }
 
   if (error) {
@@ -95,190 +110,107 @@ export default function AdminDashboard() {
 
   if (!data) return null
 
+  const getStatValue = (key: string) => {
+    switch (key) {
+      case 'revenue': return { total: formatCurrency(data.revenue.total), today: `+${formatCurrency(data.revenue.today)} hoje` }
+      case 'purchases': return { total: String(data.purchases.total), today: `+${data.purchases.today} hoje` }
+      case 'users': return { total: String(data.users.total), today: `+${data.users.today} hoje` }
+      case 'leads': return { total: String(data.leads.total), today: `+${data.leads.today} hoje` }
+      default: return { total: '0', today: '' }
+    }
+  }
+
+  const renderRecentCell = (row: RecentPurchase, col: Column) => {
+    switch (col.key) {
+      case 'status': return <StatusBadge status={row.status} />
+      case 'amount': return formatCurrency(row.amount)
+      case 'createdAt': return formatDate(row.createdAt)
+      default: return row[col.key as keyof RecentPurchase] as string
+    }
+  }
+
   return (
     <div>
-      {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1
-          style={{
-            fontFamily: 'var(--font-family-heading)',
-            fontSize: '28px',
-            fontWeight: 700,
-            color: 'var(--color-text-primary)',
-            margin: 0,
-          }}
-        >
-          Dashboard
-        </h1>
-        <p
-          style={{
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '14px',
-            color: 'var(--color-text-secondary)',
-            marginTop: '4px',
-          }}
-        >
-          Visao geral do sistema
-        </p>
-      </div>
+      <AdminPageHeader title="Dashboard" subtitle="Visão geral do sistema" />
 
       {/* Stats Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '16px',
-          marginBottom: '32px',
-        }}
-      >
-        {/* Revenue Total */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(data.revenue.total)}</div>
-            <p className="text-xs text-muted-foreground">
-              +{formatCurrency(data.revenue.today)} hoje
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Purchases */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Compras</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.purchases.total}</div>
-            <p className="text-xs text-muted-foreground">
-              +{data.purchases.today} hoje
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Users */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Usuarios</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.users.total}</div>
-            <p className="text-xs text-muted-foreground">
-              +{data.users.today} hoje
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Leads */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Leads</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.leads.total}</div>
-            <p className="text-xs text-muted-foreground">
-              +{data.leads.today} hoje
-            </p>
-          </CardContent>
-        </Card>
+      <div className="adm-stats-grid">
+        {stats.map((stat) => {
+          const { total, today } = getStatValue(stat.key)
+          const Icon = stat.icon
+          return (
+            <div key={stat.key} className="adm-stat-card">
+              <div className="adm-stat-card__header">
+                <span className="adm-stat-card__label">{stat.label}</span>
+                <Icon size={16} className="adm-stat-card__icon" />
+              </div>
+              <div className="adm-stat-card__value">{total}</div>
+              <p className="adm-stat-card__detail">{today}</p>
+            </div>
+          )
+        })}
       </div>
 
       {/* Status Overview */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
-        {/* By Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Status das Compras</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <div className="adm-status-grid">
+        <div className="adm-card">
+          <div className="adm-card__header"><p className="adm-card__title">Status das Compras</p></div>
+          <div className="adm-card__body">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="adm-status-item">
                 <CheckCircle size={16} style={{ color: '#22c55e' }} />
-                <span style={{ fontSize: '14px' }}>Concluidas: {data.purchases.byStatus.completed}</span>
+                <span>Concluídas: {data.purchases.byStatus.completed}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="adm-status-item">
                 <Clock size={16} style={{ color: '#f59e0b' }} />
-                <span style={{ fontSize: '14px' }}>Pendentes: {data.purchases.byStatus.pending}</span>
+                <span>Pendentes: {data.purchases.byStatus.pending}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="adm-status-item">
                 <XCircle size={16} style={{ color: '#ef4444' }} />
-                <span style={{ fontSize: '14px' }}>Falhas: {data.purchases.byStatus.failed}</span>
+                <span>Falhas: {data.purchases.byStatus.failed}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="adm-status-item">
                 <RefreshCw size={16} style={{ color: '#8b5cf6' }} />
-                <span style={{ fontSize: '14px' }}>Reembolsos: {data.purchases.byStatus.refunded}</span>
+                <span>Reembolsos: {data.purchases.byStatus.refunded}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Revenue by Period */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Receita por Periodo</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="adm-card">
+          <div className="adm-card__header"><p className="adm-card__title">Receita por Período</p></div>
+          <div className="adm-card__body">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Hoje</p>
-                <p style={{ fontSize: '16px', fontWeight: 600 }}>{formatCurrency(data.revenue.today)}</p>
-              </div>
-              <div>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>7 dias</p>
-                <p style={{ fontSize: '16px', fontWeight: 600 }}>{formatCurrency(data.revenue.last7Days)}</p>
-              </div>
-              <div>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>30 dias</p>
-                <p style={{ fontSize: '16px', fontWeight: 600 }}>{formatCurrency(data.revenue.last30Days)}</p>
-              </div>
-              <div>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>Total</p>
-                <p style={{ fontSize: '16px', fontWeight: 600 }}>{formatCurrency(data.revenue.total)}</p>
-              </div>
+              {[
+                { label: 'Hoje', value: data.revenue.today },
+                { label: '7 dias', value: data.revenue.last7Days },
+                { label: '30 dias', value: data.revenue.last30Days },
+                { label: 'Total', value: data.revenue.total },
+              ].map((item) => (
+                <div key={item.label}>
+                  <p className="adm-revenue-item__label">{item.label}</p>
+                  <p className="adm-revenue-item__value">{formatCurrency(item.value)}</p>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Recent Purchases */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Compras Recentes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: 600 }}>Codigo</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: 600 }}>Documento</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: 600 }}>Email</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: 600 }}>Status</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '12px', fontWeight: 600 }}>Valor</th>
-                  <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '12px', fontWeight: 600 }}>Data</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.recentPurchases.map((purchase) => (
-                  <tr key={purchase.id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                    <td style={{ padding: '12px 8px', fontSize: '13px', fontFamily: 'monospace' }}>{purchase.code}</td>
-                    <td style={{ padding: '12px 8px', fontSize: '13px' }}>{purchase.term}</td>
-                    <td style={{ padding: '12px 8px', fontSize: '13px' }}>{purchase.email}</td>
-                    <td style={{ padding: '12px 8px' }}><StatusBadge status={purchase.status} /></td>
-                    <td style={{ padding: '12px 8px', fontSize: '13px', textAlign: 'right' }}>{formatCurrency(purchase.amount)}</td>
-                    <td style={{ padding: '12px 8px', fontSize: '13px', textAlign: 'right' }}>{formatDate(purchase.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="adm-card">
+        <div className="adm-card__header"><p className="adm-card__title">Compras Recentes</p></div>
+        <div className="adm-card__body">
+          <AdminDataTable<RecentPurchase>
+            columns={recentColumns}
+            data={data.recentPurchases}
+            renderCell={renderRecentCell}
+            loading={false}
+            emptyMessage="Nenhuma compra recente"
+            mono
+          />
+        </div>
+      </div>
     </div>
   )
 }

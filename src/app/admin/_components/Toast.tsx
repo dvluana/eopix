@@ -24,43 +24,16 @@ export function useToast() {
   return ctx
 }
 
-const icons: Record<ToastType, React.ReactNode> = {
-  success: <CheckCircle size={16} style={{ color: '#22c55e', flexShrink: 0 }} />,
-  error: <XCircle size={16} style={{ color: '#ef4444', flexShrink: 0 }} />,
-  info: <Info size={16} style={{ color: '#3b82f6', flexShrink: 0 }} />,
-}
-
-const bgColors: Record<ToastType, string> = {
-  success: 'rgba(34, 197, 94, 0.1)',
-  error: 'rgba(239, 68, 68, 0.1)',
-  info: 'rgba(59, 130, 246, 0.1)',
-}
-
-const borderColors: Record<ToastType, string> = {
-  success: 'rgba(34, 197, 94, 0.3)',
-  error: 'rgba(239, 68, 68, 0.3)',
-  info: 'rgba(59, 130, 246, 0.3)',
-}
-
 function ToastItem({ t, onClose }: { t: ToastMessage; onClose: () => void }) {
   return (
     <RadixToast.Root
+      className={`adm-toast adm-toast--${t.type}`}
       duration={t.type === 'error' ? 5000 : 3000}
       onOpenChange={(open) => { if (!open) onClose() }}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        padding: '12px 16px',
-        background: bgColors[t.type],
-        border: `1px solid ${borderColors[t.type]}`,
-        borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        fontSize: '14px',
-        color: 'var(--color-text-primary)',
-      }}
     >
-      {icons[t.type]}
+      {t.type === 'success' && <CheckCircle size={16} className="adm-toast__icon adm-toast__icon--success" />}
+      {t.type === 'error' && <XCircle size={16} className="adm-toast__icon adm-toast__icon--error" />}
+      {t.type === 'info' && <Info size={16} className="adm-toast__icon adm-toast__icon--info" />}
       <RadixToast.Description style={{ flex: 1 }}>
         {t.message}
       </RadixToast.Description>
@@ -87,21 +60,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <ToastItem key={t.id} t={t} onClose={() => removeToast(t.id)} />
         ))}
-        <RadixToast.Viewport
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            width: '380px',
-            maxWidth: 'calc(100vw - 48px)',
-            zIndex: 9999,
-            listStyle: 'none',
-            outline: 'none',
-          }}
-        />
+        <RadixToast.Viewport className="adm-toast__viewport" />
       </RadixToast.Provider>
     </ToastContext.Provider>
   )

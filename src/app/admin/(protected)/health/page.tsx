@@ -1,8 +1,6 @@
 'use client'
 
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   CheckCircle,
@@ -11,6 +9,7 @@ import {
   RefreshCw,
   Activity,
 } from 'lucide-react'
+import { AdminPageHeader } from '../../_components/AdminPageHeader'
 import { AdminError } from '../../_components/AdminError'
 import { formatDate } from '../../_components/admin-utils'
 
@@ -67,16 +66,18 @@ function StatusIcon({ status }: { status: string }) {
   }
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
-    investigating: { variant: 'destructive', label: 'Investigando' },
-    identified: { variant: 'secondary', label: 'Identificado' },
-    monitoring: { variant: 'secondary', label: 'Monitorando' },
-    resolved: { variant: 'default', label: 'Resolvido' },
-  }
+const incidentStatusLabels: Record<string, string> = {
+  investigating: 'Investigando',
+  identified: 'Identificado',
+  monitoring: 'Monitorando',
+  resolved: 'Resolvido',
+}
 
-  const { variant, label } = config[status] || { variant: 'outline' as const, label: status }
-  return <Badge variant={variant}>{label}</Badge>
+const incidentStatusBadge: Record<string, string> = {
+  investigating: 'adm-badge adm-badge--failed',
+  identified: 'adm-badge adm-badge--pending',
+  monitoring: 'adm-badge adm-badge--pending',
+  resolved: 'adm-badge adm-badge--completed',
 }
 
 export default function HealthPage() {
@@ -121,7 +122,7 @@ export default function HealthPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+      <div className="adm-loading" style={{ height: '400px' }}>
         <RefreshCw className="animate-spin" size={32} />
       </div>
     )
@@ -133,65 +134,20 @@ export default function HealthPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <div>
-          <h1
-            style={{
-              fontFamily: 'var(--font-family-heading)',
-              fontSize: '28px',
-              fontWeight: 700,
-              color: 'var(--color-text-primary)',
-              margin: 0,
-            }}
-          >
-            Health Status
-          </h1>
-          <p
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '14px',
-              color: 'var(--color-text-secondary)',
-              marginTop: '4px',
-            }}
-          >
-            Monitoramento dos servicos
-          </p>
-        </div>
-
+      <AdminPageHeader title="Health Status" subtitle="Monitoramento dos servicos">
         <Button variant="outline" onClick={fetchData}>
           <RefreshCw size={16} style={{ marginRight: '8px' }} />
           Atualizar
         </Button>
-      </div>
+      </AdminPageHeader>
 
       {/* Banner de Mock Mode */}
       {health?.mode === 'mock' && (
-        <div style={{
-          marginBottom: '24px',
-          padding: '16px 20px',
-          background: 'linear-gradient(90deg, rgba(255,214,0,0.15), rgba(255,214,0,0.05))',
-          border: '1px solid var(--color-border-accent)',
-          borderRadius: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-        }}>
+        <div className="adm-banner--mock">
           <AlertCircle size={20} style={{ color: 'var(--color-text-accent)' }} />
           <div>
-            <p style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--color-text-primary)',
-              margin: 0
-            }}>
-              Modo de Teste Ativo
-            </p>
-            <p style={{
-              fontSize: '12px',
-              color: 'var(--color-text-secondary)',
-              margin: 0
-            }}>
+            <p className="adm-banner--mock__title">Modo de Teste Ativo</p>
+            <p className="adm-banner--mock__desc">
               Os dados exibidos sao simulados. Ative MOCK_MODE=false para dados reais.
             </p>
           </div>
@@ -199,80 +155,52 @@ export default function HealthPage() {
       )}
 
       {/* Overall Status */}
-      <Card style={{ marginBottom: '24px' }}>
-        <CardContent style={{ paddingTop: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="adm-card" style={{ marginBottom: '24px' }}>
+        <div className="adm-card__body" style={{ padding: '24px 20px' }}>
+          <div className="adm-overall-status">
             <StatusIcon status={health?.status || 'unknown'} />
             <div>
-              <p
-                style={{
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  color: 'var(--color-text-primary)',
-                  margin: 0,
-                  textTransform: 'capitalize',
-                }}
-              >
-                Sistema {health?.status === 'healthy' ? 'Operacional' : health?.status === 'degraded' ? 'Degradado' : 'Indisponivel'}
+              <p className="adm-overall-status__label">
+                Sistema {health?.status === 'healthy' ? 'Operacional' : health?.status === 'degraded' ? 'Degradado' : 'Indisponível'}
               </p>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-tertiary)', margin: 0 }}>
-                Modo: {health?.mode || 'unknown'} | Ultima verificacao: {health?.timestamp ? formatDate(health.timestamp) : '-'}
+              <p className="adm-overall-status__meta">
+                Modo: {health?.mode || 'unknown'} | Última verificação: {health?.timestamp ? formatDate(health.timestamp) : '-'}
               </p>
             </div>
 
             {incidents?.summary && (
-              <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                <p style={{ fontSize: '24px', fontWeight: 700, margin: 0 }}>{incidents.summary.uptime}%</p>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', margin: 0 }}>Uptime ({incidents.summary.period})</p>
+              <div className="adm-overall-status__uptime">
+                <p className="adm-overall-status__uptime-value">{incidents.summary.uptime}%</p>
+                <p className="adm-overall-status__uptime-label">Uptime ({incidents.summary.period})</p>
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div className="adm-health-grid">
         {/* Services */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Servicos</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="adm-card">
+          <div className="adm-card__header"><p className="adm-card__title">Servicos</p></div>
+          <div className="adm-card__body">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {health?.services.map((service) => (
-                <div
-                  key={service.service}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px',
-                    background: 'var(--color-bg-secondary)',
-                    borderRadius: '8px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div key={service.service} className="adm-service-row">
+                  <div className="adm-service-status">
                     <StatusIcon status={service.status} />
-                    <span style={{ fontSize: '14px', fontWeight: 500, textTransform: 'capitalize' }}>
-                      {service.service}
-                    </span>
+                    <span className="adm-service-status__name">{service.service}</span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '13px', margin: 0 }}>
-                      {service.status === 'up' ? 'Operacional' : service.status === 'degraded' ? 'Degradado' : 'Indisponivel'}
+                    <p className="adm-service-status__label">
+                      {service.status === 'up' ? 'Operacional' : service.status === 'degraded' ? 'Degradado' : 'Indisponível'}
                     </p>
                     {service.latency && (
-                      <p style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', margin: 0 }}>
-                        {service.latency}ms
-                      </p>
+                      <p className="adm-service-status__latency">{service.latency}ms</p>
                     )}
                     {service.balance && (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '2px' }}>
+                      <div className="adm-service-status__balance">
                         {service.balance.low && <AlertCircle size={12} style={{ color: '#ef4444' }} />}
-                        <span style={{
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          color: service.balance.low ? '#ef4444' : '#22c55e',
-                        }}>
+                        <span className={service.balance.low ? 'adm-balance--low' : 'adm-balance--ok'}>
                           {typeof service.balance.current === 'number'
                             ? `${service.balance.unit === 'BRL' ? 'R$ ' : ''}${service.balance.current.toLocaleString('pt-BR')}${service.balance.unit !== 'BRL' ? ` ${service.balance.unit}` : ''}`
                             : `${service.balance.current} ${service.balance.unit}`
@@ -284,15 +212,13 @@ export default function HealthPage() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Incidents */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Incidentes Recentes</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="adm-card">
+          <div className="adm-card__header"><p className="adm-card__title">Incidentes Recentes</p></div>
+          <div className="adm-card__body">
             {incidents?.incidents.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px' }}>
                 <CheckCircle size={48} style={{ color: '#22c55e', marginBottom: '16px' }} />
@@ -301,24 +227,15 @@ export default function HealthPage() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {incidents?.incidents.map((incident) => (
-                  <div
-                    key={incident.id}
-                    style={{
-                      padding: '12px',
-                      background: 'var(--color-bg-secondary)',
-                      borderRadius: '8px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 600, textTransform: 'capitalize' }}>
-                        {incident.service}
+                  <div key={incident.id} className="adm-incident">
+                    <div className="adm-incident__header">
+                      <span className="adm-incident__service">{incident.service}</span>
+                      <span className={incidentStatusBadge[incident.status] || 'adm-badge adm-badge--pending'}>
+                        {incidentStatusLabels[incident.status] || incident.status}
                       </span>
-                      <StatusBadge status={incident.status} />
                     </div>
-                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 8px 0' }}>
-                      {incident.message}
-                    </p>
-                    <p style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', margin: 0 }}>
+                    <p className="adm-incident__message">{incident.message}</p>
+                    <p className="adm-incident__time">
                       Inicio: {formatDate(incident.startedAt)}
                       {incident.resolvedAt && ` | Fim: ${formatDate(incident.resolvedAt)}`}
                     </p>
@@ -326,8 +243,8 @@ export default function HealthPage() {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

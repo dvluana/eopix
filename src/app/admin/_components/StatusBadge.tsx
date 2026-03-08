@@ -1,16 +1,14 @@
-import { Badge } from '@/components/ui/badge'
-
-const config: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
-  COMPLETED: { variant: 'default', label: 'Concluido' },
-  PROCESSING: { variant: 'secondary', label: 'Processando' },
-  PAID: { variant: 'secondary', label: 'Pago' },
-  PENDING: { variant: 'outline', label: 'Pendente' },
-  FAILED: { variant: 'destructive', label: 'Falhou' },
-  REFUNDED: { variant: 'destructive', label: 'Reembolsado' },
-  REFUND_FAILED: { variant: 'destructive', label: 'Reembolso Falhou' },
+const config: Record<string, { className: string; label: string }> = {
+  COMPLETED: { className: 'adm-badge adm-badge--completed', label: 'Concluido' },
+  PROCESSING: { className: 'adm-badge adm-badge--processing', label: 'Processando' },
+  PAID: { className: 'adm-badge adm-badge--paid', label: 'Pago' },
+  PENDING: { className: 'adm-badge adm-badge--pending', label: 'Pendente' },
+  FAILED: { className: 'adm-badge adm-badge--failed', label: 'Falhou' },
+  REFUNDED: { className: 'adm-badge adm-badge--refunded', label: 'Reembolsado' },
+  REFUND_FAILED: { className: 'adm-badge adm-badge--failed', label: 'Reembolso Falhou' },
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const { variant, label } = config[status] || { variant: 'outline' as const, label: status }
-  return <Badge variant={variant}>{label}</Badge>
+  const { className, label } = config[status] || { className: 'adm-badge adm-badge--pending', label: status }
+  return <span className={className}>{label}</span>
 }

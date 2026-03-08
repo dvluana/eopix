@@ -1,8 +1,6 @@
 'use client'
 
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,8 +20,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus, Trash2, RefreshCw, Search } from 'lucide-react'
+import { Plus, Trash2, Search } from 'lucide-react'
 import { useToast } from '../../_components/Toast'
+import { AdminPageHeader } from '../../_components/AdminPageHeader'
+import { AdminFilterBar } from '../../_components/AdminFilterBar'
+import { AdminDataTable, Column } from '../../_components/AdminDataTable'
+import { AdminPagination } from '../../_components/AdminPagination'
 import { AdminError } from '../../_components/AdminError'
 import { formatDateShort } from '../../_components/admin-utils'
 
@@ -46,10 +48,18 @@ interface BlocklistData {
 }
 
 const reasonLabels: Record<string, string> = {
-  SOLICITACAO_TITULAR: 'Solicitacao do Titular',
+  SOLICITACAO_TITULAR: 'Solicitação do Titular',
   JUDICIAL: 'Ordem Judicial',
-  HOMONIMO: 'Homonimo',
+  HOMONIMO: 'Homônimo',
 }
+
+const columns: Column[] = [
+  { key: 'term', label: 'Documento' },
+  { key: 'name', label: 'Nome' },
+  { key: 'reason', label: 'Motivo' },
+  { key: 'date', label: 'Data' },
+  { key: 'actions', label: 'Acoes', align: 'right' },
+]
 
 export default function BlocklistPage() {
   const { toast } = useToast()
@@ -94,8 +104,7 @@ export default function BlocklistPage() {
     fetchData()
   }, [fetchData])
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSearch = () => {
     setPage(1)
     fetchData()
   }
@@ -165,16 +174,29 @@ export default function BlocklistPage() {
     }
   }
 
+  const renderCell = (item: BlocklistItem, col: Column) => {
+    switch (col.key) {
+      case 'term': return item.term
+      case 'name': return item.associatedName || '-'
+      case 'reason': return (
+        <span className="adm-badge adm-badge--pending">
+          {reasonLabels[item.reason] || item.reason}
+        </span>
+      )
+      case 'date': return formatDateShort(item.createdAt)
+      case 'actions': return (
+        <Button variant="ghost" size="sm" onClick={() => setDeleteItem(item)}>
+          <Trash2 size={16} />
+        </Button>
+      )
+      default: return null
+    }
+  }
+
   if (error && !data) {
     return (
       <div>
-        {/* keep the header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-family-heading)', fontSize: '28px', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>Blocklist</h1>
-            <p style={{ fontFamily: 'var(--font-family-body)', fontSize: '14px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>Documentos bloqueados para consulta</p>
-          </div>
-        </div>
+        <AdminPageHeader title="Blocklist" subtitle="Documentos bloqueados para consulta" />
         <AdminError message={error} onRetry={fetchData} />
       </div>
     )
@@ -182,32 +204,7 @@ export default function BlocklistPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <div>
-          <h1
-            style={{
-              fontFamily: 'var(--font-family-heading)',
-              fontSize: '28px',
-              fontWeight: 700,
-              color: 'var(--color-text-primary)',
-              margin: 0,
-            }}
-          >
-            Blocklist
-          </h1>
-          <p
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '14px',
-              color: 'var(--color-text-secondary)',
-              marginTop: '4px',
-            }}
-          >
-            Documentos bloqueados para consulta
-          </p>
-        </div>
-
+      <AdminPageHeader title="Blocklist" subtitle="Documentos bloqueados para consulta">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -245,9 +242,9 @@ export default function BlocklistPage() {
                     <SelectValue placeholder="Selecione o motivo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="SOLICITACAO_TITULAR">Solicitacao do Titular</SelectItem>
+                    <SelectItem value="SOLICITACAO_TITULAR">Solicitação do Titular</SelectItem>
                     <SelectItem value="JUDICIAL">Ordem Judicial</SelectItem>
-                    <SelectItem value="HOMONIMO">Homonimo</SelectItem>
+                    <SelectItem value="HOMONIMO">Homônimo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -257,110 +254,50 @@ export default function BlocklistPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </AdminPageHeader>
 
-      {/* Search */}
-      <Card style={{ marginBottom: '16px' }}>
-        <CardContent style={{ paddingTop: '16px' }}>
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por documento ou nome..."
-              style={{ flex: 1 }}
-            />
-            <Button type="submit" variant="secondary">
-              <Search size={16} />
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <AdminFilterBar onSubmit={handleSearch}>
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar por documento ou nome..."
+          style={{ flex: 1 }}
+        />
+        <Button type="submit" variant="secondary">
+          <Search size={16} />
+        </Button>
+      </AdminFilterBar>
 
-      {/* List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">
+      <div className="adm-card">
+        <div className="adm-card__header">
+          <p className="adm-card__title">
             {data ? `${data.pagination.total} registros` : 'Carregando...'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-              <RefreshCw className="animate-spin" size={24} />
-            </div>
-          ) : data?.blocklist.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--color-text-tertiary)', padding: '40px' }}>
-              Nenhum registro encontrado
-            </p>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                    <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: 600 }}>Documento</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: 600 }}>Nome</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: 600 }}>Motivo</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: 600 }}>Data</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '12px', fontWeight: 600 }}>Acoes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data?.blocklist.map((item) => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                      <td style={{ padding: '12px 8px', fontSize: '13px', fontFamily: 'monospace' }}>{item.term}</td>
-                      <td style={{ padding: '12px 8px', fontSize: '13px' }}>{item.associatedName || '-'}</td>
-                      <td style={{ padding: '12px 8px' }}>
-                        <Badge variant="secondary">{reasonLabels[item.reason] || item.reason}</Badge>
-                      </td>
-                      <td style={{ padding: '12px 8px', fontSize: '13px' }}>{formatDateShort(item.createdAt)}</td>
-                      <td style={{ padding: '12px 8px', textAlign: 'right' }}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteItem(item)}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          </p>
+        </div>
+        <div className="adm-card__body">
+          <AdminDataTable<BlocklistItem>
+            columns={columns}
+            data={data?.blocklist ?? []}
+            renderCell={renderCell}
+            loading={loading}
+            emptyMessage="Nenhum registro encontrado"
+            mono
+          />
+          {data && (
+            <AdminPagination
+              page={page}
+              totalPages={data.pagination.totalPages}
+              onPageChange={setPage}
+            />
           )}
-
-          {/* Pagination */}
-          {data && data.pagination.totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '16px' }}>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                Anterior
-              </Button>
-              <span style={{ display: 'flex', alignItems: 'center', fontSize: '13px' }}>
-                Pagina {page} de {data.pagination.totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
-                disabled={page === data.pagination.totalPages}
-              >
-                Proxima
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteItem} onOpenChange={() => setDeleteItem(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar Remocao</DialogTitle>
+            <DialogTitle>Confirmar Remoção</DialogTitle>
             <DialogDescription>
               Tem certeza que deseja remover {deleteItem?.term} da blocklist?
             </DialogDescription>
