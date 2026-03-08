@@ -2432,15 +2432,107 @@
   margin: 0 var(--primitive-space-6);
 }
 
+/* Receipt-style card */
 .conf-card {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--primitive-radius-md);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  --receipt-bg: #FAFAF8;
+  position: relative;
+  overflow: visible;
+  background-color: var(--receipt-bg);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 27px,
+    rgba(0, 0, 0, 0.02) 27px,
+    rgba(0, 0, 0, 0.02) 28px
+  );
+  border: none;
+  border-radius: 0;
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: none;
   padding: var(--primitive-space-10);
   text-align: center;
 }
 
+/* Zigzag torn edges */
+.conf-card::before,
+.conf-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background:
+    linear-gradient(-45deg, var(--receipt-bg) 5px, transparent 0) 0 0,
+    linear-gradient(45deg, var(--receipt-bg) 5px, transparent 0) 0 0;
+  background-size: 10px 10px;
+  background-repeat: repeat-x;
+}
+
+.conf-card::before {
+  top: 0;
+  transform: translateY(-100%) scaleY(-1);
+}
+
+.conf-card::after {
+  bottom: 0;
+  transform: translateY(100%);
+}
+
+/* Rubber stamp */
+.conf-stamp {
+  display: inline-block;
+  padding: 6px 20px;
+  border: 3px solid currentColor;
+  border-radius: 3px;
+  font-family: var(--font-family-heading);
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  transform: rotate(-6deg);
+  position: relative;
+  margin: 0 auto 4px;
+  animation: conf-stamp-press 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.conf-stamp::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1.5px solid currentColor;
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.conf-stamp--approved {
+  color: #2D9F4E;
+}
+
+.conf-stamp--completed {
+  color: #1a7a35;
+}
+
+.conf-stamp--error {
+  color: var(--primitive-red);
+}
+
+@keyframes conf-stamp-press {
+  0% {
+    transform: scale(2.5) rotate(-15deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(0.97) rotate(-4deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1) rotate(-6deg);
+    opacity: 1;
+  }
+}
+
+/* Legacy icon styles (kept for confirming_payment state) */
 .conf-card__icon {
   width: 48px;
   height: 48px;
@@ -2449,14 +2541,6 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-}
-
-.conf-card__icon--success {
-  background: var(--primitive-green-500);
-}
-
-.conf-card__icon--error {
-  background: var(--primitive-red-500);
 }
 
 .conf-card__icon--waiting {

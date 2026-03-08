@@ -3,7 +3,6 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle, XCircle } from 'lucide-react';
 import TopBar from '@/components/TopBar';
 import Footer from '@/components/Footer';
 import AuthForm from '@/components/AuthForm';
@@ -169,9 +168,7 @@ function ConfirmacaoContent() {
       case 'cancelled':
         return (
           <>
-            <div className="conf-card__icon conf-card__icon--error">
-              <XCircle size={24} color="#FFFFFF" />
-            </div>
+            <div className="conf-stamp conf-stamp--error">CANCELADO</div>
             <h1 className="conf-card__title">Pagamento não concluído</h1>
             <p className="conf-card__desc">
               O pagamento foi cancelado. Você pode tentar novamente a qualquer momento.
@@ -212,9 +209,7 @@ function ConfirmacaoContent() {
 
         return (
           <>
-            <div className="conf-card__icon conf-card__icon--success">
-              <CheckCircle size={24} color="#FFFFFF" />
-            </div>
+            <div className="conf-stamp conf-stamp--approved">APROVADO</div>
             <h1 className="conf-card__title">Compra aprovada!</h1>
             <p className="conf-card__desc">
               Pagamento confirmado! Estamos gerando seu relatório.
@@ -255,9 +250,7 @@ function ConfirmacaoContent() {
       case 'completed':
         return (
           <>
-            <div className="conf-card__icon conf-card__icon--success">
-              <CheckCircle size={24} color="#FFFFFF" />
-            </div>
+            <div className="conf-stamp conf-stamp--completed">CONCLUÍDO</div>
             <h1 className="conf-card__title">Relatório pronto!</h1>
             <p className="conf-card__desc">
               Seu relatório está disponível para visualização.
