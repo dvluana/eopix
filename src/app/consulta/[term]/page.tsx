@@ -197,6 +197,7 @@ export default function Page({ params }: PageProps) {
     const data = await res.json();
 
     if (res.status === 409 && data.existingReportId) {
+      alert('Você já possui um relatório ativo para este documento.');
       router.push(`/relatorio/${data.existingReportId}`);
       return;
     }
