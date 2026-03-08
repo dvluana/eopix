@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { isMockMode, isTestMode } from '@/lib/mock-mode'
 import { getProviderDisplayName } from '@/lib/payment'
 
+export const dynamic = 'force-dynamic'
+
 interface BalanceInfo {
   current: number | string
   unit: string
@@ -120,6 +122,7 @@ export async function GET() {
           'Authorization': `Bearer ${process.env.APIFULL_API_KEY}`,
           'User-Agent': 'EOPIX/1.0',
         },
+        cache: 'no-store',
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
@@ -131,6 +134,7 @@ export async function GET() {
     checkServiceWithBalance('serper', async () => {
       const res = await fetch('https://google.serper.dev/account', {
         headers: { 'X-API-KEY': process.env.SERPER_API_KEY! },
+        cache: 'no-store',
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
@@ -142,6 +146,7 @@ export async function GET() {
     checkService('openai', async () => {
       const res = await fetch('https://api.openai.com/v1/models', {
         headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
+        cache: 'no-store',
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
     }),
@@ -162,6 +167,7 @@ export async function GET() {
           headers: {
             Authorization: `Bearer ${process.env.ABACATEPAY_API_KEY || ''}`,
           },
+          cache: 'no-store',
         })
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`)

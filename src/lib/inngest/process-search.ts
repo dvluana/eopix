@@ -81,17 +81,6 @@ export const processSearch = inngest.createFunction(
       return { success: true, cached: true, searchResultId: cacheResult.searchResultId }
     }
 
-    // ========== Step 1.5: check-balance ==========
-    // Circuit breaker: verify APIFull has enough balance before burning credits.
-    // Fail-open: if check fails, proceed anyway. If insufficient, throw to trigger retry.
-    await step.run('check-balance', async () => {
-      const { balance, sufficient } = await checkApifullBalance()
-      if (!sufficient) {
-        console.warn(`APIFull balance too low: R$${balance}. Will retry in 5min.`)
-        throw new Error(`INSUFFICIENT_API_BALANCE: R$${balance}`)
-      }
-    })
-
     // Set PROCESSING on every invocation (including retries).
     // Code between steps re-executes on replay — this is idempotent.
     await prisma.purchase.update({
@@ -100,6 +89,16 @@ export const processSearch = inngest.createFunction(
     })
 
     try {
+      // ========== Step 1.5: check-balance ==========
+      // Circuit breaker: verify APIFull has enough balance before burning credits.
+      // Fail-open: if check fails, proceed anyway. If insufficient, throw to trigger retry.
+      await step.run('check-balance', async () => {
+        const { balance, sufficient } = await checkApifullBalance()
+        if (!sufficient) {
+          console.warn(`APIFull balance too low: R$${balance}. Will retry in 5min.`)
+          throw new Error(`INSUFFICIENT_API_BALANCE: R$${balance}`)
+        }
+      })
       // ========== Step 2: fetch-data ==========
       // APIFull calls: cadastral + financial/processos. Estimated: 3-8s.
       const apiData = await step.run('fetch-data', async () => {
