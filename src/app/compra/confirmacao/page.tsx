@@ -141,10 +141,8 @@ function ConfirmacaoContent() {
   // Estado: Loading
   if (pageState === 'loading') {
     return (
-      <div className="conf-page conf-page--center">
-        <div className="epl-center">
-          <EopixLoader size="lg" text="Carregando" />
-        </div>
+      <div className="epl-center">
+        <EopixLoader size="lg" text="Carregando" />
       </div>
     );
   }

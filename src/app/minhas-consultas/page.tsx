@@ -158,8 +158,8 @@ export default function Page() {
   // ============================================
   if (isAuthenticated === null) {
     return (
-      <div className="mc-page epl-center">
-        <EopixLoader size="md" />
+      <div className="epl-center">
+        <EopixLoader size="lg" text="Verificando sessão" />
       </div>
     );
   }

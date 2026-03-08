@@ -69,7 +69,7 @@ export default function Page() {
             </svg>
             Minhas Consultas
           </button>
-          <div className="epl-center">
+          <div className="epl-center epl-center--section">
             <EopixLoader size="lg" text="Carregando relatório" />
           </div>
         </main>
