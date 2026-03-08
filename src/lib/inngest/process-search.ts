@@ -52,12 +52,11 @@ export const processSearch = inngest.createFunction(
     // ========== Step 1: check-cache ==========
     // Verifica cache 24h. Se existir, completa direto e retorna.
     const cacheResult = await step.run('check-cache', async () => {
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
       const existing = await prisma.searchResult.findFirst({
         where: {
           term,
           type,
-          createdAt: { gt: twentyFourHoursAgo },
+          expiresAt: { gt: new Date() },
         },
         orderBy: { createdAt: 'desc' },
       })
