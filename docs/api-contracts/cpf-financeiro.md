@@ -1,4 +1,6 @@
-# Serasa Premium — Variante CPF (`srs-premium`)
+---
+title: "CPF Financeiro"
+---
 
 Score de crédito, protestos e pendências financeiras para CPF.
 

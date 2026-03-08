@@ -426,3 +426,6 @@ const customers = await abacate.customer.list();
 
 GitHub: https://github.com/AbacatePay/abacatepay-nodejs-sdk
 
+
+
+claude mcp add --scope user --header "ctx7sk-e738d31f-a61c-4cb5-975d-69bb89db8069" --transport http context7 https://mcp.context7.com/mcp

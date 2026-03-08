@@ -1,4 +1,6 @@
-# Serasa Premium — Variante CNPJ (`srs-premium`)
+---
+title: "CNPJ Financeiro"
+---
 
 Score de crédito, protestos e pendências financeiras para CNPJ.
 

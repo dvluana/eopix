@@ -1,0 +1,109 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "EOPIX Docs",
+  "appearance": {
+    "default": "dark",
+    "strict": true
+  },
+  "favicon": "favicon.ico",
+  "logo": {
+    "light": "/logo.svg",
+    "dark": "/logo.svg"
+  },
+  "colors": {
+    "primary": "#FFD600",
+    "light": "#FFD600",
+    "dark": "#FFD600"
+  },
+  "navbar": {
+    "links": [
+      {
+        "type": "github",
+        "href": "https://github.com/eopix"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "App",
+      "href": "https://eopix.app"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/eopix"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Inicio",
+        "icon": "house",
+        "pages": [
+          "index"
+        ]
+      },
+      {
+        "tab": "Wiki",
+        "icon": "book",
+        "groups": [
+          {
+            "group": "Wiki",
+            "icon": "book-open",
+            "pages": [
+              "wiki/index",
+              "wiki/setup",
+              "wiki/testing",
+              "wiki/deploy",
+              "wiki/admin",
+              "wiki/inngest",
+              "wiki/claude-workflow"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Specs",
+        "icon": "file-lines",
+        "groups": [
+          {
+            "group": "Specs de Produto",
+            "icon": "clipboard-list",
+            "pages": [
+              "specs/purchase-flow",
+              "specs/report-pipeline",
+              "specs/auth"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Referencia",
+        "icon": "compass",
+        "groups": [
+          {
+            "group": "Referencia",
+            "icon": "map",
+            "pages": [
+              "architecture",
+              "custos-e-fluxo-processamento",
+              "modos-de-execucao",
+              "status"
+            ]
+          },
+          {
+            "group": "API Contracts",
+            "icon": "file-contract",
+            "pages": [
+              "api-contracts/cpf-cadastral",
+              "api-contracts/cpf-financeiro",
+              "api-contracts/cpf-processos",
+              "api-contracts/cnpj-dossie",
+              "api-contracts/cnpj-financeiro"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

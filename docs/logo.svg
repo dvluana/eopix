@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" fill="none">
+  <!-- Lupa icon -->
+  <g transform="translate(0,0) scale(0.35)">
+    <path d="M68.8 34.4a34.4 34.4 0 1 0 0 68.8 34.4 34.4 0 0 0 0-68.8Z" fill="#2A2A2A"/>
+    <path d="M94.4 94.4L128 128" stroke="#2A2A2A" stroke-linecap="round" stroke-width="19.2"/>
+    <path d="M68.8 39.2a29.6 29.6 0 1 0 0 59.2 29.6 29.6 0 0 0 0-59.2Z" fill="#1A1A1A" stroke="#F0EFEB" stroke-width="4.8"/>
+    <path d="M68.8 56a12.8 12.8 0 1 0 0 25.6 12.8 12.8 0 0 0 0-25.6Z" fill="white"/>
+    <path d="M68.8 60a8.8 8.8 0 1 0 0 17.6 8.8 8.8 0 0 0 0-17.6Z" fill="#FFD600"/>
+    <path d="M68.8 42.4a26.4 26.4 0 1 0 0 52.8 26.4 26.4 0 0 0 0-52.8Z" opacity="0.1" stroke="#F0EFEB" stroke-width="0.64"/>
+    <path d="M92.8 92.8L124.8 124.8" stroke="#F0EFEB" stroke-linecap="round" stroke-width="8"/>
+    <path d="M113.6 113.6L126.4 126.4" stroke="#FFD600" stroke-linecap="round" stroke-width="8"/>
+  </g>
+  <!-- "E o Pix?" text -->
+  <text x="56" y="30" font-family="'Zilla Slab', serif" font-weight="700" font-size="24" fill="#F0EFEB" letter-spacing="-0.5">E o Pix<tspan fill="#FFD600">?</tspan></text>
+  <!-- Yellow underline -->
+  <rect x="56" y="35" width="76" height="2" rx="1" fill="#FFD600"/>
+</svg>

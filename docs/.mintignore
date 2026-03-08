@@ -1,0 +1,11 @@
+# Archived/legacy docs
+archive/
+
+# Implementation plans (internal)
+plans/
+
+# External crawled docs (reference only)
+external/
+
+# README files in subdirectories
+api-contracts/README.md

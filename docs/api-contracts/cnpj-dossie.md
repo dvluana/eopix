@@ -1,4 +1,6 @@
-# CNPJ Completo (`cnpj`) — NÃO USADO
+---
+title: "CNPJ Dossie"
+---
 
 Este endpoint está documentado para referência, mas **não é utilizado no pipeline principal do EOPIX**.
 

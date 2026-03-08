@@ -1,4 +1,6 @@
-# CPF Completo (`r-cpf-completo`)
+---
+title: "CPF Cadastral"
+---
 
 Dados cadastrais, endereços, telefones, emails e empresas vinculadas.
 

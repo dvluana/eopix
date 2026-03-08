@@ -1,6 +1,8 @@
-# Modos de Execução — EOPIX
+---
+title: "Modos de Execucao"
+---
 
-> **Última atualização:** 2026-03-05
+> **Última atualização:** 2026-03-07
 
 Este projeto opera com dois flags de ambiente:
 
@@ -223,18 +225,30 @@ curl -X POST localhost:3000/api/process-search/{CODE}
 
 ---
 
-## Validação Rápida
+## Scripts de Desenvolvimento
 
-```bash
-# mock (zero custo, dados fictícios)
-MOCK_MODE=true npm run dev
+| Comando | O que faz | Custo |
+|---|---|---|
+| `npm run dev` | Desenvolvimento diário — APIs fake, pagamento bypass | Zero |
+| `npm run dev:live` | Produção local — tudo real, com Inngest | Real |
 
-# test (APIs reais, consome crédito)
-TEST_MODE=true npm run dev
+### `npm run dev` — Desenvolvimento diário (99% do tempo)
+- APIs fake (cenários Chuva/Sol), pagamento bypass, pipeline síncrono
+- Usar para: UI, forms, layout, componentes, lógica frontend/backend
 
-# live local (AbacatePay)
-MOCK_MODE=false TEST_MODE=false npm run dev
-```
+### `npm run dev:live` — Testar fluxo completo antes de deploy
+- APIs reais + AbacatePay real + Inngest Dev Server (inicia automaticamente)
+- Pipeline async igual produção: pagamento → webhook → Inngest → relatório
+- Dashboard Inngest em `localhost:8288` (steps, erros, retries)
+
+### `npm run inngest` — Inngest avulso (opcional)
+- Roda só o Inngest Dev Server em terminal separado
+- Usar quando quiser dashboard do Inngest junto com `npm run dev` (mock)
+
+**Notas:**
+- `npm run dev` já seta `MOCK_MODE=true` automaticamente. Não precisa de `.env.local` para trocar de modo.
+- Sem Inngest Dev Server, o pipeline roda via fallback síncrono — funciona, mas sem dashboard.
+- Para cenários pontuais (sandbox checkout, APIs reais sem pagamento), usar env vars direto: `TEST_MODE=true npm run dev`, `BYPASS_PAYMENT=false npm run dev`, etc.
 
 ---
 

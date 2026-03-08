@@ -1,4 +1,6 @@
-# Custos E Fluxo De Processamento
+---
+title: "Custos e Pipeline"
+---
 
 Referencia tecnica de custo aproximado por consulta e pipeline atual.
 

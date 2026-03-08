@@ -1,0 +1,101 @@
+---
+title: "EOPIX Docs"
+mode: "custom"
+---
+
+<div style={{
+    position: "relative",
+    textAlign: "center",
+    padding: "80px 20px",
+    background: "linear-gradient(180deg, rgba(255,214,0,0.08) 0%, transparent 100%)",
+    borderBottom: "1px solid rgba(255,255,255,0.08)"
+}}>
+  <h1 style={{ fontSize: "40px", fontWeight: "700", marginBottom: "16px", color: "#fff" }}>
+    EOPIX Docs
+  </h1>
+  <p style={{
+    maxWidth: "700px",
+    margin: "0 auto",
+    opacity: 0.7,
+    fontSize: "18px",
+    fontWeight: "300"
+  }}>
+    Documentacao operacional, specs de produto e referencia tecnica.
+    <br />
+    Tudo que voce precisa para desenvolver, testar e operar o EOPIX.
+  </p>
+</div>
+
+<div style={{
+  padding: "60px 20px",
+  maxWidth: "1100px",
+  margin: "0 auto"
+}}>
+  <div style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: "24px",
+    marginBottom: "32px"
+  }}>
+    <Card icon="gear" title="Setup" href="/wiki/setup">
+      Scripts, env vars, como rodar o projeto local
+    </Card>
+
+    <Card icon="flask" title="Testing" href="/wiki/testing">
+      Modos MOCK/TEST/LIVE, E2E com Playwright, CI/CD
+    </Card>
+
+    <Card icon="rocket" title="Deploy" href="/wiki/deploy">
+      Workflow develop → main → Vercel
+    </Card>
+
+    <Card icon="shield" title="Admin" href="/wiki/admin">
+      Painel admin, endpoints, operacoes
+    </Card>
+
+    <Card icon="clock" title="Inngest" href="/wiki/inngest">
+      Jobs async, debug, como adicionar novos
+    </Card>
+
+    <Card icon="robot" title="Claude Workflow" href="/wiki/claude-workflow">
+      Hooks, skills, como interagir com a IA
+    </Card>
+  </div>
+</div>
+
+<div style={{
+  padding: "60px 20px",
+  maxWidth: "1100px",
+  margin: "0 auto"
+}}>
+  <h2 style={{
+    fontSize: "28px",
+    fontWeight: "600",
+    marginBottom: "32px",
+    color: "#fff",
+  }}>
+    Referencia Rapida
+  </h2>
+
+  <div style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "24px"
+  }}>
+    <Card icon="diagram-project" title="Arquitetura" href="/architecture">
+      Mermaid diagrams, bounded contexts, state machine
+    </Card>
+
+    <Card icon="file-contract" title="API Contracts" href="/api-contracts/cpf-cadastral">
+      Contratos APIFull por endpoint
+    </Card>
+
+    <Card icon="money-bill" title="Custos e Pipeline" href="/custos-e-fluxo-processamento">
+      Custo por API call, fluxo de processamento
+    </Card>
+
+    <Card icon="signal" title="Status" href="/status">
+      Status vivo do projeto, changelog
+    </Card>
+  </div>
+</div>
