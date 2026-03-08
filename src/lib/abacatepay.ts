@@ -54,6 +54,10 @@ export async function createCheckout(
   console.log('[AbacatePay] Creating billing:', {
     externalRef: params.externalRef,
     priceCents,
+    completionUrl: params.successUrl,
+    returnUrl: params.cancelUrl,
+    customerName: params.customerName,
+    customerEmail: params.customerEmail,
   })
 
   const body = {
