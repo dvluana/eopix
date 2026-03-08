@@ -22,28 +22,14 @@ export interface RefundResponse {
   message?: string
 }
 
-/** Format cellphone as (XX) XXXXX-XXXX for AbacatePay v1 */
+/** Strip non-digits from cellphone for AbacatePay v1 (digits only) */
 function formatCellphoneForAbacatePay(phone: string): string {
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length === 11) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
-  }
-  if (digits.length === 10) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
-  }
-  return phone
+  return phone.replace(/\D/g, '')
 }
 
-/** Format taxId as XXX.XXX.XXX-XX (CPF) or XX.XXX.XXX/XXXX-XX (CNPJ) for AbacatePay v1 */
+/** Strip non-digits from taxId for AbacatePay v1 (digits only) */
 function formatTaxIdForAbacatePay(taxId: string): string {
-  const digits = taxId.replace(/\D/g, '')
-  if (digits.length === 11) {
-    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-  }
-  if (digits.length === 14) {
-    return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
-  }
-  return taxId
+  return taxId.replace(/\D/g, '')
 }
 
 export async function createCheckout(
@@ -104,7 +90,8 @@ export async function createCheckout(
   const responseData = await res.json()
 
   if (!res.ok || !responseData.success || !responseData.data) {
-    console.error('[AbacatePay] Billing error:', { status: res.status, body: responseData })
+    const errorDetail = JSON.stringify(responseData)
+    console.error(`[AbacatePay] Billing error: status=${res.status} body=${errorDetail}`)
     const errorMsg = responseData.error || `HTTP ${res.status}`
     throw new Error(`AbacatePay billing error: ${errorMsg}`)
   }
