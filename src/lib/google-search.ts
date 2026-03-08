@@ -12,6 +12,29 @@ function isChuvaScenario(document: string): boolean {
   return lastDigit < 5
 }
 
+/**
+ * Simplifica razao social para buscas mais eficazes.
+ * Remove sufixos juridicos (S/A, LTDA, etc.) e status (EM LIQUIDACAO, etc.)
+ * Converte para title case.
+ */
+export function simplifyCompanyName(name: string): string {
+  let simplified = name
+    // Remove status juridicos (antes dos sufixos para pegar "S/A - EM LIQUIDACAO")
+    .replace(/\s*-?\s*EM\s+(LIQUIDACAO\s+EXTRAJUDICIAL|RECUPERACAO\s+JUDICIAL|FALENCIA)\s*/gi, '')
+    // Remove sufixos juridicos
+    .replace(/\s+(S\/A|S\.A\.|SA|LTDA|ME|MEI|EIRELI|EPP)\.?\s*$/gi, '')
+    // Remove tracos e espacos finais
+    .replace(/[\s-]+$/, '')
+    .trim()
+
+  // Title case
+  simplified = simplified
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+
+  return simplified
+}
+
 // Fetch with timeout — prevents hanging when external APIs are slow
 // 8s default to stay within Vercel Hobby's 10s function limit
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 8000): Promise<Response> {
@@ -38,7 +61,7 @@ async function executeSearch(query: string): Promise<GoogleSearchResult[]> {
       'X-API-KEY': apiKey,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ q: query, num: 10 }),
+    body: JSON.stringify({ q: query, num: 10, gl: 'br', hl: 'pt-br' }),
   })
 
   if (!res.ok) {
@@ -58,10 +81,14 @@ async function executeSearch(query: string): Promise<GoogleSearchResult[]> {
 /**
  * Busca na web usando Serper API
  *
- * 3 queries para CPF e CNPJ:
+ * 4 queries para CPF e CNPJ:
  * 1. byDocument: busca pelo CPF/CNPJ formatado
- * 2. byName: busca pelo nome + termos negativos (golpe, fraude, processo, reclamacao)
+ * 2. byName: busca pelo nome + termos de risco (escândalo, investigação, denúncia, etc.)
  * 3. reclameAqui: busca no Reclame Aqui (CPF e CNPJ - pessoa pode ter empresa)
+ * 4. news: busca aberta por nome (sem filtros — Google retorna os mais relevantes)
+ *
+ * CNPJ: nome simplificado (remove S/A, LTDA, EM LIQUIDACAO, etc.)
+ * CPF: nome completo (sem alteração)
  */
 export async function searchWeb(
   name: string,
@@ -85,19 +112,25 @@ export async function searchWeb(
     ? document.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
     : document.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
 
-  // Executar 3 buscas em paralelo
-  const [byDocument, byName, reclameAqui] = await Promise.all([
+  // Simplificar nome para CNPJ (remover S/A, LTDA, EM LIQUIDACAO, etc.)
+  const searchName = type === 'CNPJ' ? simplifyCompanyName(name) : name
+
+  // Executar 4 buscas em paralelo
+  const [byDocument, byName, reclameAqui, news] = await Promise.all([
     // Busca 1: Por documento formatado
     executeSearch(`"${formattedDoc}"`),
 
-    // Busca 2: Por nome + termos negativos
-    executeSearch(`"${name}" golpe OR fraude OR processo OR reclamacao`),
+    // Busca 2: Por nome + termos de risco
+    executeSearch(`"${searchName}" escândalo OR investigação OR denúncia OR irregularidade OR fraude OR lavagem`),
 
-    // Busca 3: Reclame Aqui (CPF e CNPJ - pessoa pode ter empresa)
-    executeSearch(`"${name}" site:reclameaqui.com.br`),
+    // Busca 3: Reclame Aqui
+    executeSearch(`"${searchName}" site:reclameaqui.com.br`),
+
+    // Busca 4: Busca aberta por nome (sem filtros — Google retorna os mais relevantes)
+    executeSearch(`"${searchName}"`),
   ])
 
-  console.log(`🔍 Serper: byDocument=${byDocument.length}, byName=${byName.length}, reclameAqui=${reclameAqui.length}`)
+  console.log(`🔍 Serper: byDocument=${byDocument.length}, byName=${byName.length}, reclameAqui=${reclameAqui.length}, news=${news.length}`)
 
-  return { byDocument, byName, reclameAqui }
+  return { byDocument, byName, reclameAqui, news }
 }

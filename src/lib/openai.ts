@@ -190,7 +190,15 @@ O ${type} e da regiao ${region}. Ignore homonimos de outras regioes.
 Para cada mencao na web:
 - relevant: true se e sobre a pessoa/empresa consultada, false se for homonimo
 - classification: positive | neutral | negative
+- sourceType: identifique o tipo de fonte pela URL e conteudo:
+  - "news": portal de noticia ou jornalismo (G1, Folha, Estadao, UOL, Valor, InfoMoney, Reuters, BBC, Carta Capital, Conjur, etc.)
+  - "legal": base juridica, tribunal, processo judicial (JusBrasil, Escavador, TJ*, STF, STJ)
+  - "complaint": reclamacao ou forum de consumidor (Reclame Aqui, Procon, Consumidor.gov)
+  - "government": orgao governamental ou regulador (Receita Federal, CVM, BACEN, gov.br)
+  - "other": blogs, redes sociais, wikis, sites institucionais
 - reason: breve explicacao (1 frase)
+
+REGRA DE PESO: Mencoes de portais de noticia (sourceType "news") tem mais peso na avaliacao de risco reputacional do que bases juridicas (que sao registros burocraticos). Uma manchete do G1 sobre fraude e mais relevante que um registro de processo no JusBrasil.
 
 REGRA CRITICA — PAPEL EM MENCOES JURIDICAS:
 Se a mencao e sobre um processo judicial, verifique o papel da pessoa:
@@ -224,7 +232,7 @@ Seja objetivo e factual. Foco em decisao de negocio.
 Responda em JSON:
 {
   "mentionClassifications": [
-    { "url": "...", "relevant": true|false, "classification": "positive|neutral|negative", "reason": "..." }
+    { "url": "...", "relevant": true|false, "classification": "positive|neutral|negative", "sourceType": "news|legal|complaint|government|other", "reason": "..." }
   ],
   "summary": "resumo de 2-3 frases",
   "reclameAqui": {
@@ -288,11 +296,12 @@ export async function generateSummary(
   }
 
   // Extrair mencoes do Google
-  const google = data.google as { byDocument?: GoogleSearchResult[]; byName?: GoogleSearchResult[]; reclameAqui?: GoogleSearchResult[] } | undefined
+  const google = data.google as { byDocument?: GoogleSearchResult[]; byName?: GoogleSearchResult[]; reclameAqui?: GoogleSearchResult[]; news?: GoogleSearchResult[] } | undefined
   const mentions: GoogleSearchResult[] = [
     ...(google?.byDocument || []),
     ...(google?.byName || []),
     ...(google?.reclameAqui || []),
+    ...(google?.news || []),
   ]
 
   // Construir resumo financeiro a partir dos dados

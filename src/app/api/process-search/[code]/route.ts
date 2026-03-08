@@ -142,10 +142,10 @@ export async function POST(
     console.log(`🧪 [BYPASS] Buscando na web (Serper)...`)
     googleData = await searchWeb(name, term, type).catch((err) => {
       console.error('🧪 [BYPASS] Google/Serper error:', err)
-      return { byDocument: [], byName: [], reclameAqui: [] }
+      return { byDocument: [], byName: [], reclameAqui: [], news: [] }
     })
 
-    console.log(`🧪 [BYPASS] Web: byDocument=${googleData.byDocument.length}, byName=${googleData.byName.length}, reclameAqui=${googleData.reclameAqui.length}`)
+    console.log(`🧪 [BYPASS] Web: byDocument=${googleData.byDocument.length}, byName=${googleData.byName.length}, reclameAqui=${googleData.reclameAqui.length}, news=${googleData.news.length}`)
 
     // ========== IA 1: Analisar processos (se houver) ==========
     if (type === 'CPF' && processosData && processosData.processos.length > 0) {
@@ -161,6 +161,7 @@ export async function POST(
       ...(googleData.byDocument || []),
       ...(googleData.byName || []),
       ...(googleData.reclameAqui || []),
+      ...(googleData.news || []),
     ]
 
     const summaryResult = await analyzeMentionsAndSummary({

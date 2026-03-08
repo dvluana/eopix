@@ -124,7 +124,7 @@ export function useReportData(reportId: string) {
         if (!response.ok) {
           const data = await response.json()
           if (response.status === 401) {
-            router.push(`/login?redirect=/relatorio/${reportId}`)
+            router.push('/minhas-consultas')
             return
           }
           throw new Error(data.error || 'Erro ao carregar relatório')
@@ -169,7 +169,7 @@ export function useReportData(reportId: string) {
     const hasDebts = (financialSummary?.totalDividas || 0) > 0
     const hasBouncedChecks = (financialSummary?.chequesSemFundo || 0) > 0
     const hasProcesses = processCount > 0 || (dossie?.acoesAtivas?.quantidade || 0) > 0
-    const allMentions = [...(google?.byDocument || []), ...(google?.byName || [])]
+    const allMentions = [...(google?.byDocument || []), ...(google?.byName || []), ...(google?.news || [])]
     const hasNegativeMentions = allMentions.some(m => m.classification === 'negative')
     const isCompanyInactive = report.type === 'CNPJ' && dossie != null && dossie.situacao !== 'ATIVA'
     const hasNegativeReclameAqui = reclameAqui != null && reclameAqui.nota !== null && reclameAqui.nota < 7

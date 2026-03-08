@@ -101,11 +101,13 @@ export const processSearch = inngest.createFunction(
       return { success: true, cached: true, searchResultId: cacheResult.searchResultId }
     }
 
-    // Set PROCESSING on every invocation (including retries).
-    // Code between steps re-executes on replay — this is idempotent.
-    await prisma.purchase.update({
-      where: { id: purchaseId },
-      data: { status: 'PROCESSING' },
+    // Wrapped in step so it doesn't re-execute on replay.
+    // Without this, replays overwrite COMPLETED back to PROCESSING.
+    await step.run('set-processing', async () => {
+      await prisma.purchase.update({
+        where: { id: purchaseId },
+        data: { status: 'PROCESSING' },
+      })
     })
 
     try {
@@ -207,7 +209,7 @@ export const processSearch = inngest.createFunction(
 
         const googleData = await searchWeb(apiData.name, term, type).catch((err) => {
           console.error('Google/Serper error:', err)
-          return { byDocument: [], byName: [], reclameAqui: [] } as GoogleSearchResponse
+          return { byDocument: [], byName: [], reclameAqui: [], news: [] } as GoogleSearchResponse
         })
 
         return googleData
@@ -244,6 +246,7 @@ export const processSearch = inngest.createFunction(
           ...(webData?.byDocument || []),
           ...(webData?.byName || []),
           ...(webData?.reclameAqui || []),
+          ...(webData?.news || []),
         ]
 
         const summaryResult = await analyzeMentionsAndSummary({
@@ -281,6 +284,9 @@ export const processSearch = inngest.createFunction(
 
             const matchRA = googleDataFinal.reclameAqui.find((r) => r.url === classification.url)
             if (matchRA) matchRA.classification = classification.classification
+
+            const matchNews = googleDataFinal.news.find((r) => r.url === classification.url)
+            if (matchNews) matchNews.classification = classification.classification
           }
         }
 

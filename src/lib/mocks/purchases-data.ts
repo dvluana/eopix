@@ -285,6 +285,7 @@ export const MOCK_REPORTS: Record<string, ReportData> = {
         byDocument: [],
         byName: [],
         reclameAqui: [],
+        news: [],
       },
     },
     summary: 'Foram encontrados 2 protestos em cartorio totalizando R$ 5.000. Sem processos judiciais ou mencoes negativas na web.',

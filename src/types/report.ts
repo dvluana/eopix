@@ -57,6 +57,7 @@ export interface MentionClassification {
   url: string
   relevant: boolean
   classification: 'positive' | 'neutral' | 'negative'
+  sourceType?: 'news' | 'legal' | 'complaint' | 'government' | 'other'
   reason: string
 }
 
@@ -207,12 +208,14 @@ export interface GoogleSearchResult {
   url: string
   snippet: string
   classification?: 'positive' | 'neutral' | 'negative'
+  sourceType?: 'news' | 'legal' | 'complaint' | 'government' | 'other'
 }
 
 export interface GoogleSearchResponse {
   byDocument: GoogleSearchResult[]  // Busca por CPF/CNPJ formatado
-  byName: GoogleSearchResult[]      // Busca por nome + termos negativos
+  byName: GoogleSearchResult[]      // Busca por nome + termos de risco
   reclameAqui: GoogleSearchResult[] // Busca Reclame Aqui (CPF e CNPJ)
+  news: GoogleSearchResult[]        // Busca aberta por nome (sem filtros)
 }
 
 // ========== CADASTRAL CPF (r-cpf-completo) ==========

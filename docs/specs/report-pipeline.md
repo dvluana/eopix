@@ -16,9 +16,23 @@ Inngest job `search/process` (processSearch) orquestra:
 | 1 | Cadastral | APIFull | `r-cpf-completo` / `ic-dossie-juridico` | R$0,80 | R$11,76 |
 | 2 | Financeiro | APIFull | `srs-premium` | R$6,96 | R$6,96 |
 | 3 | Processos | APIFull | `r-acoes-e-processos-judiciais` | R$4,14 | — |
-| 4 | Web search | Serper | Google Search | ~R$0 | ~R$0 |
+| 4 | Web search | Serper | Google Search (4 queries) | ~R$0 | ~R$0 |
 | 5 | Análise processos | OpenAI | gpt-4o-mini | ~R$0,01 | ~R$0,01 |
-| 6 | Summary | OpenAI | gpt-4o-mini | ~R$0,01 | ~R$0,01 |
+| 6 | Summary + classificação de fontes | OpenAI | gpt-4o-mini | ~R$0,01 | ~R$0,01 |
+
+## Serper Web Search (etapa 4)
+
+4 queries em paralelo por consulta:
+1. **byDocument**: CPF/CNPJ formatado entre aspas
+2. **byName**: nome + termos de risco (escândalo, investigação, denúncia, irregularidade, fraude, lavagem)
+3. **reclameAqui**: nome + `site:reclameaqui.com.br`
+4. **news**: busca aberta só pelo nome (sem filtros)
+
+CNPJ: nome simplificado automaticamente (remove S/A, LTDA, EM LIQUIDACAO, etc.)
+CPF: nome completo sem alteração.
+Locale: `gl: 'br'`, `hl: 'pt-br'` em todas as queries.
+
+OpenAI classifica cada menção com `sourceType` (news, legal, complaint, government, other) e dá peso maior a notícias jornalísticas na análise de risco.
 
 ## SearchResult
 

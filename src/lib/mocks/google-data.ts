@@ -25,6 +25,7 @@ export const MOCK_GOOGLE_SOL: GoogleSearchResponse = {
       classification: 'positive',
     },
   ],
+  news: [],
 }
 
 // ========== CNPJ CHUVA (problemas) ==========
@@ -59,6 +60,15 @@ export const MOCK_GOOGLE_CHUVA: GoogleSearchResponse = {
       classification: 'negative',
     },
   ],
+  news: [
+    {
+      title: 'Empresa investigada por desvio de recursos',
+      url: 'https://g1.globo.com/example/empresa-investigada',
+      snippet: 'Policia Federal investiga empresa por suspeita de desvio...',
+      classification: 'negative',
+      sourceType: 'news',
+    },
+  ],
 }
 
 // ========== CPF SOL (limpo) ==========
@@ -66,6 +76,7 @@ export const MOCK_GOOGLE_CPF_SOL: GoogleSearchResponse = {
   byDocument: [], // Nenhum resultado por CPF
   byName: [], // Nenhuma mencao negativa
   reclameAqui: [], // CPF pode ter empresa, mas neste caso nao tem
+  news: [],
 }
 
 // ========== CPF CHUVA (problemas) ==========
@@ -98,6 +109,15 @@ export const MOCK_GOOGLE_CPF_CHUVA: GoogleSearchResponse = {
       url: 'https://www.reclameaqui.com.br/jc-silva-comercio',
       snippet: 'Nota 3.1 - Empresa do socio com reclamacoes',
       classification: 'negative',
+    },
+  ],
+  news: [
+    {
+      title: 'Suspeito de golpe e preso em operacao policial',
+      url: 'https://g1.globo.com/example/suspeito-preso',
+      snippet: 'Policia prende suspeito de aplicar golpes financeiros...',
+      classification: 'negative',
+      sourceType: 'news',
     },
   ],
 }
