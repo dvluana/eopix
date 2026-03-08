@@ -75,13 +75,7 @@ export interface FormattedMention {
   data: string
   resumo: string
   url: string
-  classification: 'negative'
-}
-
-export interface PositiveMention {
-  fonte: string
-  resumo: string
-  url: string
+  classification: 'negative' | 'positive' | 'neutral'
 }
 
 // ========== Helpers ==========
@@ -296,12 +290,14 @@ export function useReportData(reportId: string) {
         classification: 'negative' as const,
       }))
 
-    const positiveMentions: PositiveMention[] = sortedMentions
+    const positiveMentions: FormattedMention[] = sortedMentions
       .filter(m => m.classification === 'positive' || m.classification === 'neutral')
       .map(m => ({
         fonte: new URL(m.url).hostname.replace('www.', ''),
+        data: '',
         resumo: m.snippet || m.title,
         url: m.url,
+        classification: (m.classification || 'neutral') as 'negative',
       }))
 
     const climateMessage = weatherStatus === 'sol'

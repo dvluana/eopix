@@ -84,17 +84,27 @@ export async function analyzeProcessos(
 
   const prompt = `Voce e um assistente de analise de risco para decisao de negocios.
 
+O documento consultado e: ${document}
+
 Para cada processo judicial, retorne:
 1. tituloSimplificado: frase curta em linguagem simples (ex: "Processado por fraude")
 2. descricaoBreve: 1 frase explicando (ex: "Acusacao de nao entregar servico")
 3. relevanciaNegocios: alta | media | baixa | nenhuma
 4. categoriaSimplificada: fraude | divida_fiscal | trabalhista_empregador | trabalhista_empregado | criminal | comercial | acidente | familia | outro
+5. papelNoPolo: reu | autor | advogado | testemunha | terceiro
 
-REGRAS DE RELEVANCIA:
+REGRA CRITICA — PAPEL DA PESSOA NO PROCESSO:
+Antes de classificar a relevancia, identifique o PAPEL da pessoa consultada no processo olhando o campo "partes":
+- Se a pessoa esta no polo PASSIVO (reu/reclamado/executado): ela e ALVO do processo. Avaliar normalmente.
+- Se a pessoa esta no polo ATIVO (autor/reclamante/exequente): ela MOVEU o processo. Relevancia maxima "baixa" (ela buscou seus direitos).
+- Se a pessoa aparece como ADVOGADO (campo "advogado" ou tipo "ADVOGADO"): relevancia SEMPRE "nenhuma". Ela esta exercendo sua profissao.
+- Se a pessoa aparece como TESTEMUNHA ou TERCEIRO: relevancia SEMPRE "nenhuma". Ela nao e parte interessada.
+
+REGRAS DE RELEVANCIA (aplicar APENAS quando a pessoa e reu/polo passivo):
 - ALTA: fraude, estelionato, crimes financeiros, lavagem de dinheiro
 - MEDIA: execucoes fiscais, falencia, recuperacao judicial
 - BAIXA: acoes civeis comuns, trabalhista como empregador
-- NENHUMA: testemunha, acidente de transito, familia, trabalhista como empregado
+- NENHUMA: acidente de transito, familia, trabalhista como empregado
 
 Processos para analisar (${cappedProcessos.length} de ${processos.length} total, mais recentes primeiro):
 ${JSON.stringify(cappedProcessos)}
@@ -108,6 +118,7 @@ Responda em JSON:
       "descricaoBreve": "...",
       "relevanciaNegocios": "alta|media|baixa|nenhuma",
       "categoriaSimplificada": "fraude|divida_fiscal|trabalhista_empregador|trabalhista_empregado|criminal|comercial|acidente|familia|outro",
+      "papelNoPolo": "reu|autor|advogado|testemunha|terceiro",
       "tribunal": "...",
       "data": "YYYY-MM-DD",
       "status": "em_andamento|arquivado"
@@ -180,6 +191,13 @@ Para cada mencao na web:
 - relevant: true se e sobre a pessoa/empresa consultada, false se for homonimo
 - classification: positive | neutral | negative
 - reason: breve explicacao (1 frase)
+
+REGRA CRITICA — PAPEL EM MENCOES JURIDICAS:
+Se a mencao e sobre um processo judicial, verifique o papel da pessoa:
+- Se a pessoa aparece como "ADVOGADO:", "Advogado(a)" ou representante legal: classificar como NEUTRAL (atividade profissional).
+- Se a pessoa aparece como testemunha ou terceiro interessado: classificar como NEUTRAL.
+- Se a pessoa MOVEU a acao (autor/reclamante): classificar como NEUTRAL (buscou seus direitos).
+- So classificar como NEGATIVE se a pessoa e reu/reclamado/executado em algo grave (fraude, crime, etc).
 
 Mencoes para analisar (${mentions.length} total):
 ${JSON.stringify(mentions)}

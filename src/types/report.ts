@@ -30,6 +30,7 @@ export interface ProcessAnalysis {
     | 'familia'
     | 'outro'
   relevanciaNegocios: 'alta' | 'media' | 'baixa' | 'nenhuma'
+  papelNoPolo?: 'reu' | 'autor' | 'advogado' | 'testemunha' | 'terceiro'
   tituloSimplificado: string
   descricaoBreve: string
   tribunal: string

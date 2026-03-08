@@ -52,8 +52,13 @@ function CardConsulta({ purchase, onViewReport }: CardConsultaProps) {
             {getBadgeLabel(purchase.status)}
           </span>
           <div className="mc-card__doc">
-            {purchase.type}: {purchase.term}
+            {purchase.reportName || `${purchase.type}: ${purchase.term}`}
           </div>
+          {purchase.reportName && (
+            <div className="mc-card__term">
+              {purchase.type}: {purchase.term}
+            </div>
+          )}
           <div className="mc-card__date">
             {new Date(purchase.createdAt).toLocaleDateString('pt-BR', {
               day: '2-digit', month: '2-digit', year: 'numeric',

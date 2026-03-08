@@ -22,6 +22,7 @@ export interface Purchase {
   buyerCpfCnpj: string | null
   hasReport: boolean
   reportId: string | null
+  reportName: string | null
   createdAt: string
   paidAt: string | null
 }

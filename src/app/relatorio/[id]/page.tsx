@@ -22,7 +22,6 @@ import {
   ProcessAnalysisCard,
   WebMentionsCard,
   ReclameAquiCard,
-  PositiveMentionsBlock,
 } from '@/components/relatorio';
 import { useReportData } from '@/lib/hooks/use-report-data';
 
@@ -255,8 +254,15 @@ export default function Page() {
           )}
           {/* Negative mentions */}
           {negativeMentions.length > 0 && <WebMentionsCard mentions={negativeMentions} />}
-          {/* Positive mentions */}
-          {positiveMentions.length > 0 && <PositiveMentionsBlock mentions={positiveMentions} />}
+          {/* Positive/neutral mentions */}
+          {positiveMentions.length > 0 && (
+            <>
+              <h3 className="rel__positive-title" style={{ margin: '1.5rem 0 0.5rem', fontSize: '0.95rem' }}>
+                <span>&#10024;</span> Outras mencoes &mdash; {positiveMentions.length} encontrada{positiveMentions.length > 1 ? 's' : ''}
+              </h3>
+              <WebMentionsCard mentions={positiveMentions} variant="sol" />
+            </>
+          )}
           {/* Empty state */}
           {!reclameAqui && negativeMentions.length === 0 && positiveMentions.length === 0 && (
             <p className="rel__section-empty">Nenhuma mencao encontrada na web.</p>

@@ -2143,6 +2143,13 @@
   margin-top: 6px;
 }
 
+.mc-card__term {
+  font-family: var(--font-family-body);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
 .mc-card__date {
   font-family: var(--font-family-body);
   font-size: 11px;

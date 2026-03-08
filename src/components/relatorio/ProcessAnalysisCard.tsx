@@ -6,16 +6,21 @@ interface ProcessAnalysisCardProps {
   analyses: ProcessAnalysis[]
 }
 
-function formatRelevancia(value: ProcessAnalysis['relevanciaNegocios']): string {
-  switch (value) {
-    case 'alta':
-      return 'Alta'
-    case 'media':
-      return 'Media'
-    case 'baixa':
-      return 'Baixa'
-    default:
-      return 'Nenhuma'
+function formatRelevancia(analysis: ProcessAnalysis): string {
+  const papel = analysis.papelNoPolo
+  if (analysis.relevanciaNegocios === 'nenhuma') {
+    if (papel === 'advogado') return 'Advogado(a)'
+    if (papel === 'testemunha') return 'Testemunha'
+    if (papel === 'terceiro') return 'Terceiro'
+    if (papel === 'autor') return 'Autor da ação'
+    if (analysis.status === 'arquivado') return 'Arquivado'
+    return 'Sem risco'
+  }
+  switch (analysis.relevanciaNegocios) {
+    case 'alta': return 'Alta'
+    case 'media': return 'Media'
+    case 'baixa': return 'Baixa'
+    default: return 'Sem risco'
   }
 }
 
@@ -36,7 +41,7 @@ export default function ProcessAnalysisCard({ analyses }: ProcessAnalysisCardPro
               className={`rel__analysis-relevance${analysis.relevanciaNegocios === 'alta' ? ' rel__analysis-relevance--alta' : ''}`}
               style={{ color: analysis.relevanciaNegocios !== 'alta' ? 'var(--color-text-secondary)' : undefined }}
             >
-              {formatRelevancia(analysis.relevanciaNegocios)}
+              {formatRelevancia(analysis)}
             </span>
           </div>
 

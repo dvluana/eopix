@@ -356,6 +356,7 @@ export async function GET() {
             createdAt: true,
             paidAt: true,
             searchResultId: true,
+            searchResult: { select: { name: true } },
           },
         },
       },
@@ -387,6 +388,7 @@ export async function GET() {
       createdAt: Date | string
       hasReport: boolean
       reportId: string | null
+      reportName: string | null
     }> = user.purchases.map((p) => ({
       id: p.id,
       code: p.code,
@@ -397,6 +399,7 @@ export async function GET() {
       createdAt: p.createdAt,
       hasReport: !!p.searchResultId,
       reportId: p.searchResultId,
+      reportName: p.searchResult?.name || null,
     }))
 
     // In MOCK_MODE, prepend mock purchases for UI showcase
