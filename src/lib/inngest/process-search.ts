@@ -78,14 +78,14 @@ export const processSearch = inngest.createFunction(
           where: { id: purchaseId },
           data: { status: 'PROCESSING', processingStep: 1 },
         })
-        await delay(1500)
+        await delay(10000)
 
         for (const stepNum of [2, 3, 4, 5, 6]) {
           await prisma.purchase.update({
             where: { id: purchaseId },
             data: { processingStep: stepNum },
           })
-          await delay(1500)
+          await delay(10000)
         }
 
         await prisma.purchase.update({
