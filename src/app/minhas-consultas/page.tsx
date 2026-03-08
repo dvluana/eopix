@@ -4,7 +4,6 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import TopBar from '@/components/TopBar';
 import Footer from '@/components/Footer';
-import AuthForm from '@/components/AuthForm';
 import { usePurchasePolling } from '@/lib/hooks/use-purchase-polling';
 import type { Purchase } from '@/types/domain';
 import ProcessingTracker from '@/components/ProcessingTracker';
@@ -131,21 +130,6 @@ export default function Page() {
     checkSession();
   }, []);
 
-  const handleLoginSuccess = async () => {
-    setIsAuthenticated(true);
-    try {
-      const res = await fetch('/api/purchases');
-      if (res.ok) {
-        const data = await res.json();
-        setPurchases(data.purchases || []);
-        if (data.email) setUserEmail(data.email);
-        if (data.isAdmin) setIsAdmin(true);
-      }
-    } catch {
-      // ignore
-    }
-  };
-
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
@@ -175,24 +159,11 @@ export default function Page() {
   }
 
   // ============================================
-  // SE NÃO ESTIVER AUTENTICADO: MOSTRA LOGIN
+  // SE NÃO ESTIVER AUTENTICADO: REDIRECIONA PRA HOME
   // ============================================
   if (!isAuthenticated) {
-    return (
-      <div className="mc-page">
-        <TopBar />
-
-        <main className="mc-login">
-          <div className="mc-login__card">
-            <h1 className="mc-login__title">Minhas Consultas</h1>
-            <p className="mc-login__sub">Entre com sua conta para acessar suas consultas.</p>
-            <AuthForm mode="login" onSuccess={handleLoginSuccess} />
-          </div>
-        </main>
-
-        <Footer />
-      </div>
-    );
+    router.push('/');
+    return null;
   }
 
   // ============================================

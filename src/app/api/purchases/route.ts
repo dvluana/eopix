@@ -228,7 +228,17 @@ export async function POST(request: NextRequest) {
         })
         console.log(`🧪 [BYPASS] Inngest event search/process enviado para ${purchase.code}`)
       } catch (err) {
-        console.warn(`🧪 [BYPASS] Inngest indisponível — use admin ou /api/process-search/${code}`, err)
+        console.warn(`🧪 [BYPASS] Inngest indisponível — fallback para processamento síncrono`, err)
+        // Fallback: chamar process-search diretamente (fire-and-forget)
+        const fallbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/process-search/${code}`
+        fetch(fallbackUrl, { method: 'POST' })
+          .then(res => {
+            if (res.ok) console.log(`🧪 [BYPASS] Fallback process-search OK para ${code}`)
+            else console.error(`🧪 [BYPASS] Fallback process-search falhou: ${res.status}`)
+          })
+          .catch(fallbackErr => {
+            console.error(`🧪 [BYPASS] Fallback process-search erro:`, fallbackErr)
+          })
       }
 
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -360,7 +370,10 @@ export async function GET() {
           isAdmin: false,
         })
       }
-      return NextResponse.json({ purchases: [] })
+      return NextResponse.json(
+        { error: 'Usuário não encontrado' },
+        { status: 401 }
+      )
     }
 
     // Map purchases with additional info
