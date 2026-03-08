@@ -67,31 +67,21 @@ function EyeIcon({ open }: { open: boolean }) {
 
 export default function AuthForm({ mode: initialMode, onSuccess, hideToggle }: AuthFormProps) {
   const [mode, setMode] = React.useState(initialMode)
-  const [name, setName] = React.useState('')
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
-  const [confirmPassword, setConfirmPassword] = React.useState('')
   const [error, setError] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
   const [showPassword, setShowPassword] = React.useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (mode === 'register' && password !== confirmPassword) {
-      setError('As senhas nao coincidem')
-      return
-    }
-
     setIsLoading(true)
 
     try {
       const endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login'
-      const body = mode === 'register'
-        ? { name, email, password }
-        : { email, password }
+      const body = { email, password }
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -108,7 +98,7 @@ export default function AuthForm({ mode: initialMode, onSuccess, hideToggle }: A
 
       onSuccess()
     } catch {
-      setError('Erro de conexao. Tente novamente.')
+      setError('Erro de conexão. Tente novamente.')
     } finally {
       setIsLoading(false)
     }
@@ -133,23 +123,6 @@ export default function AuthForm({ mode: initialMode, onSuccess, hideToggle }: A
         </div>
       )}
 
-      {mode === 'register' && (
-        <div>
-          <label htmlFor="auth-name" style={labelStyle}>Nome</label>
-          <input
-            id="auth-name"
-            type="text"
-            autoComplete="name"
-            placeholder="Seu nome"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            minLength={2}
-            style={inputStyle}
-          />
-        </div>
-      )}
-
       <div>
         <label htmlFor="auth-email" style={labelStyle}>E-mail</label>
         <input
@@ -171,7 +144,7 @@ export default function AuthForm({ mode: initialMode, onSuccess, hideToggle }: A
             id="auth-password"
             type={showPassword ? 'text' : 'password'}
             autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-            placeholder={mode === 'register' ? 'Minimo 8 caracteres' : 'Sua senha'}
+            placeholder={mode === 'register' ? 'Mínimo 8 caracteres' : 'Sua senha'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -184,40 +157,11 @@ export default function AuthForm({ mode: initialMode, onSuccess, hideToggle }: A
         </div>
       </div>
 
-      {mode === 'register' && (
-        <div>
-          <label htmlFor="auth-confirm-password" style={labelStyle}>Confirmar Senha</label>
-          <div style={{ position: 'relative' }}>
-            <input
-              id="auth-confirm-password"
-              type={showConfirmPassword ? 'text' : 'password'}
-              autoComplete="new-password"
-              placeholder="Repita a senha"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={8}
-              style={{ ...inputStyle, paddingRight: '44px' }}
-            />
-            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={eyeButtonStyle} aria-label={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}>
-              <EyeIcon open={showConfirmPassword} />
-            </button>
-          </div>
-        </div>
-      )}
-
       <button
         type="submit"
         disabled={isLoading}
-        className="btn btn--primary btn--lg"
-        style={{
-          width: '100%',
-          fontSize: '16px',
-          padding: '16px 32px',
-          marginTop: 'var(--primitive-space-2)',
-          opacity: isLoading ? 0.5 : 1,
-          cursor: isLoading ? 'not-allowed' : 'pointer',
-        }}
+        className="btn btn--cta btn--lg btn--full"
+        style={{ marginTop: 'var(--primitive-space-2)' }}
       >
         {isLoading
           ? 'Processando...'
@@ -237,7 +181,7 @@ export default function AuthForm({ mode: initialMode, onSuccess, hideToggle }: A
         }}>
           {mode === 'register' ? (
             <>
-              Ja possui conta?{' '}
+              Já possui conta?{' '}
               <button
                 type="button"
                 onClick={toggleMode}
@@ -252,12 +196,12 @@ export default function AuthForm({ mode: initialMode, onSuccess, hideToggle }: A
                   padding: 0,
                 }}
               >
-                Faca login aqui
+                Faça login aqui
               </button>
             </>
           ) : (
             <>
-              Nao possui conta?{' '}
+              Não possui conta?{' '}
               <button
                 type="button"
                 onClick={toggleMode}
