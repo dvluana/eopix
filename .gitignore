@@ -31,6 +31,7 @@ yarn-error.log*
 
 # local assistant/config files
 CLAUDE.md
+.claude/settings.local.json
 .cursorrules
 prompt-base.md
 
@@ -50,6 +51,9 @@ docs/DADOS-TESTE.md
 # API documentation with sensitive values
 docs/valores apis e dados.md
 docs/valores apis e dados.md.backup
+
+# mintlify
+.mintlify/
 
 # vercel
 .vercel

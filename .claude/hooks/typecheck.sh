@@ -8,23 +8,32 @@ if [[ "$FILE_PATH" != *.ts && "$FILE_PATH" != *.tsx ]]; then
   exit 0
 fi
 
-# Roda tsc na raiz do projeto
 cd '/Users/luana/Documents/Code Projects/eopix'
 
-OUTPUT=$(npx tsc --noEmit 2>&1)
-EXIT_CODE=$?
+# 1. TypeScript check (bloqueia se erro no arquivo editado)
+TSC_OUTPUT=$(npx tsc --noEmit 2>&1)
+TSC_EXIT=$?
 
-if [ $EXIT_CODE -ne 0 ]; then
-  # Filtra apenas erros do arquivo editado (menos ruído)
-  FILE_ERRORS=$(echo "$OUTPUT" | grep "^$FILE_PATH" | head -10)
-
+if [ $TSC_EXIT -ne 0 ]; then
+  FILE_ERRORS=$(echo "$TSC_OUTPUT" | grep "^$FILE_PATH" | head -10)
   if [ -n "$FILE_ERRORS" ]; then
-    # exit 2 + stderr = CC bloqueia e força leitura do feedback
     echo "TypeScript errors em $FILE_PATH:" >&2
     echo "$FILE_ERRORS" >&2
     exit 2
   fi
-  # Erros existem mas não neste arquivo — não bloqueia
+fi
+
+# 2. ESLint check (warning only, não bloqueia)
+LINT_OUTPUT=$(npx eslint "$FILE_PATH" --no-error-on-unmatched-pattern --format compact 2>&1)
+LINT_EXIT=$?
+
+if [ $LINT_EXIT -ne 0 ]; then
+  LINT_ERRORS=$(echo "$LINT_OUTPUT" | grep -c "Error")
+  if [ "$LINT_ERRORS" -gt 0 ]; then
+    echo "ESLint issues em $FILE_PATH:" >&2
+    echo "$LINT_OUTPUT" | head -10 >&2
+    # Não bloqueia (exit 0) — lint é informativo
+  fi
 fi
 
 exit 0

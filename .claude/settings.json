@@ -14,9 +14,19 @@
       "matcher": "auto",
       "hooks": [{ "type": "command", "command": "bash '/Users/luana/Documents/Code Projects/eopix/.claude/hooks/smart-commit.sh'" }]
     }],
-    "PostToolUse": [{
-      "matcher": "Write|Edit",
-      "hooks": [{ "type": "command", "command": "bash '/Users/luana/Documents/Code Projects/eopix/.claude/hooks/typecheck.sh'" }]
-    }]
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [{ "type": "command", "command": "bash '/Users/luana/Documents/Code Projects/eopix/.claude/hooks/typecheck.sh'" }]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [{ "type": "command", "command": "bash '/Users/luana/Documents/Code Projects/eopix/.claude/hooks/run-related-tests.sh'" }]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [{ "type": "command", "command": "bash '/Users/luana/Documents/Code Projects/eopix/.claude/hooks/check-docs.sh'" }]
+      }
+    ]
   }
 }
