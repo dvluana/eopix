@@ -65,13 +65,12 @@ export async function createCheckout(
     methods: ['PIX'],
     products: [
       {
-        externalId: 'relatorio-risco',
+        externalId: params.externalRef,
         name: 'Relatório de Risco CPF/CNPJ',
         quantity: 1,
         price: priceCents,
       },
     ],
-    externalId: params.externalRef,
     completionUrl: params.successUrl,
     returnUrl: params.cancelUrl,
     customer: {

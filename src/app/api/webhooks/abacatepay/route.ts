@@ -2,33 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { validateWebhookSecret, validateWebhookSignature } from '@/lib/abacatepay'
 
-// v1 billing.paid payload (per official AbacatePay docs)
-// data is flat — NOT nested under data.billing
+// v1 billing.paid payload — nested under data.billing (confirmed from production logs)
 interface AbacateWebhookEvent {
   event: string
-  devMode: boolean
+  devMode?: boolean
   data: {
-    id: string
-    externalId?: string
-    amount: number
-    paidAmount?: number
-    status: string
-    customer?: {
+    billing: {
       id: string
-      email?: string
-      name?: string
-      cellphone?: string
-      taxId?: string
-      // v1 may also nest under metadata
-      metadata?: {
-        name?: string
-        email?: string
-        cellphone?: string
-        taxId?: string
+      amount: number
+      paidAmount?: number
+      status: string
+      frequency?: string
+      kind?: string[]
+      products?: { publicId?: string; externalId?: string; quantity: number }[]
+      customer?: {
+        id: string
+        metadata?: {
+          name?: string
+          email?: string
+          cellphone?: string
+          taxId?: string
+        }
       }
+      couponsUsed?: string[]
     }
-    createdAt?: string
-    updatedAt?: string
+    payment?: {
+      amount: number
+      fee: number
+      method: string
+    }
   }
 }
 
@@ -72,13 +74,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true })
     }
 
-    // Extract fields from flat v1 payload
-    const billingId = event.data.id
-    const purchaseCode = event.data.externalId
-    const customer = event.data.customer
-    // Customer email/name: try root level first, then metadata (v1 compat)
-    const customerEmail = customer?.email || customer?.metadata?.email || null
-    const customerName = customer?.name || customer?.metadata?.name || null
+    // Extract fields from nested v1 payload (data.billing)
+    const billing = event.data.billing
+    if (!billing) {
+      console.warn('[AbacatePay Webhook] No billing object in payload')
+      return NextResponse.json({ received: true })
+    }
+
+    const billingId = billing.id
+    const customerMeta = billing.customer?.metadata
+    const customerEmail = customerMeta?.email || null
+    const customerName = customerMeta?.name || null
+
+    // Purchase code comes from products[0].externalId (echoed from billing create)
+    const purchaseCode = billing.products?.[0]?.externalId || null
 
     // Idempotency check
     const webhookKey = `abacate:${event.event}:${billingId}`
@@ -92,7 +101,25 @@ export async function POST(request: NextRequest) {
     }
 
     if (!purchaseCode) {
-      console.warn('[AbacatePay Webhook] No externalId in payload')
+      // Fallback: look up purchase by billing ID (for billings created before this fix)
+      console.warn(`[AbacatePay Webhook] No purchaseCode in products, looking up by billingId: ${billingId}`)
+      const purchaseByBilling = await prisma.purchase.findFirst({
+        where: {
+          OR: [
+            { paymentExternalId: billingId },
+            { paymentExternalId: { contains: billingId } },
+          ],
+        },
+      })
+      if (purchaseByBilling) {
+        console.log(`[AbacatePay Webhook] Found purchase ${purchaseByBilling.code} by billingId ${billingId}`)
+        await handlePaymentSuccess(purchaseByBilling.code, billingId, customerEmail, customerName)
+        await prisma.webhookLog.create({
+          data: { eventKey: webhookKey, event: event.event, paymentId: billingId },
+        })
+        return NextResponse.json({ received: true })
+      }
+      console.warn('[AbacatePay Webhook] No purchase found for billingId:', billingId)
       return NextResponse.json({ received: true })
     }
 
