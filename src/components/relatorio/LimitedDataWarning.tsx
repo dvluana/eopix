@@ -1,46 +1,22 @@
-"use client"
+"use client";
 
 interface LimitedDataWarningProps {
   message?: string;
 }
 
-export default function LimitedDataWarning({ message }: LimitedDataWarningProps) {
+export default function LimitedDataWarning({
+  message,
+}: LimitedDataWarningProps) {
   return (
-    <div
-      style={{
-        marginTop: '24px',
-        background: 'var(--color-status-warning-bg)',
-        border: '1px solid var(--color-status-warning)',
-        borderRadius: '6px',
-        padding: '16px 20px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '12px',
-      }}
-    >
-      <span style={{ fontSize: '20px', lineHeight: 1 }}>⚠️</span>
+    <div className="rel__limited-warning">
+      <span className="rel__limited-warning-icon" aria-hidden="true">
+        &#9888;&#65039;
+      </span>
       <div>
-        <span
-          style={{
-            fontFamily: 'var(--font-family-heading)',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: 'var(--color-status-warning)',
-            display: 'block',
-            marginBottom: '4px',
-          }}
-        >
-          Dados Limitados
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '13px',
-            color: 'var(--color-text-secondary)',
-            lineHeight: 1.5,
-          }}
-        >
-          {message || 'Algumas informações podem estar incompletas ou indisponíveis para esta consulta.'}
+        <span className="rel__limited-warning-title">Dados Limitados</span>
+        <span className="rel__limited-warning-text">
+          {message ||
+            "Algumas informacoes podem estar incompletas ou indisponiveis para esta consulta."}
         </span>
       </div>
     </div>

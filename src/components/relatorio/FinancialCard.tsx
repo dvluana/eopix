@@ -1,8 +1,5 @@
 "use client"
 
-import CollapsibleCard from './CollapsibleCard'
-import { generateFinancialSummary } from '@/lib/report-utils'
-
 interface ProtestoItem {
   data: string
   valor: string
@@ -41,188 +38,50 @@ export default function FinancialCard({
   const hasCheques = chequesDevolvidos > 0
   const hasNomeSujo = nomeSujo !== undefined
 
-  if (!hasProtestos && !hasDividas && !hasCheques && !hasNomeSujo) return null
-
-  // Calculate totals from items if not provided
   const displayTotalProtestos = totalProtestos ?? protestos.length
   const displayTotalDividas = totalDividas ?? dividas.length
 
-  // Count total issues
-  const totalIssues = displayTotalProtestos + displayTotalDividas + (hasCheques ? chequesDevolvidos : 0)
-
-  // Generate summary
-  const summary = generateFinancialSummary(displayTotalProtestos, displayTotalDividas, chequesDevolvidos)
-
-  // Expand by default if few items
-  const totalItems = protestos.length + dividas.length
-  const defaultExpanded = totalItems <= 3
+  const nomeSujoBg = nomeSujo ? 'rgba(239, 68, 68, 0.08)' : 'rgba(34, 197, 94, 0.08)'
 
   return (
-    <CollapsibleCard
-      icon="💰"
-      title="Situação Financeira"
-      count={totalIssues}
-      summary={summary}
-      variant="danger"
-      defaultExpanded={defaultExpanded}
-    >
+    <div>
       {/* Nome Sujo Status */}
       {hasNomeSujo && (
-        <div
-          style={{
-            padding: '16px 20px',
-            background: nomeSujo ? 'rgba(239, 68, 68, 0.08)' : 'rgba(34, 197, 94, 0.08)',
-            borderBottom: '1px solid var(--color-border-subtle)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            Nome sujo
-          </span>
-          <span
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '14px',
-              fontWeight: 700,
-              color: nomeSujo ? 'var(--color-status-error)' : 'var(--color-status-success)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            {nomeSujo ? '❌ Sim' : '✅ Não'}
+        <div className="rel__fin-status" style={{ background: nomeSujoBg }}>
+          <span className="rel__fin-status-label">Nome sujo</span>
+          <span className={`rel__fin-status-value ${nomeSujo ? 'rel__value--error' : 'rel__value--success'}`}>
+            {nomeSujo ? '\u274C Sim' : '\u2705 Nao'}
           </span>
         </div>
       )}
 
       {/* Summary Stats */}
       {(displayTotalProtestos > 0 || displayTotalDividas > 0 || hasCheques) && (
-        <div
-          style={{
-            padding: '16px 20px',
-            background: 'var(--color-bg-secondary)',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: '16px',
-            borderBottom: '1px solid var(--color-border-subtle)',
-          }}
-        >
+        <div className="rel__fin-stats">
           {displayTotalProtestos > 0 && (
             <div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-tertiary)',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Protestos
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  color: 'var(--color-status-error)',
-                }}
-              >
-                {displayTotalProtestos}
-              </span>
+              <span className="rel__label">Protestos</span>
+              <span className="rel__value--lg rel__value--error">{displayTotalProtestos}</span>
               {totalProtestosValor && (
-                <span
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '12px',
-                    color: 'var(--color-text-secondary)',
-                    display: 'block',
-                    marginTop: '2px',
-                  }}
-                >
-                  Total: {totalProtestosValor}
-                </span>
+                <span className="rel__fin-stat-count">Total: {totalProtestosValor}</span>
               )}
             </div>
           )}
 
           {displayTotalDividas > 0 && (
             <div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-tertiary)',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Dívidas Ativas
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  color: 'var(--color-status-error)',
-                }}
-              >
-                {displayTotalDividas}
-              </span>
+              <span className="rel__label">Dividas Ativas</span>
+              <span className="rel__value--lg rel__value--error">{displayTotalDividas}</span>
               {totalDividasValor && (
-                <span
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '12px',
-                    color: 'var(--color-text-secondary)',
-                    display: 'block',
-                    marginTop: '2px',
-                  }}
-                >
-                  Total: {totalDividasValor}
-                </span>
+                <span className="rel__fin-stat-count">Total: {totalDividasValor}</span>
               )}
             </div>
           )}
 
           {hasCheques && (
             <div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-tertiary)',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Cheques Devolvidos
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  color: 'var(--color-status-error)',
-                }}
-              >
-                {chequesDevolvidos}
-              </span>
+              <span className="rel__label">Cheques Devolvidos</span>
+              <span className="rel__value--lg rel__value--error">{chequesDevolvidos}</span>
             </div>
           )}
         </div>
@@ -231,116 +90,23 @@ export default function FinancialCard({
       {/* Protestos Table */}
       {hasProtestos && (
         <>
-          <div
-            style={{
-              padding: '12px 20px',
-              background: 'var(--color-bg-primary)',
-              borderBottom: '1px solid var(--color-border-subtle)',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '12px',
-                fontWeight: 700,
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              Detalhes dos Protestos
-            </span>
+          <div className="rel__fin-section-header">
+            <span className="rel__fin-section-title">Detalhes dos Protestos</span>
           </div>
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-            }}
-          >
+          <table className="rel__table">
             <thead>
-              <tr
-                style={{
-                  background: 'var(--color-bg-secondary)',
-                }}
-              >
-                <th
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: 'var(--color-text-tertiary)',
-                    textTransform: 'uppercase',
-                    textAlign: 'left',
-                    padding: '10px 20px',
-                  }}
-                >
-                  Data
-                </th>
-                <th
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: 'var(--color-text-tertiary)',
-                    textTransform: 'uppercase',
-                    textAlign: 'left',
-                    padding: '10px 20px',
-                  }}
-                >
-                  Valor
-                </th>
-                <th
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: 'var(--color-text-tertiary)',
-                    textTransform: 'uppercase',
-                    textAlign: 'left',
-                    padding: '10px 20px',
-                  }}
-                >
-                  Cartório
-                </th>
+              <tr>
+                <th>Data</th>
+                <th>Valor</th>
+                <th>Cartorio</th>
               </tr>
             </thead>
             <tbody>
               {protestos.map((protesto, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    borderTop: '1px solid var(--color-border-subtle)',
-                  }}
-                >
-                  <td
-                    style={{
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '13px',
-                      color: 'var(--color-text-primary)',
-                      padding: '12px 20px',
-                    }}
-                  >
-                    {protesto.data}
-                  </td>
-                  <td
-                    style={{
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '13px',
-                      color: 'var(--color-status-error)',
-                      fontWeight: 600,
-                      padding: '12px 20px',
-                    }}
-                  >
-                    {protesto.valor}
-                  </td>
-                  <td
-                    style={{
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '13px',
-                      color: 'var(--color-text-secondary)',
-                      padding: '12px 20px',
-                    }}
-                  >
-                    {protesto.cartorio}
-                  </td>
+                <tr key={index}>
+                  <td>{protesto.data}</td>
+                  <td className="rel__td--error">{protesto.valor}</td>
+                  <td className="rel__td--secondary">{protesto.cartorio}</td>
                 </tr>
               ))}
             </tbody>
@@ -351,123 +117,29 @@ export default function FinancialCard({
       {/* Dividas Table */}
       {hasDividas && (
         <>
-          <div
-            style={{
-              padding: '12px 20px',
-              background: 'var(--color-bg-primary)',
-              borderBottom: '1px solid var(--color-border-subtle)',
-              borderTop: hasProtestos ? '1px solid var(--color-border-subtle)' : 'none',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '12px',
-                fontWeight: 700,
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              Detalhes das Dívidas
-            </span>
+          <div className={`rel__fin-section-header${hasProtestos ? ' rel__fin-section-header--separated' : ''}`}>
+            <span className="rel__fin-section-title">Detalhes das Dividas</span>
           </div>
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-            }}
-          >
+          <table className="rel__table">
             <thead>
-              <tr
-                style={{
-                  background: 'var(--color-bg-secondary)',
-                }}
-              >
-                <th
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: 'var(--color-text-tertiary)',
-                    textTransform: 'uppercase',
-                    textAlign: 'left',
-                    padding: '10px 20px',
-                  }}
-                >
-                  Tipo
-                </th>
-                <th
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: 'var(--color-text-tertiary)',
-                    textTransform: 'uppercase',
-                    textAlign: 'left',
-                    padding: '10px 20px',
-                  }}
-                >
-                  Valor
-                </th>
-                <th
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: 'var(--color-text-tertiary)',
-                    textTransform: 'uppercase',
-                    textAlign: 'left',
-                    padding: '10px 20px',
-                  }}
-                >
-                  Origem
-                </th>
+              <tr>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Origem</th>
               </tr>
             </thead>
             <tbody>
               {dividas.map((divida, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    borderTop: '1px solid var(--color-border-subtle)',
-                  }}
-                >
-                  <td
-                    style={{
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '13px',
-                      color: 'var(--color-text-primary)',
-                      padding: '12px 20px',
-                    }}
-                  >
-                    {divida.tipo}
-                  </td>
-                  <td
-                    style={{
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '13px',
-                      color: 'var(--color-status-error)',
-                      fontWeight: 600,
-                      padding: '12px 20px',
-                    }}
-                  >
-                    {divida.valor}
-                  </td>
-                  <td
-                    style={{
-                      fontFamily: 'var(--font-family-body)',
-                      fontSize: '13px',
-                      color: 'var(--color-text-secondary)',
-                      padding: '12px 20px',
-                    }}
-                  >
-                    {divida.origem}
-                  </td>
+                <tr key={index}>
+                  <td>{divida.tipo}</td>
+                  <td className="rel__td--error">{divida.valor}</td>
+                  <td className="rel__td--secondary">{divida.origem}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </>
       )}
-    </CollapsibleCard>
+    </div>
   )
 }

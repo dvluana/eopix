@@ -19,260 +19,92 @@ export default function ReclameAquiCard({
   url,
   variant,
 }: ReclameAquiCardProps) {
-  // Auto-determine variant based on nota if not provided
   const cardVariant = variant ?? (nota >= 7 ? 'positive' : 'negative');
   const isPositive = cardVariant === 'positive';
 
   const statusColor = isPositive ? 'var(--color-status-success)' : 'var(--color-status-error)';
   const statusBg = isPositive ? 'var(--color-status-success-bg)' : 'var(--color-status-error-bg)';
+  const resolucaoColor = indiceResolucao >= 70 ? 'var(--color-status-success)' : 'var(--color-status-error)';
 
-  // Determine reputation label
   const getReputationLabel = (score: number): string => {
-    if (score >= 8) return 'Ótimo';
+    if (score >= 8) return 'Otimo';
     if (score >= 7) return 'Bom';
     if (score >= 5) return 'Regular';
     if (score >= 3) return 'Ruim';
-    return 'Não recomendada';
+    return 'Nao recomendada';
   };
 
   return (
-    <div
-      style={{
-        marginTop: '24px',
-        background: 'var(--color-bg-primary)',
-        border: `1px solid ${isPositive ? 'var(--color-border-subtle)' : 'var(--color-status-error)'}`,
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-        overflow: 'hidden',
-      }}
-    >
+    <div className={`rel__ra ${isPositive ? 'rel__ra--positive' : 'rel__ra--negative'}`}>
       {/* Header */}
-      <div
-        style={{
-          background: statusBg,
-          padding: '12px 20px',
-          borderBottom: '1px solid var(--color-border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <h3
-          style={{
-            fontFamily: 'var(--font-family-heading)',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: statusColor,
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span>{isPositive ? '⭐' : '⚠️'}</span>
+      <div className="rel__ra-header" style={{ background: statusBg }}>
+        <h3 className="rel__ra-title" style={{ color: statusColor }}>
+          <span>{isPositive ? '\u2B50' : '\u26A0\uFE0F'}</span>
           Reclame Aqui
         </h3>
         {seloRA1000 && (
-          <span
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '11px',
-              fontWeight: 700,
-              color: '#FFD700',
-              background: 'rgba(255, 215, 0, 0.15)',
-              padding: '4px 10px',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            🏆 RA1000
+          <span className="rel__ra-selo">
+            \uD83C\uDFC6 RA1000
           </span>
         )}
       </div>
 
       {/* Content */}
-      <div style={{ padding: '20px' }}>
+      <div className="rel__ra-content">
         {/* Main Score */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            marginBottom: '20px',
-          }}
-        >
-          <div
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              background: statusBg,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'column',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-family-heading)',
-                fontSize: '24px',
-                fontWeight: 700,
-                color: statusColor,
-                lineHeight: 1,
-              }}
-            >
+        <div className="rel__ra-score">
+          <div className="rel__ra-score-circle" style={{ background: statusBg }}>
+            <span className="rel__ra-score-number" style={{ color: statusColor }}>
               {nota.toFixed(1)}
             </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '10px',
-                color: 'var(--color-text-tertiary)',
-              }}
-            >
-              /10
-            </span>
+            <span className="rel__ra-score-max">/10</span>
           </div>
           <div>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-heading)',
-                fontSize: '16px',
-                fontWeight: 700,
-                color: statusColor,
-                display: 'block',
-              }}
-            >
+            <span className="rel__ra-reputation" style={{ color: statusColor }}>
               {getReputationLabel(nota)}
             </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '13px',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              Reputação no Reclame Aqui
+            <span className="rel__ra-reputation-sub">
+              Reputacao no Reclame Aqui
             </span>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '16px',
-            padding: '16px',
-            background: 'var(--color-bg-secondary)',
-            borderRadius: '6px',
-          }}
-        >
-          {/* Índice de Resolução */}
+        <div className="rel__ra-stats">
           <div>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '10px',
-                fontWeight: 700,
-                color: 'var(--color-text-tertiary)',
-                textTransform: 'uppercase',
-                display: 'block',
-                marginBottom: '4px',
-              }}
-            >
-              Índice de Resolução
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '18px',
-                fontWeight: 700,
-                color: indiceResolucao >= 70 ? 'var(--color-status-success)' : 'var(--color-status-error)',
-              }}
-            >
+            <span className="rel__label">Indice de Resolucao</span>
+            <span className="rel__value--lg" style={{ color: resolucaoColor }}>
               {indiceResolucao.toFixed(1)}%
             </span>
           </div>
 
-          {/* Total de Reclamações */}
           {totalReclamacoes !== undefined && (
             <div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-tertiary)',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Total de Reclamações
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-primary)',
-                }}
-              >
+              <span className="rel__label">Total de Reclamacoes</span>
+              <span className="rel__value--lg">
                 {totalReclamacoes.toLocaleString('pt-BR')}
               </span>
             </div>
           )}
 
-          {/* Respondidas */}
           {respondidas !== undefined && (
             <div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-tertiary)',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Respondidas
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-primary)',
-                }}
-              >
+              <span className="rel__label">Respondidas</span>
+              <span className="rel__value--lg">
                 {respondidas.toLocaleString('pt-BR')}
               </span>
             </div>
           )}
         </div>
 
-        {/* Link to Reclame Aqui */}
+        {/* Link */}
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          style={{
-            display: 'block',
-            marginTop: '16px',
-            textAlign: 'center',
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '12px',
-            color: 'var(--color-text-primary)',
-            textDecoration: 'underline',
-          }}
+          className="rel__ra-link"
         >
-          Ver página no Reclame Aqui →
+          Ver pagina no Reclame Aqui &rarr;
         </a>
       </div>
     </div>

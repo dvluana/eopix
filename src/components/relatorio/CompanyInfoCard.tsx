@@ -24,18 +24,15 @@ interface CompanyInfoCardProps {
   capitalSocial?: number;
 }
 
-/**
- * Generate natural language role description
- */
 function formatPartnerRole(qualificacao: string): string {
   const qual = qualificacao?.toLowerCase() || '';
 
-  if (qual.includes('administrador')) return 'Sócio-administrador';
+  if (qual.includes('administrador')) return 'Socio-administrador';
   if (qual.includes('diretor')) return 'Diretor';
   if (qual.includes('presidente')) return 'Presidente';
   if (qual.includes('gerente')) return 'Gerente';
   if (qual.includes('procurador')) return 'Procurador';
-  if (qual.includes('sócio')) return 'Sócio';
+  if (qual.includes('socio')) return 'Socio';
 
   return qualificacao;
 }
@@ -70,332 +67,119 @@ export default function CompanyInfoCard({
   const isActive = situacao === 'ATIVA';
   const statusColor = isActive ? 'var(--color-status-success)' : 'var(--color-status-error)';
   const statusBg = isActive ? 'var(--color-status-success-bg)' : 'var(--color-status-error-bg)';
-  const borderColor = isActive ? 'var(--color-border-subtle)' : 'var(--color-status-error)';
+  const badgeBg = isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)';
 
   return (
-    <div
-      style={{
-        marginTop: '24px',
-        background: 'var(--color-bg-primary)',
-        border: `1px solid ${borderColor}`,
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          background: statusBg,
-          padding: '12px 20px',
-          borderBottom: '1px solid var(--color-border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <h3
-          style={{
-            fontFamily: 'var(--font-family-heading)',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: statusColor,
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span>{isActive ? '🏢' : '⚠️'}</span>
+    <div>
+      {/* Status Banner */}
+      <div className="rel__company-banner" style={{ background: statusBg }}>
+        <span className="rel__company-banner-title" style={{ color: statusColor }}>
+          <span>{isActive ? '\uD83C\uDFE2' : '\u26A0\uFE0F'}</span>
           Cadastro Empresarial
-        </h3>
+        </span>
         <span
-          style={{
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '12px',
-            fontWeight: 600,
-            color: statusColor,
-            background: isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-            padding: '4px 10px',
-            borderRadius: '4px',
-          }}
+          className="rel__company-status-badge"
+          style={{ color: statusColor, background: badgeBg }}
         >
           {situacao}
         </span>
       </div>
 
       {/* Content */}
-      <div style={{ padding: '20px' }}>
-        {/* Razão Social */}
-        <div style={{ marginBottom: '16px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '10px',
-              fontWeight: 700,
-              color: 'var(--color-text-tertiary)',
-              textTransform: 'uppercase',
-              display: 'block',
-              marginBottom: '4px',
-            }}
-          >
-            Razão Social
-          </span>
-          <span
-            style={{
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            {razaoSocial}
-          </span>
+      <div className="rel__company-content">
+        <div className="rel__person-field">
+          <span className="rel__label">Razao Social</span>
+          <span className="rel__value">{razaoSocial}</span>
         </div>
 
-        {/* Grid de informações */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '16px',
-          }}
-        >
-          {/* Data de Abertura */}
+        <div className="rel__company-grid">
           {dataAbertura && (
             <div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-tertiary)',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Data de Abertura
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '13px',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                {formatDate(dataAbertura)}
-              </span>
+              <span className="rel__label">Data de Abertura</span>
+              <span className="rel__value--sm">{formatDate(dataAbertura)}</span>
             </div>
           )}
 
-          {/* Data de Baixa (se não ativa) */}
           {!isActive && dataBaixa && (
             <div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-tertiary)',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Data de Baixa
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '13px',
-                  color: 'var(--color-status-error)',
-                  fontWeight: 600,
-                }}
-              >
+              <span className="rel__label">Data de Baixa</span>
+              <span className="rel__value--sm rel__value--error">
                 {formatDate(dataBaixa)}
               </span>
             </div>
           )}
 
-          {/* Capital Social */}
           {capitalSocial !== undefined && capitalSocial > 0 && (
             <div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-tertiary)',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Capital Social
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '13px',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                {formatCurrency(capitalSocial)}
-              </span>
+              <span className="rel__label">Capital Social</span>
+              <span className="rel__value--sm">{formatCurrency(capitalSocial)}</span>
             </div>
           )}
         </div>
 
-        {/* CNAE Principal */}
-        {cnaePrincipal && (
-          <div style={{ marginTop: '16px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '10px',
-                fontWeight: 700,
-                color: 'var(--color-text-tertiary)',
-                textTransform: 'uppercase',
-                display: 'block',
-                marginBottom: '4px',
-              }}
-            >
-              Atividade Principal (CNAE)
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '13px',
-                color: 'var(--color-text-primary)',
-              }}
-            >
-              {cnaePrincipal.codigo} - {cnaePrincipal.descricao}
-            </span>
-          </div>
-        )}
-
-        {/* CNAEs Secundários */}
-        {cnaeSecundarios && cnaeSecundarios.length > 0 && (
-          <div style={{ marginTop: '16px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '10px',
-                fontWeight: 700,
-                color: 'var(--color-text-tertiary)',
-                textTransform: 'uppercase',
-                display: 'block',
-                marginBottom: '8px',
-              }}
-            >
-              Atividades Secundárias ({cnaeSecundarios.length})
-            </span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {cnaeSecundarios.slice(0, 3).map((cnae, index) => (
-                <span
-                  key={index}
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '12px',
-                    color: 'var(--color-text-secondary)',
-                  }}
-                >
-                  {cnae.codigo} - {cnae.descricao}
-                </span>
-              ))}
-              {cnaeSecundarios.length > 3 && (
-                <span
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '11px',
-                    color: 'var(--color-text-tertiary)',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  +{cnaeSecundarios.length - 3} atividade{cnaeSecundarios.length - 3 > 1 ? 's' : ''}
-                </span>
-              )}
+        <div className="rel__company-sections">
+          {cnaePrincipal && (
+            <div>
+              <span className="rel__label">Atividade Principal (CNAE)</span>
+              <span className="rel__value--sm">
+                {cnaePrincipal.codigo} - {cnaePrincipal.descricao}
+              </span>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Sócios */}
-        {socios && socios.length > 0 && (
-          <div style={{ marginTop: '16px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '10px',
-                fontWeight: 700,
-                color: 'var(--color-text-tertiary)',
-                textTransform: 'uppercase',
-                display: 'block',
-                marginBottom: '8px',
-              }}
-            >
-              Quadro Societário ({socios.length})
-            </span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {socios.slice(0, 5).map((socio, index) => {
-                const role = formatPartnerRole(socio.qualificacao);
-                const years = socio.dataEntrada ? calculateYearsSince(socio.dataEntrada) : null;
-                const timeDesc = years !== null
-                  ? years > 0
-                    ? `há ${years} ano${years > 1 ? 's' : ''}`
-                    : 'desde este ano'
-                  : null;
-
-                return (
-                  <div
-                    key={index}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      padding: '10px 12px',
-                      background: 'var(--color-bg-secondary)',
-                      borderRadius: '4px',
-                      gap: '2px',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-family-body)',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        color: 'var(--color-text-primary)',
-                      }}
-                    >
-                      {socio.nome}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-family-body)',
-                        fontSize: '12px',
-                        color: 'var(--color-text-secondary)',
-                      }}
-                    >
-                      {role}{timeDesc ? ` ${timeDesc}` : ''}
-                    </span>
-                  </div>
-                );
-              })}
-              {socios.length > 5 && (
-                <span
-                  style={{
-                    fontFamily: 'var(--font-family-body)',
-                    fontSize: '11px',
-                    color: 'var(--color-text-tertiary)',
-                    fontStyle: 'italic',
-                    textAlign: 'center',
-                  }}
-                >
-                  +{socios.length - 5} sócio{socios.length - 5 > 1 ? 's' : ''}
-                </span>
-              )}
+          {cnaeSecundarios && cnaeSecundarios.length > 0 && (
+            <div>
+              <span className="rel__label">
+                Atividades Secundarias ({cnaeSecundarios.length})
+              </span>
+              <div className="rel__cnae-list">
+                {cnaeSecundarios.slice(0, 3).map((cnae, index) => (
+                  <span key={index} className="rel__cnae-item">
+                    {cnae.codigo} - {cnae.descricao}
+                  </span>
+                ))}
+                {cnaeSecundarios.length > 3 && (
+                  <span className="rel__more-text">
+                    +{cnaeSecundarios.length - 3} atividade{cnaeSecundarios.length - 3 > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {socios && socios.length > 0 && (
+            <div>
+              <span className="rel__label">
+                Quadro Societario ({socios.length})
+              </span>
+              <div className="rel__company-socios-list">
+                {socios.slice(0, 5).map((socio, index) => {
+                  const role = formatPartnerRole(socio.qualificacao);
+                  const years = socio.dataEntrada ? calculateYearsSince(socio.dataEntrada) : null;
+                  const timeDesc = years !== null
+                    ? years > 0
+                      ? `ha ${years} ano${years > 1 ? 's' : ''}`
+                      : 'desde este ano'
+                    : null;
+
+                  return (
+                    <div key={index} className="rel__company-socio">
+                      <span className="rel__company-socio-name">{socio.nome}</span>
+                      <span className="rel__company-socio-role">
+                        {role}{timeDesc ? ` ${timeDesc}` : ''}
+                      </span>
+                    </div>
+                  );
+                })}
+                {socios.length > 5 && (
+                  <span className="rel__more-text">
+                    +{socios.length - 5} socio{socios.length - 5 > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

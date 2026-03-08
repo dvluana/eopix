@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { formatCNPJ } from '@/lib/validators'
 
 interface EnderecoItem {
@@ -37,10 +37,6 @@ interface PersonInfoCardProps {
   }
 }
 
-/**
- * Mask phone number: show DDD + first 2 digits + mask + last 2 digits
- * Example: 51 99****66
- */
 function maskPhone(ddd: string, numero: string): string {
   const cleanNum = numero.replace(/\D/g, '')
   if (cleanNum.length < 4) return `${ddd} ${cleanNum}`
@@ -50,9 +46,6 @@ function maskPhone(ddd: string, numero: string): string {
   return `${ddd} ${first}****${last}`
 }
 
-/**
- * Collapsible section inside the card
- */
 function CollapsibleSection({
   title,
   count,
@@ -67,51 +60,24 @@ function CollapsibleSection({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
 
   return (
-    <div
-      style={{
-        background: 'var(--color-bg-secondary)',
-        borderRadius: '4px',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="rel__subsection">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 12px',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
+        className="rel__subsection-trigger"
       >
-        <span
-          style={{
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '12px',
-            fontWeight: 600,
-            color: 'var(--color-text-secondary)',
-          }}
-        >
+        <span className="rel__subsection-label">
           {title} ({count})
         </span>
         <span
-          style={{
-            fontSize: '10px',
-            color: 'var(--color-text-tertiary)',
-            transition: 'transform 0.2s ease',
-            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-          }}
+          className="rel__subsection-chevron"
+          style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
         >
-          ▼
+          &#9660;
         </span>
       </button>
       {isExpanded && (
-        <div style={{ padding: '0 12px 12px' }}>
+        <div className="rel__subsection-content">
           {children}
         </div>
       )}
@@ -120,296 +86,118 @@ function CollapsibleSection({
 }
 
 export default function PersonInfoCard({ cadastral }: PersonInfoCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  // Set initial expanded state based on screen size (only on client)
-  useEffect(() => {
-    const isMobile = window.innerWidth < 768
-    setIsExpanded(!isMobile)
-  }, [])
-
-  const situacaoColor = cadastral.situacaoRF === 'REGULAR'
-    ? 'var(--color-status-success)'
-    : 'var(--color-status-warning)'
+  const situacaoClass = cadastral.situacaoRF === 'REGULAR'
+    ? 'rel__value--sm rel__value--success'
+    : 'rel__value--sm rel__value--error'
 
   return (
-    <div
-      style={{
-        marginTop: '24px',
-        background: 'var(--color-bg-primary)',
-        border: '1px solid var(--color-border-subtle)',
-        borderRadius: '6px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header - Clickable */}
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        aria-expanded={isExpanded}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'var(--color-bg-secondary)',
-          padding: '12px 20px',
-          border: 'none',
-          borderBottom: isExpanded ? '1px solid var(--color-border-subtle)' : 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
-      >
-        <h3
-          style={{
-            fontFamily: 'var(--font-family-heading)',
-            fontSize: '14px',
-            fontWeight: 700,
-            color: 'var(--color-text-primary)',
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span>👤</span>
-          Dados Cadastrais
-        </h3>
-        <span
-          style={{
-            fontSize: '12px',
-            color: 'var(--color-text-tertiary)',
-            transition: 'transform 0.2s ease',
-            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-          }}
-        >
-          ▼
-        </span>
-      </button>
-
-      {/* Content - Collapsible */}
-      <div
-        style={{
-          maxHeight: isExpanded ? '2000px' : '0',
-          overflow: 'hidden',
-          transition: 'max-height 0.3s ease-in-out',
-        }}
-      >
-        <div style={{ padding: '20px' }}>
-          {/* Nome e Idade */}
-          <div style={{ marginBottom: '16px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '10px',
-                fontWeight: 700,
-                color: 'var(--color-text-tertiary)',
-                textTransform: 'uppercase',
-                display: 'block',
-                marginBottom: '4px',
-              }}
-            >
-              Nome
+    <div className="rel__person-content">
+      {/* Nome e Idade */}
+      <div className="rel__person-field">
+        <span className="rel__label">Nome</span>
+        <span className="rel__value">
+          {cadastral.nome}
+          {cadastral.idade && (
+            <span className="rel__value--secondary">
+              ({cadastral.idade} anos)
             </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: 'var(--color-text-primary)',
-              }}
-            >
-              {cadastral.nome}
-              {cadastral.idade && (
-                <span
-                  style={{
-                    fontWeight: 400,
-                    color: 'var(--color-text-secondary)',
-                    marginLeft: '8px',
-                  }}
-                >
-                  ({cadastral.idade} anos)
-                </span>
-              )}
-            </span>
-          </div>
-
-          {/* Situação RF */}
-          {cadastral.situacaoRF && (
-            <div style={{ marginBottom: '16px' }}>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: 'var(--color-text-tertiary)',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Situação na Receita Federal
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-family-body)',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: situacaoColor,
-                }}
-              >
-                {cadastral.situacaoRF}
-              </span>
-            </div>
           )}
+        </span>
+      </div>
 
-          {/* Seções colapsáveis */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
-            {/* Endereços */}
-            {cadastral.enderecos.length > 0 && (
-              <CollapsibleSection
-                title="Endereços"
-                count={cadastral.enderecos.length}
-                defaultExpanded={cadastral.enderecos.length <= 2}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {cadastral.enderecos.map((end, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        fontFamily: 'var(--font-family-body)',
-                        fontSize: '12px',
-                        color: 'var(--color-text-secondary)',
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>
-                        {end.cidade}/{end.uf}
-                      </span>
-                      <br />
-                      {end.bairro && (
-                        <span>Bairro {end.bairro}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleSection>
-            )}
-
-            {/* Telefones */}
-            {cadastral.telefones.length > 0 && (
-              <CollapsibleSection
-                title="Telefones"
-                count={cadastral.telefones.length}
-                defaultExpanded={cadastral.telefones.length <= 2}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {cadastral.telefones.map((tel, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        fontFamily: 'var(--font-family-body)',
-                        fontSize: '12px',
-                        color: 'var(--color-text-secondary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                      }}
-                    >
-                      <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>
-                        {maskPhone(tel.ddd, tel.numero)}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          color: 'var(--color-text-tertiary)',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {tel.tipo}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleSection>
-            )}
-
-            {/* Emails */}
-            {cadastral.emails.length > 0 && (
-              <CollapsibleSection
-                title="Emails"
-                count={cadastral.emails.length}
-                defaultExpanded={cadastral.emails.length <= 2}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {cadastral.emails.map((email, index) => (
-                    <span
-                      key={index}
-                      style={{
-                        fontFamily: 'var(--font-family-body)',
-                        fontSize: '12px',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    >
-                      {email}
-                    </span>
-                  ))}
-                </div>
-              </CollapsibleSection>
-            )}
-
-            {/* Empresas Vinculadas */}
-            {cadastral.empresasVinculadas.length > 0 && (
-              <CollapsibleSection
-                title="Empresas Vinculadas"
-                count={cadastral.empresasVinculadas.length}
-                defaultExpanded={cadastral.empresasVinculadas.length <= 2}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {cadastral.empresasVinculadas.map((emp, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        padding: '8px 10px',
-                        background: 'var(--color-bg-primary)',
-                        borderRadius: '4px',
-                        border: '1px solid var(--color-border-subtle)',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-family-body)',
-                          fontSize: '12px',
-                          fontWeight: 500,
-                          color: 'var(--color-text-primary)',
-                          display: 'block',
-                        }}
-                      >
-                        {emp.razaoSocial}
-                      </span>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-family-body)',
-                          fontSize: '11px',
-                          color: 'var(--color-text-secondary)',
-                          marginTop: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        <span>CNPJ: {formatCNPJ(emp.cnpj)}</span>
-                        <span style={{ color: 'var(--color-text-tertiary)' }}>|</span>
-                        <span>{emp.participacao}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleSection>
-            )}
-          </div>
+      {/* Situacao RF */}
+      {cadastral.situacaoRF && (
+        <div className="rel__person-field">
+          <span className="rel__label">Situacao na Receita Federal</span>
+          <span className={situacaoClass}>
+            {cadastral.situacaoRF}
+          </span>
         </div>
+      )}
+
+      {/* Secoes colapsaveis */}
+      <div className="rel__person-sections">
+        {cadastral.enderecos.length > 0 && (
+          <CollapsibleSection
+            title="Enderecos"
+            count={cadastral.enderecos.length}
+            defaultExpanded={cadastral.enderecos.length <= 2}
+          >
+            <div className="rel__person-list">
+              {cadastral.enderecos.map((end, index) => (
+                <div key={index} className="rel__info-item">
+                  <span className="rel__info-item-primary">
+                    {end.cidade}/{end.uf}
+                  </span>
+                  <br />
+                  {end.bairro && (
+                    <span>Bairro {end.bairro}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {cadastral.telefones.length > 0 && (
+          <CollapsibleSection
+            title="Telefones"
+            count={cadastral.telefones.length}
+            defaultExpanded={cadastral.telefones.length <= 2}
+          >
+            <div className="rel__person-list--tight">
+              {cadastral.telefones.map((tel, index) => (
+                <div key={index} className="rel__info-phone">
+                  <span className="rel__info-item-primary">
+                    {maskPhone(tel.ddd, tel.numero)}
+                  </span>
+                  <span className="rel__info-phone-type">
+                    {tel.tipo}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {cadastral.emails.length > 0 && (
+          <CollapsibleSection
+            title="Emails"
+            count={cadastral.emails.length}
+            defaultExpanded={cadastral.emails.length <= 2}
+          >
+            <div className="rel__person-list--tight">
+              {cadastral.emails.map((email, index) => (
+                <span key={index} className="rel__info-email">
+                  {email}
+                </span>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {cadastral.empresasVinculadas.length > 0 && (
+          <CollapsibleSection
+            title="Empresas Vinculadas"
+            count={cadastral.empresasVinculadas.length}
+            defaultExpanded={cadastral.empresasVinculadas.length <= 2}
+          >
+            <div className="rel__person-list">
+              {cadastral.empresasVinculadas.map((emp, index) => (
+                <div key={index} className="rel__empresa-card">
+                  <span className="rel__empresa-name">
+                    {emp.razaoSocial}
+                  </span>
+                  <div className="rel__empresa-meta">
+                    <span>CNPJ: {formatCNPJ(emp.cnpj)}</span>
+                    <span className="rel__empresa-sep">|</span>
+                    <span>{emp.participacao}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
       </div>
     </div>
   )

@@ -2,24 +2,26 @@
 
 import React from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import LogoFundoPreto from '@/components/LogoFundoPreto';
+import UserNav from '@/components/UserNav';
 import Footer from '@/components/Footer';
 import {
-  ReportHeader,
-  ClimateBlock,
+  DossierHeader,
+  WeatherVerdict,
+  AiSummary,
+  QuickScan,
+  DossierSection,
+  DossierFooter,
   Disclaimer,
-  ChecklistCard,
+  LimitedDataWarning,
+  PersonInfoCard,
+  CompanyInfoCard,
   FinancialCard,
   JudicialCard,
-  WebMentionsCard,
-  AiSummary,
   ProcessAnalysisCard,
-  ReportFooter,
-  ReportError,
-  CompanyInfoCard,
-  PersonInfoCard,
+  WebMentionsCard,
   ReclameAquiCard,
-  LimitedDataWarning,
   PositiveMentionsBlock,
 } from '@/components/relatorio';
 import { useReportData } from '@/lib/hooks/use-report-data';
@@ -52,95 +54,24 @@ export default function Page() {
   // Loading state
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
-        <nav
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '64px',
-            background: 'rgba(26, 26, 26, 0.97)',
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            paddingLeft: '32px',
-            zIndex: 1000,
-          }}
-        >
-          <LogoFundoPreto />
+      <div className="rel">
+        <nav className="nav" aria-label="Menu principal">
+          <div className="nav__inner">
+            <Link href="/" className="nav__logo" aria-label="E o Pix? — Página inicial">
+              <LogoFundoPreto />
+            </Link>
+          </div>
         </nav>
-        <main
-          style={{
-            maxWidth: '800px',
-            margin: '0 auto',
-            paddingTop: 'calc(64px + 24px)',
-            paddingBottom: '60px',
-            paddingLeft: '24px',
-            paddingRight: '24px',
-          }}
-        >
-          {/* LINK VOLTAR */}
-          <button
-            type="button"
-            onClick={() => router.push('/minhas-consultas')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'transparent',
-              border: 'none',
-              padding: '8px 0',
-              marginBottom: '16px',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '13px',
-              fontWeight: 500,
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+        <main className="rel__main">
+          <button type="button" onClick={handleVoltarConsultas} className="btn btn--ghost rel__back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
             Minhas Consultas
           </button>
-
-          <div style={{ textAlign: 'center', marginTop: '60px' }}>
-            <div
-              style={{
-                display: 'inline-block',
-                width: '48px',
-                height: '48px',
-                border: '4px solid var(--color-border-subtle)',
-                borderTopColor: 'var(--color-accent-primary)',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-              }}
-            />
-            <p
-              style={{
-                marginTop: '24px',
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '16px',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              Carregando relatório...
-            </p>
-            <style>{`
-              @keyframes spin {
-                to { transform: rotate(360deg); }
-              }
-            `}</style>
+          <div className="rel__loading">
+            <div className="rel__spinner" />
+            <p className="rel__loading-text">Carregando relatório...</p>
           </div>
         </main>
         <Footer />
@@ -151,115 +82,27 @@ export default function Page() {
   // Error state
   if (error || !report || !derived) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
-        <nav
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '64px',
-            background: 'rgba(26, 26, 26, 0.97)',
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            paddingLeft: '32px',
-            zIndex: 1000,
-          }}
-        >
-          <LogoFundoPreto />
+      <div className="rel">
+        <nav className="nav" aria-label="Menu principal">
+          <div className="nav__inner">
+            <Link href="/" className="nav__logo" aria-label="E o Pix? — Página inicial">
+              <LogoFundoPreto />
+            </Link>
+          </div>
         </nav>
-        <main
-          style={{
-            maxWidth: '800px',
-            margin: '0 auto',
-            paddingTop: 'calc(64px + 24px)',
-            paddingBottom: '60px',
-            paddingLeft: '24px',
-            paddingRight: '24px',
-          }}
-        >
-          {/* LINK VOLTAR */}
-          <button
-            type="button"
-            onClick={() => router.push('/minhas-consultas')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'transparent',
-              border: 'none',
-              padding: '8px 0',
-              marginBottom: '16px',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '13px',
-              fontWeight: 500,
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+        <main className="rel__main">
+          <button type="button" onClick={handleVoltarConsultas} className="btn btn--ghost rel__back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
             Minhas Consultas
           </button>
-
-          <div
-            style={{
-              background: 'var(--primitive-white)',
-              border: '1px solid var(--color-border-subtle)',
-              borderRadius: '8px',
-              padding: '48px 32px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-              textAlign: 'center',
-            }}
-          >
-            <p
-              style={{
-                fontFamily: 'var(--font-family-heading)',
-                fontSize: '24px',
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                margin: 0,
-              }}
-            >
-              Oops!
-            </p>
-            <p
-              style={{
-                marginTop: '16px',
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '16px',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
+          <div className="rel__error-card">
+            <p className="rel__error-title">Oops!</p>
+            <p className="rel__error-message">
               {error || 'Não foi possível carregar o relatório.'}
             </p>
-            <button
-              type="button"
-              onClick={() => router.push('/minhas-consultas')}
-              style={{
-                marginTop: '24px',
-                background: 'var(--color-accent-primary)',
-                color: 'var(--color-text-primary)',
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                fontWeight: 600,
-                padding: '12px 24px',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
+            <button type="button" onClick={handleVoltarConsultas} className="btn btn--primary rel__error-btn">
               Voltar para Minhas Consultas
             </button>
           </div>
@@ -289,156 +132,63 @@ export default function Page() {
     processosCard,
     negativeMentions,
     positiveMentions,
-    climateMessage,
     closingMessage,
     formattedCreatedAt,
     formattedExpiresAt,
   } = derived;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
+    <div className="rel">
       {/* NAV */}
-      <nav
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '64px',
-          background: 'rgba(26, 26, 26, 0.97)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingLeft: '32px',
-          paddingRight: '32px',
-          zIndex: 1000,
-        }}
-      >
-        <LogoFundoPreto />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {userEmail && (
-            <span
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '12px',
-                color: 'var(--color-text-inverse-muted)',
-              }}
-            >
-              {userEmail}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={handleLogout}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--color-text-inverse-muted)',
-              color: 'var(--color-text-inverse-muted)',
-              fontFamily: 'var(--font-family-body)',
-              fontSize: '12px',
-              padding: '6px 12px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            Sair
-          </button>
+      <nav className="nav" aria-label="Menu principal">
+        <div className="nav__inner">
+          <Link href="/" className="nav__logo" aria-label="E o Pix? — Página inicial">
+            <LogoFundoPreto />
+          </Link>
+          <UserNav email={userEmail} showLogout onLogout={handleLogout} />
         </div>
       </nav>
 
-      {/* CONTEÚDO */}
-      <main
-        style={{
-          maxWidth: '800px',
-          margin: '0 auto',
-          paddingTop: 'calc(64px + 24px)',
-          paddingBottom: '60px',
-          paddingLeft: '24px',
-          paddingRight: '24px',
-        }}
-      >
-        {/* LINK VOLTAR */}
-        <button
-          type="button"
-          onClick={handleVoltarConsultas}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: 'transparent',
-            border: 'none',
-            padding: '8px 0',
-            marginBottom: '16px',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-family-body)',
-            fontSize: '13px',
-            fontWeight: 500,
-            color: 'var(--color-text-secondary)',
-            transition: 'color 0.15s ease',
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
-          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+      <main className="rel__main">
+        {/* Back button */}
+        <button type="button" onClick={handleVoltarConsultas} className="btn btn--ghost rel__back">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
           Minhas Consultas
         </button>
 
-        {/* 1. HEADER DO RELATÓRIO */}
-        <ReportHeader
-          cpf={report.term}
-          dataConsulta={formattedCreatedAt}
-          status="concluido"
+        {/* 1. DOSSIER HEADER */}
+        <DossierHeader
+          term={report.term}
+          type={report.type}
+          name={report.name}
+          createdAt={formattedCreatedAt}
         />
 
-        {/* 2. BLOCO CLIMA */}
-        <ClimateBlock
+        {/* 2. WEATHER VERDICT */}
+        <WeatherVerdict
           weatherStatus={weatherStatus}
-          message={climateMessage}
-          occurrenceCount={weatherStatus === 'chuva' ? totalOccurrences : undefined}
+          totalOccurrences={totalOccurrences}
+          closingMessage={closingMessage}
         />
 
-        {/* 2.1 AVISO DE DADOS LIMITADOS (se aplicável) */}
-        {hasLimitedData && (
-          <LimitedDataWarning />
-        )}
+        {/* 3. AI SUMMARY */}
+        <AiSummary summary={report.summary} />
 
-        {/* 3. DISCLAIMER */}
+        {/* 4. LIMITED DATA WARNING */}
+        {hasLimitedData && <LimitedDataWarning />}
+
+        {/* 5. QUICK SCAN */}
+        <QuickScan items={checklistItems} />
+
+        {/* 6. DISCLAIMER */}
         <Disclaimer />
 
-        {/* 4. CHECKLIST */}
-        <ChecklistCard
-          items={checklistItems}
-          variant={weatherStatus}
-        />
-
-        {/* 4.1 COMPANY INFO CARD (CNPJ only) */}
-        {report.type === 'CNPJ' && dossie && (
-          <CompanyInfoCard
-            razaoSocial={dossie.razaoSocial}
-            situacao={dossie.situacao || 'ATIVA'}
-            dataAbertura={dossie.dataAbertura ?? undefined}
-            cnaePrincipal={dossie.cnaePrincipal ?? undefined}
-            socios={dossie.socios}
-            capitalSocial={dossie.capitalSocial ?? undefined}
-          />
-        )}
-
-        {/* 4.2 PERSON INFO CARD (CPF only) */}
-        {report.type === 'CPF' && cadastral && (
-          <PersonInfoCard
-            cadastral={{
+        {/* 7. CADASTRAL DATA */}
+        <DossierSection num="01" title="Dados Cadastrais" defaultExpanded>
+          {report.type === 'CPF' && cadastral && (
+            <PersonInfoCard cadastral={{
               nome: cadastral.nome,
               idade: cadastral.idade,
               situacaoRF: cadastral.situacaoRF,
@@ -446,110 +196,82 @@ export default function Page() {
               telefones: cadastral.telefones || [],
               emails: cadastral.emails || [],
               empresasVinculadas: cadastral.empresasVinculadas || [],
-            }}
-          />
-        )}
+            }} />
+          )}
+          {report.type === 'CNPJ' && dossie && (
+            <CompanyInfoCard
+              razaoSocial={dossie.razaoSocial}
+              situacao={dossie.situacao || 'ATIVA'}
+              dataAbertura={dossie.dataAbertura ?? undefined}
+              cnaePrincipal={dossie.cnaePrincipal ?? undefined}
+              socios={dossie.socios}
+              capitalSocial={dossie.capitalSocial ?? undefined}
+            />
+          )}
+        </DossierSection>
 
-        {/* 4.4 RECLAME AQUI CARD */}
-        {reclameAqui && reclameAqui.nota !== null && reclameAqui.indiceResolucao !== null && reclameAqui.url && (
-          <ReclameAquiCard
-            nota={reclameAqui.nota}
-            indiceResolucao={reclameAqui.indiceResolucao}
-            totalReclamacoes={reclameAqui.totalReclamacoes ?? undefined}
-            respondidas={reclameAqui.respondidas ?? undefined}
-            seloRA1000={reclameAqui.seloRA1000}
-            url={reclameAqui.url}
-          />
-        )}
+        {/* 8. FINANCIAL */}
+        <DossierSection num="02" title="Situacao Financeira" defaultExpanded={weatherStatus === 'chuva'}>
+          {(protestosCard.length > 0 || dividas.length > 0 || hasBouncedChecks) ? (
+            <FinancialCard
+              protestos={protestosCard}
+              dividas={dividas}
+              chequesDevolvidos={financialSummary?.chequesSemFundo}
+              nomeSujo={hasProtests || hasDebts}
+              totalProtestos={financialSummary?.totalProtestos}
+              totalProtestosValor={totalProtestosValor}
+              totalDividas={financialSummary?.totalDividas}
+              totalDividasValor={totalDividasValor}
+            />
+          ) : (
+            <p className="rel__section-empty">Nenhuma ocorrencia financeira encontrada.</p>
+          )}
+        </DossierSection>
 
-        {/* 5. CARDS ESPECÍFICOS DE CHUVA */}
-        {weatherStatus === 'chuva' && (
-          <>
-            {(protestosCard.length > 0 || dividas.length > 0 || hasBouncedChecks) && (
-              <FinancialCard
-                protestos={protestosCard}
-                dividas={dividas}
-                chequesDevolvidos={financialSummary?.chequesSemFundo}
-                nomeSujo={hasProtests || hasDebts}
-                totalProtestos={financialSummary?.totalProtestos}
-                totalProtestosValor={totalProtestosValor}
-                totalDividas={financialSummary?.totalDividas}
-                totalDividasValor={totalDividasValor}
-              />
-            )}
-            {processosCard.length > 0 && <JudicialCard processos={processosCard} />}
-            {processAnalysis.length > 0 && <ProcessAnalysisCard analyses={processAnalysis} />}
-            {negativeMentions.length > 0 && <WebMentionsCard mentions={negativeMentions} variant="chuva" />}
-          </>
-        )}
+        {/* 9. JUDICIAL */}
+        <DossierSection num="03" title="Processos Judiciais" defaultExpanded={weatherStatus === 'chuva'}>
+          {processosCard.length > 0 ? (
+            <>
+              <JudicialCard processos={processosCard} />
+              {processAnalysis.length > 0 && <ProcessAnalysisCard analyses={processAnalysis} />}
+            </>
+          ) : (
+            <p className="rel__section-empty">Nenhum processo judicial encontrado.</p>
+          )}
+        </DossierSection>
 
-        {/* 5.1 MENÇÕES POSITIVAS (Sol) */}
-        {weatherStatus === 'sol' && positiveMentions.length > 0 && (
-          <PositiveMentionsBlock mentions={positiveMentions} />
-        )}
+        {/* 10. WEB & REPUTATION */}
+        <DossierSection num="04" title="Web e Reputacao" defaultExpanded={weatherStatus === 'chuva'}>
+          {/* Reclame Aqui */}
+          {reclameAqui && reclameAqui.nota !== null && reclameAqui.indiceResolucao !== null && reclameAqui.url && (
+            <ReclameAquiCard
+              nota={reclameAqui.nota}
+              indiceResolucao={reclameAqui.indiceResolucao}
+              totalReclamacoes={reclameAqui.totalReclamacoes ?? undefined}
+              respondidas={reclameAqui.respondidas ?? undefined}
+              seloRA1000={reclameAqui.seloRA1000}
+              url={reclameAqui.url}
+            />
+          )}
+          {/* Negative mentions */}
+          {negativeMentions.length > 0 && <WebMentionsCard mentions={negativeMentions} />}
+          {/* Positive mentions */}
+          {positiveMentions.length > 0 && <PositiveMentionsBlock mentions={positiveMentions} />}
+          {/* Empty state */}
+          {!reclameAqui && negativeMentions.length === 0 && positiveMentions.length === 0 && (
+            <p className="rel__section-empty">Nenhuma mencao encontrada na web.</p>
+          )}
+        </DossierSection>
 
-        {/* 6. RESUMO IA + BOTÃO ERRO (dentro de card para Sol) */}
-        {weatherStatus === 'sol' ? (
-          <div
-            style={{
-              marginTop: '-16px',
-              background: 'var(--primitive-white)',
-              border: '1px solid var(--color-border-subtle)',
-              borderTop: 'none',
-              borderRadius: '0 0 6px 6px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-              padding: '0 32px 32px',
-            }}
-          >
-            <AiSummary summary={report.summary} />
-            <ReportError onRelatarErro={handleRelatarErro} />
-          </div>
-        ) : (
-          <div style={{ marginTop: '24px' }}>
-            <div
-              style={{
-                background: 'var(--primitive-white)',
-                border: '1px solid var(--color-border-subtle)',
-                borderRadius: '6px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.10)',
-                padding: '24px',
-              }}
-            >
-              <AiSummary summary={report.summary} />
-              <ReportError onRelatarErro={handleRelatarErro} />
-            </div>
-          </div>
-        )}
-
-        {/* 7. TEXTO DE FECHAMENTO */}
-        <div
-          style={{
-            marginTop: '32px',
-            textAlign: 'center',
-          }}
-        >
-          <p
-            style={{
-              fontFamily: 'var(--font-family-heading)',
-              fontSize: '18px',
-              fontWeight: 700,
-              color: 'var(--color-text-primary)',
-              margin: 0,
-            }}
-          >
-            {closingMessage}
-          </p>
-        </div>
-
-        {/* 8. FOOTER DO RELATÓRIO */}
-        <ReportFooter
-          dataConsulta={formattedCreatedAt}
-          dataExpiracao={formattedExpiresAt}
-          onVoltarConsultas={handleVoltarConsultas}
+        {/* 11. FOOTER */}
+        <DossierFooter
+          createdAt={formattedCreatedAt}
+          expiresAt={formattedExpiresAt}
+          onBack={handleVoltarConsultas}
+          onReportError={handleRelatarErro}
         />
       </main>
 
-      {/* FOOTER GLOBAL */}
       <Footer />
     </div>
   );
