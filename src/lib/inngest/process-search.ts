@@ -194,9 +194,9 @@ export const processSearch = inngest.createFunction(
         return googleData
       })
 
-      // ========== Step 4: analyze-ai ==========
-      // OpenAI analysis + financial summary. Estimated: 5-9s.
-      const aiResult = await step.run('analyze-ai', async () => {
+      // ========== Step 4a: analyze-processos ==========
+      // OpenAI: analyze processos (if any). Split from summary so each is memoized independently.
+      const processosAiResult = await step.run('analyze-processos', async () => {
         await prisma.purchase.update({
           where: { id: purchaseId },
           data: { processingStep: 5 },
@@ -215,7 +215,12 @@ export const processSearch = inngest.createFunction(
           processAnalysis = processosResult.processAnalysis
         }
 
-        // AI 2: Analyze mentions and generate summary
+        return { financialSummary, processAnalysis }
+      })
+
+      // ========== Step 4b: analyze-summary ==========
+      // OpenAI: classify mentions + generate final summary. Memoized separately from processos.
+      const aiResult = await step.run('analyze-summary', async () => {
         const mentions = [
           ...(webData?.byDocument || []),
           ...(webData?.byName || []),
@@ -224,13 +229,13 @@ export const processSearch = inngest.createFunction(
 
         const summaryResult = await analyzeMentionsAndSummary({
           mentions,
-          financialSummary,
-          processAnalysis,
+          financialSummary: processosAiResult.financialSummary,
+          processAnalysis: processosAiResult.processAnalysis,
           type: apiData.type,
           region: apiData.region,
         }, term)
 
-        return { financialSummary, processAnalysis, summaryResult }
+        return { ...processosAiResult, summaryResult }
       })
 
       // ========== Step 5: save-result ==========

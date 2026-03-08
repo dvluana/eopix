@@ -51,7 +51,7 @@ function getOpenAI(): OpenAI {
   if (!openaiInstance) {
     openaiInstance = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-      timeout: 15000, // 15s — OpenAI can be slower than other APIs
+      timeout: 60000, // 60s — large processos payloads need more time
     })
   }
   return openaiInstance
@@ -77,6 +77,11 @@ export async function analyzeProcessos(
     return { processAnalysis: [] }
   }
 
+  // Cap at 30 most recent to avoid token overflow (sort by date desc)
+  const cappedProcessos = processos.length > 30
+    ? processos.slice(0, 30)
+    : processos
+
   const prompt = `Voce e um assistente de analise de risco para decisao de negocios.
 
 Para cada processo judicial, retorne:
@@ -91,8 +96,8 @@ REGRAS DE RELEVANCIA:
 - BAIXA: acoes civeis comuns, trabalhista como empregador
 - NENHUMA: testemunha, acidente de transito, familia, trabalhista como empregado
 
-Processos para analisar:
-${JSON.stringify(processos, null, 2)}
+Processos para analisar (${cappedProcessos.length} de ${processos.length} total, mais recentes primeiro):
+${JSON.stringify(cappedProcessos)}
 
 Responda em JSON:
 {
@@ -176,8 +181,8 @@ Para cada mencao na web:
 - classification: positive | neutral | negative
 - reason: breve explicacao (1 frase)
 
-Mencoes para analisar:
-${JSON.stringify(mentions, null, 2)}
+Mencoes para analisar (${mentions.length} total):
+${JSON.stringify(mentions)}
 
 TAREFA 2 - EXTRAIR DADOS RECLAME AQUI:
 Se houver resultados do Reclame Aqui nas mencoes, extraia:

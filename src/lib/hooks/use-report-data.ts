@@ -9,6 +9,7 @@ import {
   generateProcessDetail,
   generateFinancialDetail,
 } from '@/lib/report-utils'
+import { parseBRCurrency } from '@/lib/financial-summary'
 import type {
   CpfCadastralResponse,
   ProcessosCpfResponse,
@@ -103,11 +104,13 @@ function formatDateOnly(isoDate: string): string {
   return `${day}/${month}/${year}`
 }
 
-function formatCurrency(amount: number): string {
+function formatCurrency(amount: unknown): string {
+  const num = parseBRCurrency(amount)
+  if (!Number.isFinite(num) || num === 0) return 'N/D'
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  }).format(amount)
+  }).format(num)
 }
 
 // ========== Hook ==========
@@ -260,8 +263,12 @@ export function useReportData(reportId: string) {
     }))
     const dividas = sortFinancialByValue(dividasFormatted) as FormattedDivida[]
 
-    const totalProtestosValor = financialSummary?.valorTotalProtestos ? formatCurrency(financialSummary.valorTotalProtestos) : undefined
-    const totalDividasValor = financialSummary?.valorTotalDividas ? formatCurrency(financialSummary.valorTotalDividas) : undefined
+    const totalProtestosValor = financialSummary?.valorTotalProtestos && Number.isFinite(financialSummary.valorTotalProtestos) && financialSummary.valorTotalProtestos > 0
+      ? formatCurrency(financialSummary.valorTotalProtestos)
+      : undefined
+    const totalDividasValor = financialSummary?.valorTotalDividas && Number.isFinite(financialSummary.valorTotalDividas) && financialSummary.valorTotalDividas > 0
+      ? formatCurrency(financialSummary.valorTotalDividas)
+      : undefined
 
     // Sorted processes
     const sortedProcesses = sortProcessesByGravity(processesForDetail)

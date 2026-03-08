@@ -1,7 +1,7 @@
 # APIFull — Contratos de API (EOPIX)
 
 > Fonte oficial de documentação de APIs externas usadas no EOPIX.
-> Última revisão: 05/03/2026.
+> Última revisão: 08/03/2026.
 > Postman oficial: https://www.postman.com/api-full/api-full/collection/29rpdvv/api-full
 
 ## Regras De Governança
@@ -14,17 +14,19 @@
 
 | Tipo | Endpoints Utilizados |
 |------|---|
-| **CPF** | `r-cpf-completo` + `r-acoes-e-processos-judiciais` + `srs-premium` |
+| **CPF** | `ic-cpf-completo` + `r-acoes-e-processos-judiciais` + `srs-premium` |
 | **CNPJ** | `ic-dossie-juridico` + `srs-premium` |
 
 ## Visão Geral dos Endpoints
 
 | Endpoint | URL Path | Link (body) | Parâmetro | Arquivo |
 |----------|----------|-------------|-----------|---------|
-| CPF Completo | `/api/r-cpf-completo` | `r-cpf-completo` | `cpf` | `cpf-cadastral.md` |
+| CPF Completo | `/api/ic-cpf-completo` | `ic-cpf-completo` | `cpf` | `cpf-cadastral.md` |
 | Ações e Processos | `/api/r-acoes-e-processos-judiciais` | `r-acoes-e-processos-judiciais` | `cpf` | `cpf-processos.md` |
 | Dossiê Jurídico | `/api/ic-dossie-juridico` | `ic-dossie-juridico` | `document` | `cnpj-dossie.md` |
 | Serasa Premium (CPF/CNPJ) | `/api/srs-premium` | `srs-premium` | `document` | `cpf-financeiro.md` / `cnpj-financeiro.md` |
+
+**ATENÇÃO:** `r-cpf-completo` NÃO deve ser usado — créditos separados que esgotam. Usar `ic-cpf-completo`.
 
 ## Notas de Uso
 
@@ -39,7 +41,7 @@ Base: https://api.apifull.com.br
 ### Exemplo de Request
 
 ```javascript
-const response = await fetch('https://api.apifull.com.br/api/r-cpf-completo', {
+const response = await fetch('https://api.apifull.com.br/api/ic-cpf-completo', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -48,7 +50,7 @@ const response = await fetch('https://api.apifull.com.br/api/r-cpf-completo', {
   },
   body: JSON.stringify({
     cpf: '12345678900',
-    link: 'r-cpf-completo'
+    link: 'ic-cpf-completo'
   })
 });
 ```

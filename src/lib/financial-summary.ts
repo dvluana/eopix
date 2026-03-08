@@ -5,9 +5,52 @@ import type {
 } from '@/types/report'
 
 /**
- * Calcula resumo financeiro a partir dos dados do srs-premium (CPF)
- * NAO usa IA - apenas calcula totais.
- * Score e buscado mas NAO exibido ao usuario.
+ * Parse Brazilian currency string to number.
+ * Handles: "1.446,43" → 1446.43, "1446,43" → 1446.43, 1446.43 → 1446.43
+ * Returns 0 for non-parseable values.
+ */
+export function parseBRCurrency(value: unknown): number {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0
+  }
+  if (typeof value !== 'string' || value.trim() === '') {
+    return 0
+  }
+  // Remove thousand separators (dots), then replace comma decimal with dot
+  const cleaned = value.replace(/\./g, '').replace(',', '.')
+  const num = parseFloat(cleaned)
+  return Number.isFinite(num) ? num : 0
+}
+
+/**
+ * Extract score as number from various API formats.
+ * API may return: number, string "350", or object { score: "350", ... }
+ */
+function parseScore(value: unknown): number | null {
+  if (value == null) return null
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null
+  if (typeof value === 'string') {
+    const n = parseInt(value, 10)
+    return Number.isFinite(n) ? n : null
+  }
+  if (typeof value === 'object' && 'score' in (value as Record<string, unknown>)) {
+    const score = (value as Record<string, unknown>).score
+    if (typeof score === 'string') {
+      const n = parseInt(score, 10)
+      return Number.isFinite(n) ? n : null
+    }
+    if (typeof score === 'number') return Number.isFinite(score) ? score : null
+  }
+  return null
+}
+
+/**
+ * Calcula resumo financeiro a partir dos dados do srs-premium (CPF).
+ * NAO usa IA — apenas calcula totais.
+ *
+ * IMPORTANTE: A API retorna valores como strings BR ("1446,43") e
+ * valorTotalPendencias como concatenação inútil. Calculamos o total
+ * somando os itens individuais.
  */
 export function calculateCpfFinancialSummary(
   data: SrsPremiumCpfResponse | null
@@ -23,21 +66,27 @@ export function calculateCpfFinancialSummary(
     }
   }
 
+  // Sum individual items instead of trusting API totals (API concatenates strings)
+  const valorProtestos = (data.protestos || []).reduce(
+    (sum, p) => sum + parseBRCurrency(p.valor), 0
+  )
+  const valorDividas = (data.pendenciasFinanceiras || []).reduce(
+    (sum, p) => sum + parseBRCurrency(p.valor), 0
+  )
+
   return {
-    totalProtestos: data.totalProtestos,
-    valorTotalProtestos: data.valorTotalProtestos,
-    totalDividas: data.totalPendencias,
-    valorTotalDividas: data.valorTotalPendencias,
-    chequesSemFundo: data.chequesSemFundo,
-    // Score buscado mas NAO exibido ao usuario
-    _scoreInterno: data._scoreInterno,
+    totalProtestos: typeof data.totalProtestos === 'number' ? data.totalProtestos : (data.protestos || []).length,
+    valorTotalProtestos: valorProtestos,
+    totalDividas: typeof data.totalPendencias === 'number' ? data.totalPendencias : (data.pendenciasFinanceiras || []).length,
+    valorTotalDividas: valorDividas,
+    chequesSemFundo: typeof data.chequesSemFundo === 'number' ? data.chequesSemFundo : 0,
+    _scoreInterno: parseScore(data._scoreInterno),
   }
 }
 
 /**
- * Calcula resumo financeiro a partir dos dados do srs-premium (CNPJ)
- * NAO usa IA - apenas calcula totais.
- * Score e buscado mas NAO exibido ao usuario.
+ * Calcula resumo financeiro a partir dos dados do srs-premium (CNPJ).
+ * Mesma lógica do CPF.
  */
 export function calculateCnpjFinancialSummary(
   data: SrsPremiumCnpjResponse | null
@@ -53,14 +102,20 @@ export function calculateCnpjFinancialSummary(
     }
   }
 
+  const valorProtestos = (data.protestos || []).reduce(
+    (sum, p) => sum + parseBRCurrency(p.valor), 0
+  )
+  const valorDividas = (data.pendenciasFinanceiras || []).reduce(
+    (sum, p) => sum + parseBRCurrency(p.valor), 0
+  )
+
   return {
-    totalProtestos: data.totalProtestos,
-    valorTotalProtestos: data.valorTotalProtestos,
-    totalDividas: data.totalPendencias,
-    valorTotalDividas: data.valorTotalPendencias,
-    chequesSemFundo: data.chequesSemFundo,
-    // Score buscado mas NAO exibido ao usuario
-    _scoreInterno: data._scoreInterno,
+    totalProtestos: typeof data.totalProtestos === 'number' ? data.totalProtestos : (data.protestos || []).length,
+    valorTotalProtestos: valorProtestos,
+    totalDividas: typeof data.totalPendencias === 'number' ? data.totalPendencias : (data.pendenciasFinanceiras || []).length,
+    valorTotalDividas: valorDividas,
+    chequesSemFundo: typeof data.chequesSemFundo === 'number' ? data.chequesSemFundo : 0,
+    _scoreInterno: parseScore(data._scoreInterno),
   }
 }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { isMockMode } from '@/lib/mock-mode'
+import { formatDocument } from '@/lib/validators'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -85,14 +86,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Mask term for display
-    const maskedTerm = searchResult.term.length === 11
-      ? searchResult.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
-      : searchResult.term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/****-**')
-
     return NextResponse.json({
       id: searchResult.id,
-      term: maskedTerm,
+      term: formatDocument(searchResult.term),
       type: searchResult.type,
       name: searchResult.name,
       data: searchResult.data,

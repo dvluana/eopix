@@ -20,8 +20,8 @@ import type {
 } from '@/types/report'
 
 // Fetch with timeout — prevents hanging when external APIs are slow
-// 8s default to stay within Vercel Hobby's 10s function limit
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 8000): Promise<Response> {
+// 30s default (Inngest steps have their own timeout, not limited to Vercel 10s)
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 30000): Promise<Response> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
   try {
@@ -37,7 +37,11 @@ function isChuvaScenario(document: string): boolean {
   return lastDigit < 5
 }
 
-// ========== CPF CADASTRAL (r-cpf-completo) ==========
+// ========== CPF CADASTRAL (ic-cpf-completo) ==========
+// IMPORTANTE: O endpoint correto é ic-cpf-completo, NÃO r-cpf-completo.
+// r-cpf-completo usa créditos separados e retorna "Sem saldo disponível!" quando esgotados.
+// ic-cpf-completo usa o saldo geral da conta e retorna dados em formato CREDCADASTRAL.
+// Resposta: dados.CREDCADASTRAL.IDENTIFICACAO_PESSOA_FISICA (não dados.data.cadastralPF)
 
 export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResponse> {
   if (isMockMode) {
@@ -46,8 +50,8 @@ export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResp
     return isChuvaScenario(cpf) ? MOCK_APIFULL_CPF_CADASTRAL_CHUVA : MOCK_APIFULL_CPF_CADASTRAL_SOL
   }
 
-  // === CHAMADA REAL - r-cpf-completo ===
-  const res = await fetchWithTimeout('https://api.apifull.com.br/api/r-cpf-completo', {
+  // === CHAMADA REAL - ic-cpf-completo ===
+  const res = await fetchWithTimeout('https://api.apifull.com.br/api/ic-cpf-completo', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -56,7 +60,7 @@ export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResp
     },
     body: JSON.stringify({
       cpf: cpf.replace(/\D/g, ''),
-      link: 'r-cpf-completo',
+      link: 'ic-cpf-completo',
     }),
   })
 
@@ -72,56 +76,57 @@ export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResp
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mapCpfCadastralResponse(raw: any, cpf: string): CpfCadastralResponse {
-  // Response path: dados.data.cadastralPF
-  const cadastralPF = raw.dados?.data?.cadastralPF || {}
-  const dadosCadastrais = cadastralPF.dadosCadastrais || {}
+  // Endpoint ic-cpf-completo retorna formato CREDCADASTRAL (UPPERCASE keys)
+  // Path: dados.CREDCADASTRAL.IDENTIFICACAO_PESSOA_FISICA
+  // NÃO confundir com r-cpf-completo que usava dados.data.cadastralPF (lowercase)
+  const credCadastral = raw.dados?.CREDCADASTRAL || {}
+  const identificacao = credCadastral.IDENTIFICACAO_PESSOA_FISICA || {}
 
-  // Enderecos
-  const enderecosRaw = cadastralPF.enderecos || []
+  // Enderecos — path: dados.CREDCADASTRAL.SOMENTE_ENDERECO.DADOS[]
+  const enderecosRaw = credCadastral.SOMENTE_ENDERECO?.DADOS || []
   const enderecos = (Array.isArray(enderecosRaw) ? enderecosRaw : [])
     .filter((e: unknown) => e !== null && e !== undefined)
-    .map((e: { logradouro?: string; numero?: string; complemento?: string; bairro?: string; cidade?: string; uf?: string; cep?: string }) => ({
-      logradouro: e.logradouro || '',
-      numero: e.numero || '',
-      complemento: e.complemento || '',
-      bairro: e.bairro || '',
-      cidade: e.cidade || '',
-      uf: e.uf || '',
-      cep: e.cep || '',
+    .map((e: { ENDERECO?: string; NUMERO?: string; COMPLEMENTO?: string; BAIRRO?: string; CIDADE?: string; UF?: string; CEP?: string }) => ({
+      logradouro: e.ENDERECO || '',
+      numero: e.NUMERO || '',
+      complemento: e.COMPLEMENTO || '',
+      bairro: e.BAIRRO || '',
+      cidade: e.CIDADE || '',
+      uf: e.UF || '',
+      cep: e.CEP || '',
     }))
 
-  // Telefones
-  const telefonesRaw = cadastralPF.telefones || []
+  // Telefones — path: dados.CREDCADASTRAL.SOMENTE_TELEFONE.DADOS[]
+  const telefonesRaw = credCadastral.SOMENTE_TELEFONE?.DADOS || []
   const telefones = (Array.isArray(telefonesRaw) ? telefonesRaw : [])
     .filter((t: unknown) => t !== null && t !== undefined)
-    .map((t: { ddd?: string; numero?: string; tipo?: string }) => ({
-      ddd: t.ddd || '',
-      numero: t.numero || '',
-      tipo: t.tipo || 'Fixo',
+    .map((t: { DDD?: string; NUM_TELEFONE?: string; TIPO_TELEFONE?: string }) => ({
+      ddd: t.DDD || '',
+      numero: t.NUM_TELEFONE || '',
+      tipo: t.TIPO_TELEFONE || 'Fixo',
     }))
 
-  // Emails - conforme doc: dados.data.cadastralPF.emails[].email
-  const emailsRaw = cadastralPF.emails || []
+  // Emails — path: dados.CREDCADASTRAL.EMAILS.INFOEMAILS[].ENDERECO
+  const emailsRaw = credCadastral.EMAILS?.INFOEMAILS || []
   const emails: string[] = (Array.isArray(emailsRaw) ? emailsRaw : [])
     .filter((e: unknown) => e !== null && e !== undefined)
-    .map((e: { email?: string }) => e.email || '')
+    .map((e: { ENDERECO?: string }) => e.ENDERECO || '')
     .filter((e: string) => e !== '')
 
-  // Empresas vinculadas - conforme doc: dados.data.participacaoEmEmpresas.participacaoEmEmpresas[].cnpj/.empresa
-  const participacaoRaw = raw.dados?.data?.participacaoEmEmpresas?.participacaoEmEmpresas || []
+  // Empresas vinculadas — path: dados.CREDCADASTRAL.PARTICIPACAO_EM_EMPRESAS.OCORRENCIAS[]
+  const participacaoRaw = credCadastral.PARTICIPACAO_EM_EMPRESAS?.OCORRENCIAS || []
   const empresasVinculadas = (Array.isArray(participacaoRaw) ? participacaoRaw : [])
-    .map((emp: { cnpj?: string; empresa?: string; razaoSocial?: string; participacao?: string; cargo?: string }) => ({
-      cnpj: emp.cnpj || '',
-      razaoSocial: emp.empresa || emp.razaoSocial || '', // doc usa "empresa", fallback para razaoSocial
-      participacao: emp.participacao || emp.cargo || 'Socio',
+    .map((emp: { CNPJ?: string; RAZAO_SOCIAL?: string; PARTICIPANTE_CARGO?: string }) => ({
+      cnpj: emp.CNPJ || '',
+      razaoSocial: emp.RAZAO_SOCIAL || '',
+      participacao: emp.PARTICIPANTE_CARGO || 'Socio',
     }))
 
-  // Parse data de nascimento
+  // Parse data de nascimento — ic-cpf-completo usa campo NASCIMENTO (DD/MM/YYYY)
   let dataNascimento: string | null = null
   let idade: number | null = null
-  const nascimentoRaw = dadosCadastrais.dataNascimento || null
+  const nascimentoRaw = identificacao.NASCIMENTO || null
   if (nascimentoRaw) {
-    // Format can be DD/MM/YYYY or YYYY-MM-DD
     if (nascimentoRaw.includes('/')) {
       const parts = nascimentoRaw.split('/')
       if (parts.length === 3) {
@@ -144,14 +149,14 @@ export function mapCpfCadastralResponse(raw: any, cpf: string): CpfCadastralResp
   }
 
   return {
-    nome: dadosCadastrais.nome || '',
+    nome: identificacao.NOME || '',
     cpf: cpf,
     dataNascimento: dataNascimento,
     idade: idade,
-    nomeMae: dadosCadastrais.nomeMae || null,
-    sexo: dadosCadastrais.sexo || null,
+    nomeMae: identificacao.MAE || null,
+    sexo: identificacao.SEXO || null,
     signo: null,
-    situacaoRF: dadosCadastrais.situacaoRF || null,
+    situacaoRF: identificacao.CPF_SITUACAO || null,
     enderecos: enderecos,
     telefones: telefones,
     emails: emails,
