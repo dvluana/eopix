@@ -405,25 +405,30 @@
   --btn-radius: var(--radius-button);
   --btn-transition: background var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast);
 
-  /* Primary (amarelo com hover preto — inversão total) */
+  /* CTA (brutalist: yellow + black border + box-shadow offset) */
+  --btn-cta-bg: var(--primitive-yellow-500);
+  --btn-cta-text: var(--primitive-black-900);
+  --btn-cta-border: var(--primitive-border-medium) solid var(--primitive-black-900);
+  --btn-cta-shadow: 3px 3px 0 0 var(--primitive-black-900);
+  --btn-cta-shadow-hover: 4px 4px 0 0 var(--primitive-black-900);
+  --btn-cta-shadow-active: 1px 1px 0 0 var(--primitive-black-900);
+
+  /* Primary (yellow bg, no border/shadow, hover inverts) */
   --btn-primary-bg: var(--color-interactive-primary);
   --btn-primary-text: var(--color-text-primary);
   --btn-primary-bg-hover: var(--primitive-black-900);
   --btn-primary-text-hover: var(--primitive-yellow-500);
-  --btn-primary-bg-active: var(--color-interactive-primary-active);
-  --btn-primary-shadow: none;
-  --btn-primary-shadow-hover: var(--primitive-shadow-sm);
 
-  /* Secondary */
-  --btn-secondary-bg: var(--color-interactive-secondary);
-  --btn-secondary-text: var(--color-text-inverse);
-  --btn-secondary-bg-hover: var(--color-interactive-secondary-hover);
+  /* Outline (transparent bg, black border, hover fills dark) */
+  --btn-outline-bg: transparent;
+  --btn-outline-text: var(--primitive-black-900);
+  --btn-outline-border: var(--primitive-border-medium) solid var(--primitive-black-900);
+  --btn-outline-bg-hover: var(--primitive-black-900);
+  --btn-outline-text-hover: var(--primitive-yellow-500);
 
-  /* Ghost */
+  /* Ghost (text-only, underline) */
   --btn-ghost-bg: transparent;
-  --btn-ghost-text: var(--color-text-primary);
-  --btn-ghost-border: var(--primitive-border-medium) solid var(--color-border-strong);
-  --btn-ghost-bg-hover: var(--color-interactive-ghost-hover);
+  --btn-ghost-text: var(--color-text-secondary);
   --btn-ghost-text-hover: var(--color-text-primary);
 
   /* --------------------------------------------------------
