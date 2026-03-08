@@ -46,9 +46,9 @@ export function validateCanProcess(
     return error(400, 'Esta compra ja possui relatorio')
   }
 
-  if (status !== 'PAID') {
+  // Allow PAID, PROCESSING (stuck retry), and FAILED (reprocess after failure)
+  if (status !== 'PAID' && status !== 'PROCESSING' && status !== 'FAILED') {
     if (status === 'PENDING') return error(400, 'Compra ainda nao foi marcada como paga')
-    if (status === 'PROCESSING') return error(409, 'Compra ja esta em processamento')
     if (status === 'COMPLETED') return error(409, 'Compra ja foi concluida')
     if (status === 'REFUNDED' || status === 'REFUND_FAILED') {
       return error(400, 'Compra reembolsada nao pode ser processada')

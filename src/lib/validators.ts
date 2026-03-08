@@ -107,12 +107,14 @@ export function formatCNPJ(cnpj: string): string {
 }
 
 /**
- * Formata automaticamente CPF ou CNPJ
+ * Formata automaticamente CPF ou CNPJ baseado no comprimento.
+ * Formata por comprimento (11 → CPF, 14 → CNPJ) sem exigir checksum válido,
+ * pois é uma função de exibição (blocklist pode ter documentos inválidos).
  */
 export function formatDocument(value: string): string {
-  const type = detectDocumentType(value);
-  if (type === 'cpf') return formatCPF(value);
-  if (type === 'cnpj') return formatCNPJ(value);
+  const cleaned = value.replace(/\D/g, '');
+  if (cleaned.length === 11) return formatCPF(cleaned);
+  if (cleaned.length === 14) return formatCNPJ(cleaned);
   return value;
 }
 

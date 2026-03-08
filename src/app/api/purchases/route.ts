@@ -5,7 +5,7 @@ import { createCheckout, getPaymentProvider } from '@/lib/payment'
 import { getSession, isAdminEmail } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument, formatDocument } from '@/lib/validators'
-import { isBypassMode, isBypassPayment } from '@/lib/mock-mode'
+import { isBypassMode, isBypassPayment, isMockMode } from '@/lib/mock-mode'
 
 interface CreatePurchaseRequest {
   term: string
@@ -13,6 +13,7 @@ interface CreatePurchaseRequest {
   name?: string
   cellphone?: string
   buyerTaxId?: string
+  password?: string
   termsAccepted: boolean
 }
 
@@ -28,7 +29,7 @@ function generateCode(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as CreatePurchaseRequest
-    const { term, email, name, cellphone, buyerTaxId, termsAccepted } = body
+    const { term, email, name, cellphone, buyerTaxId, password, termsAccepted } = body
 
     // Validate inputs
     if (!term || !termsAccepted) {
@@ -44,18 +45,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
-    // Validate buyer tax ID if provided
-    const cleanedBuyerTaxId = buyerTaxId ? cleanDocument(buyerTaxId) : undefined
-    if (cleanedBuyerTaxId && !isValidCPF(cleanedBuyerTaxId) && !isValidCNPJ(cleanedBuyerTaxId)) {
-      return NextResponse.json(
-        { error: 'CPF/CNPJ do pagante invalido' },
-        { status: 400 }
-      )
-    }
-
-    // Clean cellphone (digits only)
-    const cleanedCellphone = cellphone ? cellphone.replace(/\D/g, '') : undefined
 
     const cleanedTerm = cleanDocument(term)
     const isCpf = cleanedTerm.length === 11 && isValidCPF(cleanedTerm)
@@ -93,14 +82,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for existing active report for same document (logged-in users only)
+    // Check for existing active report or pending purchase for same document (logged-in users only)
     const session = await getSession()
     if (session) {
       const sessionUser = await prisma.user.findUnique({
         where: { email: session.email },
       })
       if (sessionUser) {
-        const existingPurchase = await prisma.purchase.findFirst({
+        // Block if user already has a completed report that hasn't expired
+        const existingCompleted = await prisma.purchase.findFirst({
           where: {
             userId: sessionUser.id,
             term: cleanedTerm,
@@ -112,12 +102,31 @@ export async function POST(request: NextRequest) {
           include: { searchResult: { select: { id: true, expiresAt: true } } }
         })
 
-        if (existingPurchase) {
+        if (existingCompleted) {
           return NextResponse.json({
             error: 'Voce ja possui um relatorio ativo para este documento.',
-            existingReportId: existingPurchase.searchResult?.id,
-            expiresAt: existingPurchase.searchResult?.expiresAt,
+            existingReportId: existingCompleted.searchResult?.id,
+            expiresAt: existingCompleted.searchResult?.expiresAt,
           }, { status: 409 })
+        }
+
+        // Reuse recent PENDING purchase (<30 min) instead of creating duplicate
+        const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000)
+        const existingPending = await prisma.purchase.findFirst({
+          where: {
+            userId: sessionUser.id,
+            term: cleanedTerm,
+            status: 'PENDING',
+            createdAt: { gt: thirtyMinAgo },
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+
+        if (existingPending && existingPending.paymentExternalId) {
+          return NextResponse.json({
+            code: existingPending.code,
+            checkoutUrl: existingPending.paymentExternalId,
+          })
         }
       }
     }
@@ -142,41 +151,30 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       user = await prisma.user.create({
-        data: { email: userEmail, name: name || undefined, cellphone: cleanedCellphone || undefined },
+        data: {
+          email: userEmail,
+          ...(name ? { name } : {}),
+          ...(cellphone ? { cellphone } : {}),
+          ...(buyerTaxId ? { taxId: buyerTaxId } : {}),
+        },
       })
-    } else {
-      // Update name/cellphone if provided and missing
-      const updates: { name?: string; cellphone?: string } = {}
-      if (name && !user.name) updates.name = name
-      if (cleanedCellphone && !user.cellphone) updates.cellphone = cleanedCellphone
-      if (Object.keys(updates).length > 0) {
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: updates,
-        })
-      }
+    } else if (name || cellphone || buyerTaxId) {
+      // Update user with new data if provided
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          ...(name && !user.name ? { name } : {}),
+          ...(cellphone ? { cellphone } : {}),
+          ...(buyerTaxId && !user.taxId ? { taxId: buyerTaxId } : {}),
+        },
+      })
     }
 
-    // For logged-in users: fill missing checkout data from stored profile/history
-    let checkoutCellphone = cleanedCellphone
-    let checkoutBuyerTaxId = cleanedBuyerTaxId
-
-    if (session && (!checkoutCellphone || !checkoutBuyerTaxId)) {
-      // Use stored cellphone from User profile
-      if (!checkoutCellphone && user.cellphone) {
-        checkoutCellphone = user.cellphone
-      }
-      // Use buyer tax ID from most recent completed purchase
-      if (!checkoutBuyerTaxId) {
-        const lastPurchase = await prisma.purchase.findFirst({
-          where: { userId: user.id, status: 'COMPLETED', buyerCpfCnpj: { not: null } },
-          orderBy: { createdAt: 'desc' },
-          select: { buyerCpfCnpj: true },
-        })
-        if (lastPurchase?.buyerCpfCnpj) {
-          checkoutBuyerTaxId = lastPurchase.buyerCpfCnpj
-        }
-      }
+    // Hash password for deferred account activation (set on User after payment)
+    let pendingPasswordHash: string | undefined
+    if (password && !user.passwordHash) {
+      const bcrypt = await import('bcryptjs')
+      pendingPasswordHash = await bcrypt.hash(password, 10)
     }
 
     // Get price from env
@@ -188,26 +186,51 @@ export async function POST(request: NextRequest) {
       console.warn('[Purchases] ABACATEPAY_API_KEY nao configurado — bypass automatico')
     }
 
-    // Bypass payment: cria purchase PENDING aguardando ação manual do admin (sem checkout)
+    // Bypass payment: cria purchase, marca PAID e dispara processamento
     if (effectiveBypass) {
-      console.log(`🧪 [BYPASS] Payment bypass - criando purchase PENDING para: ${cleanedTerm}`)
+      console.log(`🧪 [BYPASS] Payment bypass - criando purchase para: ${cleanedTerm}`)
 
-      // Cria purchase com status PENDING - aguarda ação manual do admin
+      // In bypass mode, activate password immediately (payment is instant)
+      if (pendingPasswordHash) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { passwordHash: pendingPasswordHash },
+        })
+      }
+
       const purchase = await prisma.purchase.create({
         data: {
           userId: user.id,
           code,
           term: cleanedTerm,
           amount: priceCents,
-          status: 'PENDING',
+          status: 'PAID',
+          paidAt: new Date(),
           paymentProvider: getPaymentProvider(),
           termsAcceptedAt: new Date(),
         },
       })
 
-      console.log(`🧪 [BYPASS] Purchase criada PENDING: ${purchase.code} (${getPaymentProvider()}) - aguardando ação manual no admin`)
+      console.log(`🧪 [BYPASS] Purchase criada PAID: ${purchase.code} (${getPaymentProvider()})`)
 
-      // Retorna URL de confirmação direto (sem checkout externo)
+      // Tenta disparar Inngest (funciona se dev server estiver rodando)
+      try {
+        const { inngest } = await import('@/lib/inngest')
+        await inngest.send({
+          name: 'search/process',
+          data: {
+            purchaseId: purchase.id,
+            purchaseCode: purchase.code,
+            term: cleanedTerm,
+            type: cleanedTerm.length === 11 ? 'CPF' : 'CNPJ',
+            email: user.email,
+          },
+        })
+        console.log(`🧪 [BYPASS] Inngest event search/process enviado para ${purchase.code}`)
+      } catch (err) {
+        console.warn(`🧪 [BYPASS] Inngest indisponível — use admin ou /api/process-search/${code}`, err)
+      }
+
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       return NextResponse.json({
         code: purchase.code,
@@ -227,22 +250,49 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
         paymentProvider: provider,
         termsAcceptedAt: new Date(),
+        ...(pendingPasswordHash ? { pendingPasswordHash } : {}),
       },
+    })
+
+    // Capture lead data for abandoned checkout tracking
+    await prisma.leadCapture.create({
+      data: {
+        email: userEmail,
+        name: name || null,
+        phone: cellphone || null,
+        buyerTaxId: buyerTaxId || null,
+        term: cleanedTerm,
+        reason: 'CHECKOUT_STARTED',
+      },
+    }).catch(err => {
+      // Non-critical — don't block purchase flow
+      console.warn('[Purchases] Failed to create LeadCapture:', err)
     })
 
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      const customerName = name || user.name || undefined
+      const customerEmail = email || user.email
+      const customerCellphone = cellphone || user.cellphone || undefined
+      const customerTaxId = buyerTaxId || user.taxId || undefined
+
       const { sessionId, checkoutUrl } = await createCheckout({
-        email: userEmail,
-        name: name || user.name || undefined,
-        cellphone: checkoutCellphone,
-        taxId: checkoutBuyerTaxId,
         externalRef: code,
         successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
         cancelUrl: `${appUrl}/`,
+        ...(customerName ? { customerName } : {}),
+        ...(customerEmail ? { customerEmail } : {}),
+        ...(customerCellphone ? { customerCellphone } : {}),
+        ...(customerTaxId ? { customerTaxId } : {}),
       })
 
       console.log(`[${provider}] Checkout session created:`, { code, sessionId })
+
+      // Save checkout URL for reuse if user returns
+      await prisma.purchase.update({
+        where: { id: purchase.id },
+        data: { paymentExternalId: checkoutUrl },
+      })
 
       return NextResponse.json({
         code: purchase.code,
@@ -302,11 +352,29 @@ export async function GET() {
     })
 
     if (!user) {
+      if (isMockMode) {
+        const { MOCK_PURCHASES } = await import('@/lib/mocks/purchases-data')
+        return NextResponse.json({
+          email: session.email,
+          purchases: MOCK_PURCHASES,
+          isAdmin: false,
+        })
+      }
       return NextResponse.json({ purchases: [] })
     }
 
     // Map purchases with additional info
-    const purchases = user.purchases.map((p) => ({
+    const purchases: Array<{
+      id: string
+      code: string
+      status: string
+      processingStep: number
+      type: string
+      term: string
+      createdAt: Date | string
+      hasReport: boolean
+      reportId: string | null
+    }> = user.purchases.map((p) => ({
       id: p.id,
       code: p.code,
       status: p.status,
@@ -317,6 +385,12 @@ export async function GET() {
       hasReport: !!p.searchResultId,
       reportId: p.searchResultId,
     }))
+
+    // In MOCK_MODE, prepend mock purchases for UI showcase
+    if (isMockMode) {
+      const { MOCK_PURCHASES } = await import('@/lib/mocks/purchases-data')
+      purchases.unshift(...MOCK_PURCHASES)
+    }
 
     const isAdmin = await isAdminEmail(session.email)
 

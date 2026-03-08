@@ -8,10 +8,15 @@ import {
   consultCnpjDossie,
   consultCnpjFinancial,
 } from '../apifull'
+import { checkApifullBalance } from '../apifull-balance'
 import { searchWeb } from '../google-search'
 import { analyzeProcessos, analyzeMentionsAndSummary } from '../openai'
 import { calculateCpfFinancialSummary, calculateCnpjFinancialSummary } from '../financial-summary'
 import { getReportExpiresAt } from '../report-ttl'
+import { isMockMode } from '../mock-mode'
+
+// Small delay in mock mode so frontend can poll and display progress
+const mockDelay = () => isMockMode ? new Promise(r => setTimeout(r, 1500)) : Promise.resolve()
 import type {
   CpfCadastralResponse,
   ProcessosCpfResponse,
@@ -31,14 +36,14 @@ import type {
 // 5 = Gerando resumo
 // 6 = Finalizando
 
-// Process search job — 2 steps: check-cache, process-all
-// Previous version had 14-16 Inngest steps, each causing a full HTTP replay.
-// Collapsing to 3 eliminates ~2-3 min of orchestration overhead.
-// Progress bar still works via direct prisma.purchase.update() inside process-all.
+// Process search job — 5 steps: check-cache, fetch-data, fetch-web, analyze-ai, save-result
+// Each step completes within Vercel Hobby's 10s function timeout.
+// Inngest memoizes step results between replays — no wasted API credits on retry.
 export const processSearch = inngest.createFunction(
   {
     id: 'process-search',
-    retries: 3,
+    retries: 10,
+    concurrency: { limit: 10 },
   },
   { event: 'search/process' },
   async ({ event, step }) => {
@@ -76,45 +81,43 @@ export const processSearch = inngest.createFunction(
       return { success: true, cached: true, searchResultId: cacheResult.searchResultId }
     }
 
-    // Helper para atualizar step (DB direto, sem step.run)
-    const updateStep = async (stepNum: number) => {
-      await prisma.purchase.update({
-        where: { id: purchaseId },
-        data: { processingStep: stepNum },
-      })
-    }
+    // ========== Step 1.5: check-balance ==========
+    // Circuit breaker: verify APIFull has enough balance before burning credits.
+    // Fail-open: if check fails, proceed anyway. If insufficient, throw to trigger retry.
+    await step.run('check-balance', async () => {
+      const { balance, sufficient } = await checkApifullBalance()
+      if (!sufficient) {
+        console.warn(`APIFull balance too low: R$${balance}. Will retry in 5min.`)
+        throw new Error(`INSUFFICIENT_API_BALANCE: R$${balance}`)
+      }
+    })
 
-    // ========== Step 2: process-all ==========
-    // TODO o trabalho: fetch APIs, AI analysis, save result, complete purchase.
-    // Atualiza processingStep internamente para barra de progresso.
-    const searchResult = await step.run('process-all', async () => {
-      // Set PROCESSING
-      await prisma.purchase.update({
-        where: { id: purchaseId },
-        data: { status: 'PROCESSING', processingStep: 1 },
-      })
+    // Set PROCESSING on every invocation (including retries).
+    // Code between steps re-executes on replay — this is idempotent.
+    await prisma.purchase.update({
+      where: { id: purchaseId },
+      data: { status: 'PROCESSING' },
+    })
 
-      let cadastralData: CpfCadastralResponse | null = null
-      let processosData: ProcessosCpfResponse | null = null
-      let cpfFinancialData: SrsPremiumCpfResponse | null = null
-      let dossieData: DossieResponse | null = null
-      let cnpjFinancialData: SrsPremiumCnpjResponse | null = null
-      let googleData: GoogleSearchResponse | null = null
-      let processAnalysis: ProcessAnalysis[] = []
-      let financialSummary: FinancialSummary
-      let name = ''
-      let region = ''
+    try {
+      // ========== Step 2: fetch-data ==========
+      // APIFull calls: cadastral + financial/processos. Estimated: 3-8s.
+      const apiData = await step.run('fetch-data', async () => {
+        await prisma.purchase.update({
+          where: { id: purchaseId },
+          data: { processingStep: 1 },
+        })
+        await mockDelay()
 
-      try {
-        // ========== CPF: 3 chamadas APIFull + Serper ==========
         if (type === 'CPF') {
-          // Dados cadastrais (r-cpf-completo)
-          cadastralData = await consultCpfCadastral(term)
-          name = cadastralData.nome
-          region = cadastralData.enderecos?.[0]?.uf || ''
-          await updateStep(2)
+          const cadastralData = await consultCpfCadastral(term)
 
-          // Dados financeiros + processos em paralelo
+          await prisma.purchase.update({
+            where: { id: purchaseId },
+            data: { processingStep: 2 },
+          })
+          await mockDelay()
+
           const [cpfFinancialResult, processosResult] = await Promise.all([
             consultCpfFinancial(term).catch((err) => {
               console.error('CPF Financial (srs-premium) error:', err)
@@ -126,97 +129,154 @@ export const processSearch = inngest.createFunction(
             }),
           ])
 
-          cpfFinancialData = cpfFinancialResult
-          processosData = processosResult
-          await updateStep(3)
+          await prisma.purchase.update({
+            where: { id: purchaseId },
+            data: { processingStep: 3 },
+          })
+          await mockDelay()
 
-          // Calcular resumo financeiro (sem IA)
-          financialSummary = calculateCpfFinancialSummary(cpfFinancialData)
-        }
-        // ========== CNPJ: 2 chamadas APIFull + Serper ==========
-        else {
-          // Dados cadastrais + processos (ic-dossie-juridico)
-          dossieData = await consultCnpjDossie(term)
-          name = dossieData.razaoSocial
-          region = dossieData.endereco?.uf || ''
-          await updateStep(2)
+          return {
+            type: 'CPF' as const,
+            name: cadastralData.nome,
+            region: cadastralData.enderecos?.[0]?.uf || '',
+            cadastralData: cadastralData as CpfCadastralResponse,
+            cpfFinancialData: cpfFinancialResult as SrsPremiumCpfResponse | null,
+            processosData: processosResult as ProcessosCpfResponse,
+            dossieData: null as DossieResponse | null,
+            cnpjFinancialData: null as SrsPremiumCnpjResponse | null,
+          }
+        } else {
+          const dossieData = await consultCnpjDossie(term)
 
-          // Dados financeiros (srs-premium) - NAO bloqueia se falhar
-          cnpjFinancialData = await consultCnpjFinancial(term).catch((err) => {
+          await prisma.purchase.update({
+            where: { id: purchaseId },
+            data: { processingStep: 2 },
+          })
+
+          const cnpjFinancialResult = await consultCnpjFinancial(term).catch((err) => {
             console.error('CNPJ Financial (srs-premium) error:', err)
             return null
           })
-          await updateStep(3)
 
-          // Calcular resumo financeiro (sem IA)
-          financialSummary = calculateCnpjFinancialSummary(cnpjFinancialData)
+          await prisma.purchase.update({
+            where: { id: purchaseId },
+            data: { processingStep: 3 },
+          })
+          await mockDelay()
+
+          return {
+            type: 'CNPJ' as const,
+            name: dossieData.razaoSocial,
+            region: dossieData.endereco?.uf || '',
+            cadastralData: null as CpfCadastralResponse | null,
+            cpfFinancialData: null as SrsPremiumCpfResponse | null,
+            processosData: null as ProcessosCpfResponse | null,
+            dossieData: dossieData as DossieResponse,
+            cnpjFinancialData: cnpjFinancialResult as SrsPremiumCnpjResponse | null,
+          }
         }
+      })
 
-        // Menções na web (Serper)
-        await updateStep(4)
-        googleData = await searchWeb(name, term, type).catch((err) => {
+      // ========== Step 3: fetch-web ==========
+      // Serper web search. Estimated: 2-5s.
+      const webData = await step.run('fetch-web', async () => {
+        await prisma.purchase.update({
+          where: { id: purchaseId },
+          data: { processingStep: 4 },
+        })
+        await mockDelay()
+
+        const googleData = await searchWeb(apiData.name, term, type).catch((err) => {
           console.error('Google/Serper error:', err)
           return { byDocument: [], byName: [], reclameAqui: [] } as GoogleSearchResponse
         })
 
-        // IA: Gerando resumo
-        await updateStep(5)
+        return googleData
+      })
 
-        // IA 1: Analisar processos (se houver)
-        if (type === 'CPF' && processosData && processosData.processos.length > 0) {
-          const processosResult = await analyzeProcessos(processosData.processos, term)
+      // ========== Step 4: analyze-ai ==========
+      // OpenAI analysis + financial summary. Estimated: 5-9s.
+      const aiResult = await step.run('analyze-ai', async () => {
+        await prisma.purchase.update({
+          where: { id: purchaseId },
+          data: { processingStep: 5 },
+        })
+        await mockDelay()
+
+        // Financial summary (pure calculation, no API)
+        const financialSummary: FinancialSummary = apiData.type === 'CPF'
+          ? calculateCpfFinancialSummary(apiData.cpfFinancialData)
+          : calculateCnpjFinancialSummary(apiData.cnpjFinancialData)
+
+        // AI 1: Analyze processos (if any)
+        let processAnalysis: ProcessAnalysis[] = []
+        if (apiData.type === 'CPF' && apiData.processosData && apiData.processosData.processos.length > 0) {
+          const processosResult = await analyzeProcessos(apiData.processosData.processos, term)
           processAnalysis = processosResult.processAnalysis
         }
 
-        // IA 2: Analisar menções e gerar resumo
+        // AI 2: Analyze mentions and generate summary
         const mentions = [
-          ...(googleData?.byDocument || []),
-          ...(googleData?.byName || []),
-          ...(googleData?.reclameAqui || []),
+          ...(webData?.byDocument || []),
+          ...(webData?.byName || []),
+          ...(webData?.reclameAqui || []),
         ]
 
         const summaryResult = await analyzeMentionsAndSummary({
           mentions,
           financialSummary,
           processAnalysis,
-          type,
-          region,
+          type: apiData.type,
+          region: apiData.region,
         }, term)
 
-        // Aplicar classificacoes nos resultados do Google
-        if (googleData && summaryResult.mentionClassifications) {
-          for (const classification of summaryResult.mentionClassifications) {
-            const matchByDoc = googleData.byDocument.find((r) => r.url === classification.url)
+        return { financialSummary, processAnalysis, summaryResult }
+      })
+
+      // ========== Step 5: save-result ==========
+      // Save SearchResult + complete purchase. Estimated: 1-2s.
+      const searchResult = await step.run('save-result', async () => {
+        await prisma.purchase.update({
+          where: { id: purchaseId },
+          data: { processingStep: 6 },
+        })
+        await mockDelay()
+
+        // Apply mention classifications to web data
+        let googleDataFinal = webData
+        if (googleDataFinal && aiResult.summaryResult.mentionClassifications) {
+          // Deep copy to avoid mutating memoized step data
+          googleDataFinal = JSON.parse(JSON.stringify(webData)) as GoogleSearchResponse
+
+          for (const classification of aiResult.summaryResult.mentionClassifications) {
+            const matchByDoc = googleDataFinal.byDocument.find((r) => r.url === classification.url)
             if (matchByDoc) matchByDoc.classification = classification.classification
 
-            const matchByName = googleData.byName.find((r) => r.url === classification.url)
+            const matchByName = googleDataFinal.byName.find((r) => r.url === classification.url)
             if (matchByName) matchByName.classification = classification.classification
 
-            const matchRA = googleData.reclameAqui.find((r) => r.url === classification.url)
+            const matchRA = googleDataFinal.reclameAqui.find((r) => r.url === classification.url)
             if (matchRA) matchRA.classification = classification.classification
           }
         }
 
-        // Finalizando
-        await updateStep(6)
-
-        // Salvar SearchResult
-        const dataToSave = type === 'CPF'
+        // Build data payload
+        const dataToSave = apiData.type === 'CPF'
           ? {
-              cadastral: cadastralData,
-              processos: processosData,
-              financial: cpfFinancialData,
-              financialSummary,
-              processAnalysis,
-              google: googleData,
-              reclameAqui: summaryResult.reclameAqui || null,
+              cadastral: apiData.cadastralData,
+              processos: apiData.processosData,
+              financial: apiData.cpfFinancialData,
+              financialSummary: aiResult.financialSummary,
+              processAnalysis: aiResult.processAnalysis,
+              google: googleDataFinal,
+              reclameAqui: aiResult.summaryResult.reclameAqui || null,
             }
           : {
-              dossie: dossieData,
-              financial: cnpjFinancialData,
-              financialSummary,
-              google: googleData,
-              reclameAqui: summaryResult.reclameAqui || null,
+              dossie: apiData.dossieData,
+              financial: apiData.cnpjFinancialData,
+              financialSummary: aiResult.financialSummary,
+              google: googleDataFinal,
+              reclameAqui: aiResult.summaryResult.reclameAqui || null,
             }
 
         const jsonData = JSON.parse(JSON.stringify(dataToSave)) as Prisma.InputJsonValue
@@ -225,9 +285,9 @@ export const processSearch = inngest.createFunction(
           data: {
             term,
             type,
-            name,
+            name: apiData.name,
             data: jsonData,
-            summary: summaryResult.summary,
+            summary: aiResult.summaryResult.summary,
             expiresAt: getReportExpiresAt(),
           },
         })
@@ -243,34 +303,34 @@ export const processSearch = inngest.createFunction(
         })
 
         return { id: result.id }
-      } catch (error) {
-        console.error('Process search error:', error)
+      })
 
-        // Get current purchase state to capture processingStep
-        const failedPurchase = await prisma.purchase.findUnique({
-          where: { id: purchaseId },
-          select: { processingStep: true },
-        })
+      return { success: true, searchResultId: searchResult.id }
+    } catch (error) {
+      console.error('Process search error:', error)
 
-        // Update purchase to FAILED with error details
-        await prisma.purchase.update({
-          where: { id: purchaseId },
-          data: {
-            status: 'FAILED',
-            failureReason: 'PROCESSING_ERROR',
-            failureDetails: JSON.stringify({
-              error: error instanceof Error ? error.message : String(error),
-              stack: error instanceof Error ? error.stack : undefined,
-              currentStep: failedPurchase?.processingStep || 0,
-              timestamp: new Date().toISOString(),
-            }),
-          },
-        })
+      // Get current purchase state to capture processingStep
+      const failedPurchase = await prisma.purchase.findUnique({
+        where: { id: purchaseId },
+        select: { processingStep: true },
+      })
 
-        throw error // Re-throw to trigger Inngest retry
-      }
-    })
+      // Update purchase to FAILED with error details
+      await prisma.purchase.update({
+        where: { id: purchaseId },
+        data: {
+          status: 'FAILED',
+          failureReason: 'PROCESSING_ERROR',
+          failureDetails: JSON.stringify({
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            currentStep: failedPurchase?.processingStep || 0,
+            timestamp: new Date().toISOString(),
+          }),
+        },
+      })
 
-    return { success: true, searchResultId: searchResult.id }
+      throw error // Re-throw to trigger Inngest retry
+    }
   }
 )

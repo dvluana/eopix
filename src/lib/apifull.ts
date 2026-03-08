@@ -19,6 +19,18 @@ import type {
   SrsPremiumCnpjResponse,
 } from '@/types/report'
 
+// Fetch with timeout — prevents hanging when external APIs are slow
+// 8s default to stay within Vercel Hobby's 10s function limit
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 8000): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 // CPFs terminados em 0-4 = Chuva, 5-9 = Sol
 function isChuvaScenario(document: string): boolean {
   const lastDigit = parseInt(document.slice(-1))
@@ -35,7 +47,7 @@ export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResp
   }
 
   // === CHAMADA REAL - r-cpf-completo ===
-  const res = await fetch('https://api.apifull.com.br/api/r-cpf-completo', {
+  const res = await fetchWithTimeout('https://api.apifull.com.br/api/r-cpf-completo', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -157,7 +169,7 @@ export async function consultCpfProcessos(cpf: string): Promise<ProcessosCpfResp
   }
 
   // === CHAMADA REAL - r-acoes-e-processos-judiciais ===
-  const res = await fetch('https://api.apifull.com.br/api/r-acoes-e-processos-judiciais', {
+  const res = await fetchWithTimeout('https://api.apifull.com.br/api/r-acoes-e-processos-judiciais', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -228,7 +240,7 @@ export async function consultCpfFinancial(cpf: string): Promise<SrsPremiumCpfRes
   }
 
   // === CHAMADA REAL - srs-premium ===
-  const res = await fetch('https://api.apifull.com.br/api/srs-premium', {
+  const res = await fetchWithTimeout('https://api.apifull.com.br/api/srs-premium', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -324,7 +336,7 @@ export async function consultCnpjDossie(cnpj: string): Promise<DossieResponse> {
   }
 
   // === CHAMADA REAL - ic-dossie-juridico ===
-  const res = await fetch('https://api.apifull.com.br/api/ic-dossie-juridico', {
+  const res = await fetchWithTimeout('https://api.apifull.com.br/api/ic-dossie-juridico', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -472,7 +484,7 @@ export async function consultCnpjFinancial(cnpj: string): Promise<SrsPremiumCnpj
   }
 
   // === CHAMADA REAL - srs-premium ===
-  const res = await fetch('https://api.apifull.com.br/api/srs-premium', {
+  const res = await fetchWithTimeout('https://api.apifull.com.br/api/srs-premium', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,

@@ -45,12 +45,12 @@ export interface AdminPurchase extends Purchase {
 
 // Processing steps used in confirmacao + minhas-consultas
 export const PROCESSING_STEPS = [
-  { step: 1, label: 'Dados cadastrais' },
-  { step: 2, label: 'Dados financeiros' },
-  { step: 3, label: 'Processos judiciais' },
-  { step: 4, label: 'Menções na web' },
-  { step: 5, label: 'Gerando resumo' },
-  { step: 6, label: 'Finalizando' },
+  { step: 1, label: 'Consultando Receita Federal' },
+  { step: 2, label: 'Verificando situacao financeira' },
+  { step: 3, label: 'Buscando processos judiciais' },
+  { step: 4, label: 'Analisando noticias e reputacao' },
+  { step: 5, label: 'Gerando analise inteligente' },
+  { step: 6, label: 'Montando seu relatorio' },
 ] as const
 
 export type ProcessingStep = (typeof PROCESSING_STEPS)[number]

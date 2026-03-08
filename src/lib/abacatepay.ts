@@ -1,52 +1,14 @@
 import crypto from 'node:crypto'
-import AbacatePay from 'abacatepay-nodejs-sdk'
 import { isBypassPayment } from './mock-mode'
 
-// Lazy initialization to avoid errors during build
-let abacateInstance: ReturnType<typeof AbacatePay> | null = null
-
-function getAbacate() {
-  if (!abacateInstance) {
-    if (!process.env.ABACATEPAY_API_KEY) {
-      throw new Error('ABACATEPAY_API_KEY is not configured')
-    }
-    abacateInstance = AbacatePay(process.env.ABACATEPAY_API_KEY)
-  }
-  return abacateInstance
-}
-
-function formatTaxIdForAbacatePay(taxId?: string): string | undefined {
-  if (!taxId) return undefined
-  const clean = taxId.replace(/\D/g, '')
-  if (clean.length === 11) {
-    return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-  }
-  if (clean.length === 14) {
-    return clean.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
-  }
-  return taxId
-}
-
-function formatCellphoneForAbacatePay(phone?: string): string | undefined {
-  if (!phone) return undefined
-  const clean = phone.replace(/\D/g, '')
-  if (clean.length === 11) {
-    return clean.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
-  }
-  if (clean.length === 10) {
-    return clean.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
-  }
-  return phone
-}
-
 export interface CreateCheckoutParams {
-  email?: string
-  name?: string
-  cellphone?: string // digits only, e.g. '11999999999'
-  taxId?: string // CPF/CNPJ for AbacatePay customer
   externalRef: string // purchase code
   successUrl: string
   cancelUrl: string
+  customerName?: string
+  customerEmail?: string
+  customerCellphone?: string
+  customerTaxId?: string
 }
 
 export interface CheckoutResponse {
@@ -60,11 +22,35 @@ export interface RefundResponse {
   message?: string
 }
 
+/** Format cellphone as (XX) XXXXX-XXXX for AbacatePay v1 */
+function formatCellphoneForAbacatePay(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  }
+  return phone
+}
+
+/** Format taxId as XXX.XXX.XXX-XX (CPF) or XX.XXX.XXX/XXXX-XX (CNPJ) for AbacatePay v1 */
+function formatTaxIdForAbacatePay(taxId: string): string {
+  const digits = taxId.replace(/\D/g, '')
+  if (digits.length === 11) {
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  }
+  if (digits.length === 14) {
+    return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+  }
+  return taxId
+}
+
 export async function createCheckout(
   params: CreateCheckoutParams
 ): Promise<CheckoutResponse> {
   if (isBypassPayment) {
-    console.log(`🧪 [BYPASS] AbacatePay bypass - criando fake checkout: ${params.externalRef}`)
+    console.log(`[BYPASS] AbacatePay bypass: ${params.externalRef}`)
     const fakeId = `bill_bypass_${Date.now()}`
     return {
       sessionId: fakeId,
@@ -72,26 +58,17 @@ export async function createCheckout(
     }
   }
 
-  const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
-
-  console.log('[AbacatePay] Creating billing:', {
-    email: params.email,
-    name: params.name,
-    cellphone: params.cellphone,
-    taxId: params.taxId,
-    externalRef: params.externalRef,
-    priceCents,
-  })
-
-  // Customer email — use provided email or a placeholder (AbacatePay checkout collects real email)
-  const customerEmail = params.email || `checkout-${params.externalRef}@noreply.eopix.app`
-
-  // Direct fetch instead of SDK — the SDK swallows error details
-  // (SDK reads `data.message` but AbacatePay returns `data.error`)
   const apiKey = process.env.ABACATEPAY_API_KEY
   if (!apiKey) {
     throw new Error('ABACATEPAY_API_KEY is not configured')
   }
+
+  const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
+
+  console.log('[AbacatePay] Creating billing:', {
+    externalRef: params.externalRef,
+    priceCents,
+  })
 
   const body = {
     frequency: 'ONE_TIME',
@@ -105,13 +82,13 @@ export async function createCheckout(
       },
     ],
     externalId: params.externalRef,
-    returnUrl: params.cancelUrl,
     completionUrl: params.successUrl,
+    returnUrl: params.cancelUrl,
     customer: {
-      name: params.name || 'Cliente EOPIX',
-      cellphone: formatCellphoneForAbacatePay(params.cellphone) || '(11) 99999-9999',
-      email: customerEmail,
-      taxId: formatTaxIdForAbacatePay(params.taxId) || '000.000.000-00',
+      name: params.customerName || 'Cliente EOPIX',
+      email: params.customerEmail || 'noreply@eopix.app',
+      cellphone: formatCellphoneForAbacatePay(params.customerCellphone || '00000000000'),
+      taxId: formatTaxIdForAbacatePay(params.customerTaxId || '00000000191'),
     },
   }
 
@@ -126,12 +103,9 @@ export async function createCheckout(
 
   const responseData = await res.json()
 
-  if (!res.ok || responseData.error || !responseData.data) {
-    console.error('[AbacatePay] Billing error:', {
-      status: res.status,
-      body: responseData,
-    })
-    const errorMsg = responseData.error || responseData.message || `HTTP ${res.status}`
+  if (!res.ok || !responseData.success || !responseData.data) {
+    console.error('[AbacatePay] Billing error:', { status: res.status, body: responseData })
+    const errorMsg = responseData.error || `HTTP ${res.status}`
     throw new Error(`AbacatePay billing error: ${errorMsg}`)
   }
 
@@ -150,7 +124,7 @@ export async function createCheckout(
 
 export async function processRefund(_billingId: string): Promise<RefundResponse> {
   if (isBypassPayment) {
-    console.log(`🧪 [BYPASS] AbacatePay refund: ${_billingId}`)
+    console.log(`[BYPASS] AbacatePay refund: ${_billingId}`)
     await new Promise((r) => setTimeout(r, 300))
     return {
       success: true,
@@ -186,5 +160,3 @@ export function validateWebhookSignature(rawBody: string, signatureHeader: strin
 
   return A.length === B.length && crypto.timingSafeEqual(A, B)
 }
-
-export { getAbacate }

@@ -2,34 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { validateWebhookSecret, validateWebhookSignature } from '@/lib/abacatepay'
 
-interface AbacateBillingPaidEvent {
-  id: string
-  event: 'billing.paid'
+interface AbacateCheckoutCompletedEvent {
+  event: 'checkout.completed'
+  apiVersion: number
   devMode: boolean
   data: {
-    payment: {
-      amount: number
-      fee: number
-      method: string
-    }
-    billing: {
+    checkout: {
       id: string
       externalId?: string
       amount: number
-      status: string
-      frequency: string
       paidAmount: number
-      products: { externalId: string; id: string; quantity: number }[]
-      customer: {
-        id: string
-        metadata: {
-          name?: string
-          cellphone?: string
-          email?: string
-          taxId?: string
-        }
-      }
+      status: string
+      items: { id: string; quantity: number }[]
     }
+    customer: {
+      id: string
+      name: string
+      email: string
+      taxId: string // masked: "123.***.***-**"
+    } | null
   }
 }
 
@@ -64,12 +55,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const event = JSON.parse(rawBody) as AbacateBillingPaidEvent
+    const event = JSON.parse(rawBody) as AbacateCheckoutCompletedEvent
 
-    console.log('[AbacatePay Webhook] Received event:', event.event, event.id)
+    console.log('[AbacatePay Webhook] Received event:', event.event)
 
-    // Idempotency check
-    const webhookKey = `abacate:${event.event}:${event.id}`
+    // Idempotency check — use checkout.id since v2 has no top-level id
+    const checkout = event.data.checkout
+    const webhookKey = `abacate:checkout.completed:${checkout.id}`
     const existing = await prisma.webhookLog.findUnique({
       where: { eventKey: webhookKey },
     })
@@ -81,27 +73,25 @@ export async function POST(request: NextRequest) {
 
     let processed = false
 
-    if (event.event === 'billing.paid') {
-      const billing = event.data.billing
-      // Purchase code: billing-level externalId (new), fallback to product externalId (legacy)
-      const purchaseCode = billing.externalId || billing.products[0]?.externalId
+    if (event.event === 'checkout.completed') {
+      const purchaseCode = checkout.externalId
 
       if (!purchaseCode) {
-        console.warn('[AbacatePay Webhook] No externalId in products')
+        console.warn('[AbacatePay Webhook] No externalId in checkout')
         return NextResponse.json({ received: true })
       }
 
-      console.log('[AbacatePay Webhook] Billing paid:', {
+      console.log('[AbacatePay Webhook] Checkout completed:', {
         purchaseCode,
-        billingId: billing.id,
-        amount: billing.paidAmount,
+        checkoutId: checkout.id,
+        amount: checkout.paidAmount,
       })
 
       await handlePaymentSuccess(
         purchaseCode,
-        billing.id,
-        billing.customer?.metadata?.email || null,
-        billing.customer?.metadata?.name || null
+        checkout.id,
+        event.data.customer?.email || null,
+        event.data.customer?.name || null
       )
       processed = true
     } else {
@@ -113,7 +103,7 @@ export async function POST(request: NextRequest) {
         data: {
           eventKey: webhookKey,
           event: event.event,
-          paymentId: event.id,
+          paymentId: checkout.id,
         },
       })
     }
@@ -130,7 +120,7 @@ export async function POST(request: NextRequest) {
 
 async function handlePaymentSuccess(
   purchaseCode: string,
-  billingId: string,
+  checkoutId: string,
   customerEmail: string | null,
   customerName: string | null
 ) {
@@ -158,7 +148,7 @@ async function handlePaymentSuccess(
         status: 'PAID',
         paidAt: new Date(),
         paymentProvider: 'abacatepay',
-        paymentExternalId: billingId,
+        paymentExternalId: checkoutId,
         buyerName: customerName || undefined,
       },
     })
@@ -186,6 +176,19 @@ async function handlePaymentSuccess(
       })
       console.log(`[AbacatePay Webhook] Guest user updated with email: ${normalizedEmail}`)
     }
+  }
+
+  // Activate user account: move pending password hash from Purchase to User
+  if (purchase.pendingPasswordHash && !purchase.user.passwordHash) {
+    await prisma.user.update({
+      where: { id: purchase.userId },
+      data: { passwordHash: purchase.pendingPasswordHash },
+    })
+    await prisma.purchase.update({
+      where: { id: purchase.id },
+      data: { pendingPasswordHash: null },
+    })
+    console.log(`[AbacatePay Webhook] User account activated for ${purchaseCode}`)
   }
 
   console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} updated to PAID`)

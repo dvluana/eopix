@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { isMockMode } from '@/lib/mock-mode'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -9,6 +10,19 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
+
+    // MOCK_MODE: serve mock reports without DB/auth
+    if (isMockMode && id.startsWith('mock-report-')) {
+      const { MOCK_REPORTS } = await import('@/lib/mocks/purchases-data')
+      const mockReport = MOCK_REPORTS[id]
+      if (mockReport) {
+        return NextResponse.json(mockReport)
+      }
+      return NextResponse.json(
+        { error: 'Mock report nao encontrado' },
+        { status: 404 }
+      )
+    }
 
     if (!id) {
       return NextResponse.json(

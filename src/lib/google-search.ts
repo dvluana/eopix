@@ -12,6 +12,18 @@ function isChuvaScenario(document: string): boolean {
   return lastDigit < 5
 }
 
+// Fetch with timeout — prevents hanging when external APIs are slow
+// 8s default to stay within Vercel Hobby's 10s function limit
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 8000): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 async function executeSearch(query: string): Promise<GoogleSearchResult[]> {
   const apiKey = process.env.SERPER_API_KEY
 
@@ -20,7 +32,7 @@ async function executeSearch(query: string): Promise<GoogleSearchResult[]> {
     return []
   }
 
-  const res = await fetch('https://google.serper.dev/search', {
+  const res = await fetchWithTimeout('https://google.serper.dev/search', {
     method: 'POST',
     headers: {
       'X-API-KEY': apiKey,

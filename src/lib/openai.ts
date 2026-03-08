@@ -51,6 +51,7 @@ function getOpenAI(): OpenAI {
   if (!openaiInstance) {
     openaiInstance = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
+      timeout: 15000, // 15s — OpenAI can be slower than other APIs
     })
   }
   return openaiInstance

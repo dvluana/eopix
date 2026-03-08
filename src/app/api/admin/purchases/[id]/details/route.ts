@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { formatDocument } from '@/lib/validators'
 import { PROCESSING_STEPS } from '@/types/domain'
 
 interface RouteParams {
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       purchase: {
         id: purchase.id,
         code: purchase.code,
-        term: purchase.term,
+        term: formatDocument(purchase.term),
         type: purchase.term.length === 11 ? 'CPF' : 'CNPJ',
         status: purchase.status,
         processingStep: purchase.processingStep,
@@ -52,6 +53,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         refundDetails: purchase.refundDetails,
         createdAt: purchase.createdAt,
         paidAt: purchase.paidAt,
+        updatedAt: purchase.updatedAt,
       },
       processingLogs,
     })

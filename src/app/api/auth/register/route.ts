@@ -5,9 +5,11 @@ import { prisma } from '@/lib/prisma'
 import { createSession } from '@/lib/auth'
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('Email invalido'),
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
+  name: z.string().min(2).optional(),
+  cellphone: z.string().min(10).max(15).optional(),
+  taxId: z.string().min(11).max(14).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -20,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: firstError }, { status: 400 })
     }
 
-    const { name, email, password } = parsed.data
+    const { name, email, password, cellphone, taxId } = parsed.data
     const normalizedEmail = email.toLowerCase().trim()
 
     // Check if user already exists with a password (already registered)
@@ -41,11 +43,22 @@ export async function POST(request: NextRequest) {
       // User exists as guest (auto-login created) — upgrade to full account
       await prisma.user.update({
         where: { id: existingUser.id },
-        data: { name, passwordHash },
+        data: {
+          name: name || undefined,
+          passwordHash,
+          ...(cellphone ? { cellphone } : {}),
+          ...(taxId ? { taxId } : {}),
+        },
       })
     } else {
       await prisma.user.create({
-        data: { email: normalizedEmail, name, passwordHash },
+        data: {
+          email: normalizedEmail,
+          name: name || null,
+          passwordHash,
+          ...(cellphone ? { cellphone } : {}),
+          ...(taxId ? { taxId } : {}),
+        },
       })
     }
 
