@@ -50,7 +50,7 @@ export const processSearch = inngest.createFunction(
     const { purchaseId, term, type } = event.data
 
     // ========== Step 1: check-cache ==========
-    // Verifica cache 24h. Se existir, completa direto e retorna.
+    // Verifica se existe relatório válido (não expirado) para o mesmo documento.
     const cacheResult = await step.run('check-cache', async () => {
       const existing = await prisma.searchResult.findFirst({
         where: {
@@ -62,21 +62,42 @@ export const processSearch = inngest.createFunction(
       })
 
       if (existing) {
-        await prisma.purchase.update({
-          where: { id: purchaseId },
-          data: {
-            status: 'COMPLETED',
-            searchResultId: existing.id,
-            processingStep: 0,
-          },
-        })
         return { cached: true, searchResultId: existing.id }
       }
 
       return { cached: false, searchResultId: null }
     })
 
+    // Cache hit: simulate progress steps for UX (user sees loader),
+    // then complete with the cached result. No API calls made.
     if (cacheResult.cached) {
+      await step.run('cache-progress', async () => {
+        const delay = (ms: number) => new Promise(r => setTimeout(r, ms))
+
+        await prisma.purchase.update({
+          where: { id: purchaseId },
+          data: { status: 'PROCESSING', processingStep: 1 },
+        })
+        await delay(1500)
+
+        for (const stepNum of [2, 3, 4, 5, 6]) {
+          await prisma.purchase.update({
+            where: { id: purchaseId },
+            data: { processingStep: stepNum },
+          })
+          await delay(1500)
+        }
+
+        await prisma.purchase.update({
+          where: { id: purchaseId },
+          data: {
+            status: 'COMPLETED',
+            searchResultId: cacheResult.searchResultId,
+            processingStep: 0,
+          },
+        })
+      })
+
       return { success: true, cached: true, searchResultId: cacheResult.searchResultId }
     }
 
