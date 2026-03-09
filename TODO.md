@@ -121,6 +121,24 @@
 - [x] `npm run inngest` avulso para rodar dashboard Inngest separado quando necessário
 - [x] Documentação `modos-de-execucao.md` atualizada com scripts e quando usar cada um
 
+### Blog SEO — Credibilidade e Conversão (futuro)
+- [ ] Decidir abordagem: blog integrado ao EOPIX (Velite + MDX) vs starter separado (timlrx)
+- [ ] Setup Velite no projeto EOPIX (`content/blog/` + `/blog` route)
+- [ ] Escrever 10-20 artigos de credibilidade focados em micro empreendedores:
+  - "Como consultar CPF de sócio antes de abrir empresa"
+  - "O que é score de crédito e como afeta seu negócio"
+  - "Como proteger seu CNPJ de fraudes"
+  - "Checklist de due diligence para micro empreendedores"
+- [ ] SEO técnico: sitemap, RSS, Open Graph, structured data
+- [ ] Design brutalist EOPIX consistente no blog
+- Referências:
+  - `tailwind-nextjs-starter-blog` (timlrx, 10.3K stars) — template mais completo
+  - `velite` (zce, Zod schema) — substituto do Contentlayer (abandonado)
+  - `jolbol1/nextjs-velite-blog-template` — template pronto Next.js 14 + Velite + Tailwind
+  - Ghost + ghost-mcp descartado (overengineering para 10-20 artigos)
+  - Programmatic SEO descartado por agora (superfície de keywords pequena)
+  - Objetivo: credibilidade e conversão, não tráfego orgânico massivo
+
 ### Débitos da auditoria admin (futuro)
 - [ ] Audit logging (tabela AdminActionLog — rastrear mark-paid, refund, etc.)
 - [ ] Admin user CRUD via UI (criar/desativar admin sem acesso direto ao DB)
