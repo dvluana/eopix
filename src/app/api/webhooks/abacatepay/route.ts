@@ -86,9 +86,6 @@ export async function POST(request: NextRequest) {
     const customerEmail = customerMeta?.email || null
     const customerName = customerMeta?.name || null
 
-    // Purchase code comes from products[0].externalId (echoed from billing create)
-    const purchaseCode = billing.products?.[0]?.externalId || null
-
     // Idempotency check
     const webhookKey = `abacate:${event.event}:${billingId}`
     const existing = await prisma.webhookLog.findUnique({
@@ -100,43 +97,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, duplicate: true })
     }
 
-    if (!purchaseCode) {
-      // Fallback: look up purchase by billing ID (for billings created before this fix)
-      console.warn(`[AbacatePay Webhook] No purchaseCode in products, looking up by billingId: ${billingId}`)
-      const purchaseByBilling = await prisma.purchase.findFirst({
-        where: {
-          OR: [
-            { paymentExternalId: billingId },
-            { paymentExternalId: { contains: billingId } },
-          ],
-        },
-      })
-      if (purchaseByBilling) {
-        console.log(`[AbacatePay Webhook] Found purchase ${purchaseByBilling.code} by billingId ${billingId}`)
-        await handlePaymentSuccess(purchaseByBilling.code, billingId, customerEmail, customerName)
-        await prisma.webhookLog.create({
-          data: { eventKey: webhookKey, event: event.event, paymentId: billingId },
-        })
-        return NextResponse.json({ received: true })
+    // Caminho primário: lookup por billingId (paymentExternalId = billingId desde v2 migration)
+    let purchaseCode: string | null = null
+    const purchaseByBilling = await prisma.purchase.findFirst({
+      where: { paymentExternalId: billingId },
+    })
+
+    if (purchaseByBilling) {
+      purchaseCode = purchaseByBilling.code
+      console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} by billingId ${billingId}`)
+    } else {
+      // Fallback: purchases antigas usavam externalId do produto = purchase code
+      const legacyCode = billing.products?.[0]?.externalId || null
+      if (legacyCode && legacyCode !== 'relatorio-risco') {
+        purchaseCode = legacyCode
+        console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} via legacy product externalId`)
       }
+    }
+
+    if (!purchaseCode) {
       console.warn('[AbacatePay Webhook] No purchase found for billingId:', billingId)
       return NextResponse.json({ received: true })
     }
 
-    console.log('[AbacatePay Webhook] Payment confirmed:', {
-      purchaseCode,
-      billingId,
-      customerEmail,
-    })
+    console.log('[AbacatePay Webhook] Payment confirmed:', { purchaseCode, billingId, customerEmail })
 
     await handlePaymentSuccess(purchaseCode, billingId, customerEmail, customerName)
 
     await prisma.webhookLog.create({
-      data: {
-        eventKey: webhookKey,
-        event: event.event,
-        paymentId: billingId,
-      },
+      data: { eventKey: webhookKey, event: event.event, paymentId: billingId },
     })
 
     return NextResponse.json({ received: true })
