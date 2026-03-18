@@ -103,7 +103,7 @@ export async function GET() {
         { service: 'serper', status: 'up', latency: 30, message: 'Mockado', balance: { current: 2500, unit: 'credits', low: false } },
         { service: 'openai', status: 'up', latency: 40, message: 'Mockado' },
         { service: 'inngest', status: 'up', latency: 5, message: 'Mockado' },
-        { service: 'resend', status: 'up', latency: 20, balance: { current: 'verificado', unit: 'domínio', low: false } },
+        { service: 'resend', status: 'up', latency: 20, balance: { current: '5/100 hoje · 47/3000 mês · proj. 47 · ~47 compras/dia · ~2753 no mês', unit: '', low: false } },
         { service: 'payment', status: 'up', latency: 30, message: `Bypass (${providerName})` },
       ],
     })
@@ -158,7 +158,7 @@ export async function GET() {
       if (!process.env.INNGEST_SIGNING_KEY) throw new Error('INNGEST_SIGNING_KEY not set')
     }),
 
-    // Resend check — domain verification + usage count (daily/monthly vs free plan limits)
+    // Resend check — domain verification + usage count + projection + capacity
     checkServiceWithBalance('resend', async () => {
       if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY not set')
 
@@ -166,12 +166,19 @@ export async function GET() {
       const MONTHLY_LIMIT = 3000
       const WARN_PCT = 0.8
 
-      // Domain check + usage count run in parallel
-      const [domainsRes] = await Promise.all([
+      const now = new Date()
+      const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+      const todayStr = now.toISOString().slice(0, 10) // 'YYYY-MM-DD'
+      const daysInMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).getUTCDate()
+      const daysElapsed = Math.max(now.getUTCDate(), 1)
+
+      // Domain check + prisma import run in parallel
+      const [domainsRes, { prisma }] = await Promise.all([
         fetch('https://api.resend.com/domains', {
           headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
           cache: 'no-store',
         }),
+        import('@/lib/prisma'),
       ])
 
       if (!domainsRes.ok) throw new Error(`HTTP ${domainsRes.status}`)
@@ -181,10 +188,6 @@ export async function GET() {
       if (domain.status !== 'verified') throw new Error(`Domínio ${domain.status}`)
 
       // Count emails sent today and this month via pagination (stop when past month start)
-      const now = new Date()
-      const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
-      const todayStr = now.toISOString().slice(0, 10) // 'YYYY-MM-DD'
-
       let dailyCount = 0
       let monthlyCount = 0
       let cursor: string | undefined
@@ -222,9 +225,32 @@ export async function GET() {
         throw new Error(`Limite diário atingido (${dailyCount}/${DAILY_LIMIT})`)
       }
 
-      const low = dailyCount / DAILY_LIMIT >= WARN_PCT || monthlyCount / MONTHLY_LIMIT >= WARN_PCT
+      // Purchase count this month — derives actual emails/purchase ratio (self-calibrating)
+      const purchasesThisMonth = await prisma.purchase.count({
+        where: { createdAt: { gte: monthStart } },
+      })
+
+      // Ratio: actual emails sent / purchases this month (reflects real mix of approved/abandoned/failed)
+      // Fallback 2.0 (conservative) when month just started and no emails sent yet
+      const emailsPerPurchase = purchasesThisMonth > 0 && monthlyCount > 0
+        ? monthlyCount / purchasesThisMonth
+        : 2.0
+
+      // Projection: extrapolate current daily rate to end of month
+      const dailyRate = monthlyCount / daysElapsed
+      const projectedMonth = Math.round(dailyRate * daysInMonth)
+
+      // Capacity: how many more purchases before hitting each limit
+      const capToday = Math.floor(Math.max(0, DAILY_LIMIT - dailyCount) / emailsPerPurchase)
+      const capMonth = Math.floor(Math.max(0, MONTHLY_LIMIT - monthlyCount) / emailsPerPurchase)
+
+      const low =
+        dailyCount / DAILY_LIMIT >= WARN_PCT ||
+        monthlyCount / MONTHLY_LIMIT >= WARN_PCT ||
+        projectedMonth / MONTHLY_LIMIT >= WARN_PCT
+
       return {
-        current: `${dailyCount}/${DAILY_LIMIT} hoje · ${monthlyCount}/${MONTHLY_LIMIT} mês`,
+        current: `${dailyCount}/${DAILY_LIMIT} hoje · ${monthlyCount}/${MONTHLY_LIMIT} mês · proj. ${projectedMonth} · ~${capToday} compras/dia · ~${capMonth} no mês`,
         unit: '',
         low,
       }
