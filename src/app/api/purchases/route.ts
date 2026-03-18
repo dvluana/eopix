@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get price from env
-    const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
+    const priceCents = parseInt(process.env.PRICE_CENTS || '3990', 10)
 
     // Auto-fallback: bypass se API key não configurada (dev sem MOCK_MODE)
     const effectiveBypass = isBypassPayment || !process.env.ABACATEPAY_API_KEY

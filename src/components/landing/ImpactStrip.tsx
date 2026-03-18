@@ -13,7 +13,7 @@ interface CounterConfig {
 
 const COUNTERS: CounterConfig[] = [
   { target: 8.9, decimals: 1, prefix: "", suffix: "M", separator: ",", animated: true },
-  { target: 29.9, decimals: 2, prefix: "R$ ", suffix: "", separator: ",", animated: false },
+  { target: 39.9, decimals: 2, prefix: "R$ ", suffix: "", separator: ",", animated: false },
   { target: 3, decimals: 0, prefix: "", suffix: " min", separator: "", animated: true },
 ];
 
