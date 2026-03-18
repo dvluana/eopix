@@ -172,6 +172,27 @@ export const anonymizePurchases = inngest.createFunction(
   }
 )
 
+// Cleanup expired/used password reset tokens (daily at 03:45)
+export const cleanupPasswordResetTokens = inngest.createFunction(
+  { id: 'cleanup-password-reset-tokens' },
+  { cron: '45 3 * * *' },
+  async ({ step }) => {
+    const result = await step.run('delete-expired', async () => {
+      return prisma.passwordResetToken.deleteMany({
+        where: {
+          OR: [
+            { expiresAt: { lt: new Date() } },
+            { usedAt: { not: null } },
+          ],
+        },
+      })
+    })
+
+    console.log(`Cleaned up ${result.count} expired/used password reset tokens`)
+    return { deleted: result.count }
+  }
+)
+
 // Export all functions (processSearch + crons)
 export const functions = [
   processSearch,
@@ -180,4 +201,5 @@ export const functions = [
   cleanupPendingPurchases,
   anonymizePurchases,
   abandonmentEmailSequence,
+  cleanupPasswordResetTokens,
 ]

@@ -25,7 +25,7 @@ describe('Inngest functions export', () => {
     expect(functions).toContain(abandonmentEmailSequence)
   })
 
-  it('should have exactly 6 functions (4 crons + processSearch + abandonmentEmailSequence)', () => {
-    expect(functions).toHaveLength(6)
+  it('should have exactly 7 functions (5 crons + processSearch + abandonmentEmailSequence)', () => {
+    expect(functions).toHaveLength(7)
   })
 })
