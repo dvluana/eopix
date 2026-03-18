@@ -238,7 +238,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Razão social: [A DEFINIR]
+              Razão social: EROS &amp; CO NEGOCIOS LTDA
             </p>
             <p
               style={{
@@ -249,7 +249,7 @@ export default function Page() {
                 margin: '12px 0 0 0',
               }}
             >
-              CNPJ: [A DEFINIR]
+              CNPJ: 65.462.245/0001-86
             </p>
             <p
               style={{
@@ -260,7 +260,7 @@ export default function Page() {
                 margin: '12px 0 0 0',
               }}
             >
-              Endereço: [A DEFINIR], Florianópolis/SC
+              Endereço: Av. Brigadeiro Faria Lima, 1811, Apt. 1119, Jardim Paulistano, São Paulo/SP, CEP 01452-001
             </p>
             <p
               style={{

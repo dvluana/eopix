@@ -131,7 +131,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              E O PIX? é um serviço oferecido por [A DEFINIR], inscrita no CNPJ sob o nº [A DEFINIR], com sede em [A DEFINIR], Florianópolis/SC.
+              E O PIX? é um serviço oferecido por EROS &amp; CO NEGOCIOS LTDA, inscrita no CNPJ sob o nº 65.462.245/0001-86, com sede na Av. Brigadeiro Faria Lima, 1811, Apt. 1119, Jardim Paulistano, São Paulo/SP, CEP 01452-001.
             </p>
             <p
               style={{
@@ -881,7 +881,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Fica eleito o foro da comarca de Florianópolis/SC para dirimir quaisquer controvérsias, sem prejuízo do direito do consumidor de ajuizar ação no foro de seu domicílio, conforme Art. 101, I do CDC.
+              Fica eleito o foro da comarca de São Paulo/SP para dirimir quaisquer controvérsias, sem prejuízo do direito do consumidor de ajuizar ação no foro de seu domicílio, conforme Art. 101, I do CDC.
             </p>
           </section>
 

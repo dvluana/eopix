@@ -135,7 +135,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Esta Politica se aplica ao servico <strong style={{ color: 'var(--color-text-primary)' }}>E O PIX?</strong>, operado por <strong style={{ color: 'var(--color-text-primary)' }}>[A DEFINIR]</strong>, inscrita no CNPJ sob o n. <strong style={{ color: 'var(--color-text-primary)' }}>[A DEFINIR]</strong>, com sede em <strong style={{ color: 'var(--color-text-primary)' }}>[A DEFINIR]</strong>, Florianopolis/SC.
+              Esta Politica se aplica ao servico <strong style={{ color: 'var(--color-text-primary)' }}>E O PIX?</strong>, operado por <strong style={{ color: 'var(--color-text-primary)' }}>EROS &amp; CO NEGOCIOS LTDA</strong>, inscrita no CNPJ sob o n. <strong style={{ color: 'var(--color-text-primary)' }}>65.462.245/0001-86</strong>, com sede na <strong style={{ color: 'var(--color-text-primary)' }}>Av. Brigadeiro Faria Lima, 1811, Apt. 1119, Jardim Paulistano, São Paulo/SP, CEP 01452-001</strong>.
             </p>
             <p
               style={{
