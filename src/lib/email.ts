@@ -441,10 +441,10 @@ export async function sendPurchaseDeniedEmail(
         <td style="padding:40px 40px 32px;">
 
           <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#1A1A1A;line-height:1.1;">
-            Não conseguimos processar.
+            Não conseguimos completar sua consulta.
           </h2>
           <p style="margin:0 0 28px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
-            Olá, ${firstName}. Identificamos um problema durante o processamento do pedido abaixo. Isso pode ter ocorrido por instabilidade temporária em uma das fontes de dados.
+            Olá, ${firstName}. Algo deu errado no processamento do pedido <strong style="color:#1A1A1A;">${code}</strong>. Isso não foi um problema seu — tentamos novamente e não conseguimos.
           </p>
 
           <!-- Code box (red accent) -->
@@ -491,8 +491,8 @@ export async function sendPurchaseDeniedEmail(
 
       ${emailDivider()}
       ${emailFooter([
-        '🔁 Nossa equipe já foi notificada e irá investigar o ocorrido.',
         'Pedimos desculpas pelo inconveniente.',
+        'Se o problema persistir após tentar de novo, responda este email.',
       ])}
 
     </table>
@@ -557,12 +557,77 @@ export async function sendPurchaseRefundedEmail(
   })
 }
 
-// ─── 6. Abandono R1 — 30 minutos ─────────────────────────────────────────────
+// ─── 6. Pedido expirado (PAYMENT_EXPIRED) ────────────────────────────────────
+
+export async function sendPurchaseExpiredEmail(
+  email: string,
+  name: string,
+  code: string,
+  term: string,
+  purchaseId = ''
+): Promise<SendEmailResponse> {
+  const firstName = name?.split(' ')[0] || 'você'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
+  const formattedTerm = term.length === 11
+    ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+    : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+
+  const html = emailShell(`
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+      style="max-width:600px;margin:0 auto;background-color:#FFFFFF;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
+
+      ${emailHeader('PEDIDO EXPIRADO', '#888888', '#FFFFFF')}
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:40px 40px 32px;">
+
+          <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#1A1A1A;line-height:1.1;">
+            Seu pedido saiu de campo.
+          </h2>
+          <p style="margin:0 0 16px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
+            Olá, ${firstName}. O pedido <strong style="color:#1A1A1A;">${code}</strong> expirou antes de ser pago — ficamos aguardando, mas o Pix não chegou.
+          </p>
+          <p style="margin:0 0 32px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
+            Acontece. A consulta para <strong style="color:#1A1A1A;">${formattedTerm}</strong> continua disponível a qualquer momento.
+          </p>
+
+          <!-- CTA -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="text-align:center;">
+                ${ctaButton(`${appUrl}/consulta/${term}`, 'CONSULTAR AGORA', '#FFD600', '#1A1A1A')}
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+
+      ${emailDivider()}
+      ${emailFooter([
+        'Nenhuma cobrança foi realizada.',
+        'Dúvidas? Responda este email.',
+      ])}
+
+    </table>
+  `)
+
+  return sendEmail({
+    to: email,
+    subject: 'Seu pedido expirou.',
+    html,
+    ...(purchaseId ? { idempotencyKey: `purchase-expired/${purchaseId}` } : {}),
+  })
+}
+
+// ─── 7. Abandono R1 — 30 minutos ─────────────────────────────────────────────
 
 export async function sendAbandonmentEmail1(
   email: string,
   name: string,
-  term: string
+  term: string,
+  purchaseId = ''
 ): Promise<SendEmailResponse> {
   const firstName = name?.split(' ')[0] || 'você'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
@@ -614,15 +679,17 @@ export async function sendAbandonmentEmail1(
     to: email,
     subject: 'Você quase se protegeu.',
     html,
+    ...(purchaseId ? { idempotencyKey: `abandonment-r1/${purchaseId}` } : {}),
   })
 }
 
-// ─── 7. Abandono R2 — 24 horas ────────────────────────────────────────────────
+// ─── 8. Abandono R2 — 24 horas ────────────────────────────────────────────────
 
 export async function sendAbandonmentEmail2(
   email: string,
   name: string,
-  term: string
+  term: string,
+  purchaseId = ''
 ): Promise<SendEmailResponse> {
   const firstName = name?.split(' ')[0] || 'você'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
@@ -652,7 +719,10 @@ export async function sendAbandonmentEmail2(
             <tr>
               <td style="padding:20px 24px;">
                 <p style="margin:0 0 10px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888888;">Você vai descobrir</p>
-                ${['Processos judiciais ativos', 'Dívidas e negativações', 'Reclamações no Reclame Aqui', 'Notícias comprometedoras'].map(item => `
+                ${(term.length === 11
+                  ? ['Processos trabalhistas ativos', 'Dívidas e negativações Serasa', 'Ações cíveis em andamento', 'Reclamações e menções públicas']
+                  : ['Processos fiscais e trabalhistas', 'Sócios com pendências judiciais', 'Situação cadastral na Receita Federal', 'Reclamações no Reclame Aqui']
+                ).map(item => `
                   <p style="margin:0 0 6px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:13px;color:#1A1A1A;">→ ${item}</p>
                 `).join('')}
               </td>
