@@ -5,6 +5,14 @@ export interface CreateCheckoutParams {
   externalRef: string // purchase code — set as checkout externalId, echoed in webhook
   successUrl: string
   cancelUrl: string
+  customerId?: string // pre-fills buyer form at AbacatePay checkout
+}
+
+export interface CustomerParams {
+  name: string
+  email: string
+  taxId: string   // buyer's CPF/CNPJ (deduplicates customer at AbacatePay)
+  cellphone?: string
 }
 
 export interface CheckoutResponse {
@@ -16,6 +24,44 @@ export interface RefundResponse {
   success: boolean
   refundId?: string
   message?: string
+}
+
+// Creates or retrieves a customer by taxId (AbacatePay deduplicates by taxId).
+// Returns customerId on success, null on failure (non-critical — checkout works without it).
+export async function createOrGetCustomer(params: CustomerParams): Promise<string | null> {
+  if (isBypassPayment) return null
+
+  const apiKey = process.env.ABACATEPAY_API_KEY
+  if (!apiKey) return null
+
+  try {
+    const res = await fetch('https://api.abacatepay.com/v2/customers/create', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: params.name,
+        email: params.email,
+        taxId: params.taxId,
+        ...(params.cellphone ? { cellphone: params.cellphone } : {}),
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok || !data.success || !data.data?.id) {
+      console.warn('[AbacatePay] Customer create failed:', data.error || res.status)
+      return null
+    }
+
+    console.log('[AbacatePay] Customer ready:', data.data.id)
+    return data.data.id as string
+  } catch (err) {
+    console.warn('[AbacatePay] Customer create error:', err)
+    return null
+  }
 }
 
 export async function createCheckout(
@@ -43,6 +89,7 @@ export async function createCheckout(
   console.log('[AbacatePay] Creating checkout v2:', {
     externalRef: params.externalRef,
     productId,
+    customerId: params.customerId || null,
     completionUrl: params.successUrl,
     returnUrl: params.cancelUrl,
   })
@@ -53,6 +100,7 @@ export async function createCheckout(
     methods: ['PIX', 'CARD'],
     completionUrl: params.successUrl,
     returnUrl: params.cancelUrl,
+    ...(params.customerId ? { customerId: params.customerId } : {}),
   }
 
   const res = await fetch('https://api.abacatepay.com/v2/checkouts/create', {

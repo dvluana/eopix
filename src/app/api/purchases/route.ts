@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/prisma'
 import { createCheckout, getPaymentProvider } from '@/lib/payment'
+import { createOrGetCustomer } from '@/lib/abacatepay'
 import { getSession, isAdminEmail } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument, formatDocument } from '@/lib/validators'
@@ -294,10 +295,25 @@ export async function POST(request: NextRequest) {
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
+      // Pre-fill AbacatePay checkout form with buyer data (requires name + email + taxId)
+      const buyerName = name || user.name
+      const buyerTaxIdResolved = buyerTaxId || user.taxId
+      let customerId: string | undefined
+      if (buyerName && buyerTaxIdResolved) {
+        const custId = await createOrGetCustomer({
+          name: buyerName,
+          email: userEmail,
+          taxId: buyerTaxIdResolved,
+          cellphone: cellphone || user.cellphone || undefined,
+        })
+        if (custId) customerId = custId
+      }
+
       const { sessionId, checkoutUrl } = await createCheckout({
         externalRef: code,
         successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
         cancelUrl: `${appUrl}/`,
+        ...(customerId ? { customerId } : {}),
       })
 
       console.log(`[${provider}] Checkout session created:`, { code, sessionId })
