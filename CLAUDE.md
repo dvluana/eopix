@@ -2,7 +2,7 @@
 
 ## Contexto do Projeto
 
-SaaS brasileiro de relatório CPF/CNPJ com compra única (R$29,90). Fluxo: AbacatePay → Inngest async → APIFull + Serper + OpenAI → relatório consolidado (TTL 7 dias).
+SaaS brasileiro de relatório CPF/CNPJ com compra única (R$39,90). Fluxo: AbacatePay → Inngest async → APIFull + Serper + OpenAI → relatório consolidado (TTL 7 dias).
 
 ## Stack & Modos
 

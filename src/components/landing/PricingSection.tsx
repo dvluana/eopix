@@ -20,10 +20,10 @@ export default function PricingSection({ onCtaClick }: PricingSectionProps) {
             <div className="pricing-card__label">Pacote 5 consultas</div>
             <p className="pricing-card__audience">Para freelancers e pequenos escritórios</p>
             <div className="pricing-card__value">
-              R$ 119<span className="pricing-card__value-small">,90</span>
+              R$ 149<span className="pricing-card__value-small">,90</span>
             </div>
             <p className="pricing-card__desc">&quot;Pra quem trabalha com vários clientes e já aprendeu que gente boa também dá calote.&quot;</p>
-            <p className="pricing-card__includes">5 relatórios &middot; R$ 23,98 por consulta</p>
+            <p className="pricing-card__includes">5 relatórios &middot; R$ 29,98 por consulta</p>
             <button className="pricing-card__cta" disabled>Em breve</button>
           </div>
 
@@ -31,7 +31,7 @@ export default function PricingSection({ onCtaClick }: PricingSectionProps) {
             <div className="pricing-card__label">Consulta avulsa</div>
             <p className="pricing-card__audience">Para autônomos e freelancers</p>
             <div className="pricing-card__value">
-              R$ 29<span className="pricing-card__value-small">,90</span>
+              R$ 39<span className="pricing-card__value-small">,90</span>
             </div>
             <p className="pricing-card__desc">&quot;Pra aquele contrato que você tá quase fechando com um pressentimento estranho.&quot;</p>
             <p className="pricing-card__includes">Relatório completo &middot; Fontes linkadas &middot; Válido por 7 dias</p>
@@ -42,10 +42,10 @@ export default function PricingSection({ onCtaClick }: PricingSectionProps) {
             <div className="pricing-card__label">Pacote 15 consultas</div>
             <p className="pricing-card__audience">Para agências, escritórios e estúdios</p>
             <div className="pricing-card__value">
-              R$ 299<span className="pricing-card__value-small">,90</span>
+              R$ 349<span className="pricing-card__value-small">,90</span>
             </div>
             <p className="pricing-card__desc">&quot;Pra agência, escritório ou qualquer um que já cansou de ouvir &apos;semana que vem eu pago&apos;.&quot;</p>
-            <p className="pricing-card__includes">15 relatórios &middot; R$ 19,99 por consulta</p>
+            <p className="pricing-card__includes">15 relatórios &middot; R$ 23,33 por consulta</p>
             <button className="pricing-card__cta" disabled>Em breve</button>
           </div>
         </div>

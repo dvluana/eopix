@@ -4,7 +4,7 @@ title: "Arquitetura"
 
 > **Última atualização:** 2026-03-07
 > **Stack:** Next.js 14 · TypeScript · Prisma/Neon · AbacatePay · Inngest · OpenAI · APIFull · Serper
-> **Preço:** R$ 29,90 (one-time purchase)
+> **Preço:** R$ 39,90 (one-time purchase)
 
 ---
 
@@ -55,7 +55,7 @@ sequenceDiagram
     alt LIVE
         Frontend->>Payment: Redireciona para<br/>AbacatePay billing
         activate Payment
-        User->>Payment: Paga R$ 29,90 (PIX/cartão)
+        User->>Payment: Paga R$ 39,90 (PIX/cartão)
         Payment-->>User: ✓ Pagamento confirmado
         deactivate Payment
         Payment->>Webhook: POST /api/webhooks/abacatepay<br/>(billing.paid)

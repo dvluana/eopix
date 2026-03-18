@@ -6,8 +6,8 @@ Referencia tecnica de custo aproximado por consulta e pipeline atual.
 
 ## 1. Preco De Venda
 
-- `PRICE_CENTS=2990`
-- Preco final: R$ 29,90
+- `PRICE_CENTS=3990`
+- Preco final: R$ 39,90
 
 ## 2. Custo Estimado Por Consulta (CPF)
 
