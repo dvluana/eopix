@@ -2,17 +2,13 @@ import crypto from 'node:crypto'
 import { isBypassPayment } from './mock-mode'
 
 export interface CreateCheckoutParams {
-  externalRef: string // purchase code
+  externalRef: string // purchase code — set as checkout externalId, echoed in webhook
   successUrl: string
   cancelUrl: string
-  customerName?: string
-  customerEmail?: string
-  customerCellphone?: string
-  customerTaxId?: string
 }
 
 export interface CheckoutResponse {
-  sessionId: string
+  sessionId: string  // AbacatePay checkout id (bill_xxx) — stored in paymentExternalId
   checkoutUrl: string
 }
 
@@ -20,16 +16,6 @@ export interface RefundResponse {
   success: boolean
   refundId?: string
   message?: string
-}
-
-/** Strip non-digits from cellphone for AbacatePay v1 (digits only) */
-function formatCellphoneForAbacatePay(phone: string): string {
-  return phone.replace(/\D/g, '')
-}
-
-/** Strip non-digits from taxId for AbacatePay v1 (digits only) */
-function formatTaxIdForAbacatePay(taxId: string): string {
-  return taxId.replace(/\D/g, '')
 }
 
 export async function createCheckout(
@@ -49,39 +35,27 @@ export async function createCheckout(
     throw new Error('ABACATEPAY_API_KEY is not configured')
   }
 
-  const priceCents = parseInt(process.env.PRICE_CENTS || '2990', 10)
+  const productId = process.env.ABACATEPAY_PRODUCT_ID
+  if (!productId) {
+    throw new Error('ABACATEPAY_PRODUCT_ID is not configured')
+  }
 
-  console.log('[AbacatePay] Creating billing:', {
+  console.log('[AbacatePay] Creating checkout v2:', {
     externalRef: params.externalRef,
-    priceCents,
+    productId,
     completionUrl: params.successUrl,
     returnUrl: params.cancelUrl,
-    customerName: params.customerName,
-    customerEmail: params.customerEmail,
   })
 
   const body = {
-    frequency: 'ONE_TIME',
+    items: [{ id: productId, quantity: 1 }],
+    externalId: params.externalRef,
     methods: ['PIX', 'CARD'],
-    products: [
-      {
-        externalId: 'relatorio-risco',
-        name: 'Relatório de Risco CPF/CNPJ',
-        quantity: 1,
-        price: priceCents,
-      },
-    ],
     completionUrl: params.successUrl,
     returnUrl: params.cancelUrl,
-    customer: {
-      name: params.customerName || 'Cliente EOPIX',
-      email: params.customerEmail || 'noreply@eopix.app',
-      cellphone: formatCellphoneForAbacatePay(params.customerCellphone || '00000000000'),
-      taxId: formatTaxIdForAbacatePay(params.customerTaxId || '00000000191'),
-    },
   }
 
-  const res = await fetch('https://api.abacatepay.com/v1/billing/create', {
+  const res = await fetch('https://api.abacatepay.com/v2/checkouts/create', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -94,15 +68,15 @@ export async function createCheckout(
 
   if (!res.ok || !responseData.success || !responseData.data) {
     const errorDetail = JSON.stringify(responseData)
-    console.error(`[AbacatePay] Billing error: status=${res.status} body=${errorDetail}`)
+    console.error(`[AbacatePay] Checkout error: status=${res.status} body=${errorDetail}`)
     const errorMsg = responseData.error || `HTTP ${res.status}`
-    throw new Error(`AbacatePay billing error: ${errorMsg}`)
+    throw new Error(`AbacatePay checkout error: ${errorMsg}`)
   }
 
   const { data } = responseData
 
-  console.log('[AbacatePay] Billing created:', {
-    billingId: data.id,
+  console.log('[AbacatePay] Checkout created:', {
+    checkoutId: data.id,
     hasUrl: !!data.url,
   })
 
