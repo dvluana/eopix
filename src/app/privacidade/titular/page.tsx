@@ -317,7 +317,7 @@ export default function Page() {
               margin: '0 0 24px 0',
             }}
           >
-            Última atualização: Fevereiro 2026
+            Última atualização: Março 2026
           </p>
 
           <p

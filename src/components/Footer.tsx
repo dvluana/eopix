@@ -19,7 +19,8 @@ export default function Footer() {
         <ul className="footer__links">
           <li><Link href="/termos" className="footer__link">Termos de uso</Link></li>
           <li><Link href="/privacidade" className="footer__link">Política de privacidade</Link></li>
-          <li><a href="mailto:plataforma@somoseopix.com.br" className="footer__link">Contato</a></li>
+          <li><Link href="/privacidade/titular" className="footer__link">Direitos do Titular</Link></li>
+          <li><Link href="/contato" className="footer__link">Contato</Link></li>
         </ul>
         <p className="footer__copy">
           © 2026 E o Pix? — Todos os direitos reservados.

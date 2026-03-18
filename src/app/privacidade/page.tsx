@@ -84,8 +84,19 @@ export default function Page() {
               margin: '0 0 8px 0',
             }}
           >
-            Política de Privacidade
+            Politica de Privacidade
           </h1>
+
+          <p
+            style={{
+              fontFamily: 'var(--font-family-body)',
+              fontSize: '12px',
+              color: 'var(--color-text-tertiary)',
+              margin: '0 0 4px 0',
+            }}
+          >
+            Ultima atualizacao: Marco 2026
+          </p>
 
           <p
             style={{
@@ -95,13 +106,13 @@ export default function Page() {
               margin: '0 0 32px 0',
             }}
           >
-            Última atualização: Fevereiro 2026
+            Em conformidade com a Lei n. 13.709/2018 (LGPD)
           </p>
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-subtle)', margin: '0 0 32px 0' }} />
 
           {/* ============================================ */}
-          {/* Quem Somos */}
+          {/* 1. Quem Somos (Controladora) */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -113,7 +124,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Quem Somos
+              1. Quem Somos (Controladora)
             </h3>
             <p
               style={{
@@ -124,7 +135,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Esta Política de Privacidade se aplica ao serviço <strong style={{ color: 'var(--color-text-primary)' }}>E O PIX?</strong>, operado por <strong style={{ color: 'var(--color-text-primary)' }}>[RAZÃO SOCIAL COMPLETA]</strong>, inscrita no CNPJ sob o nº <strong style={{ color: 'var(--color-text-primary)' }}>[XX.XXX.XXX/XXXX-XX]</strong>, com sede na <strong style={{ color: 'var(--color-text-primary)' }}>[ENDEREÇO COMPLETO]</strong>, Florianópolis/SC.
+              Esta Politica se aplica ao servico <strong style={{ color: 'var(--color-text-primary)' }}>E O PIX?</strong>, operado por <strong style={{ color: 'var(--color-text-primary)' }}>[A DEFINIR]</strong>, inscrita no CNPJ sob o n. <strong style={{ color: 'var(--color-text-primary)' }}>[A DEFINIR]</strong>, com sede em <strong style={{ color: 'var(--color-text-primary)' }}>[A DEFINIR]</strong>, Florianopolis/SC.
             </p>
             <p
               style={{
@@ -135,12 +146,12 @@ export default function Page() {
                 margin: '12px 0 0 0',
               }}
             >
-              Para fins da Lei Geral de Proteção de Dados (LGPD — Lei 13.709/2018), atuamos como <strong style={{ color: 'var(--color-text-primary)' }}>Controlador de Dados</strong> tanto em relação aos dados dos compradores quanto aos dados de terceiros consultados.
+              Para fins da LGPD, atuamos como <strong style={{ color: 'var(--color-text-primary)' }}>Controlador de Dados</strong> tanto em relacao aos dados dos compradores quanto aos dados de terceiros consultados.
             </p>
           </section>
 
           {/* ============================================ */}
-          {/* Encarregado de Dados (DPO) */}
+          {/* 2. Encarregado de Dados (DPO) */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -152,7 +163,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Encarregado de Dados (DPO)
+              2. Encarregado de Dados (DPO)
             </h3>
             <p
               style={{
@@ -163,7 +174,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              O canal de contato do Encarregado pelo Tratamento de Dados Pessoais é:
+              Nos termos do art. 41 da LGPD, o canal de contato do Encarregado pelo Tratamento de Dados Pessoais e:
             </p>
             <p
               style={{
@@ -194,12 +205,12 @@ export default function Page() {
                 margin: '12px 0 0 0',
               }}
             >
-              Este canal atende solicitações de titulares de dados, dúvidas sobre tratamento de dados pessoais e comunicações da Autoridade Nacional de Proteção de Dados (ANPD).
+              O Encarregado e responsavel por aceitar reclamacoes e comunicacoes dos titulares de dados, receber comunicacoes da ANPD, e orientar sobre as praticas de protecao de dados pessoais.
             </p>
           </section>
 
           {/* ============================================ */}
-          {/* Dados que Coletamos */}
+          {/* 3. Base Legal para Tratamento de Dados */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -211,7 +222,61 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Dados que Coletamos
+              3. Base Legal para Tratamento de Dados
+            </h3>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+              }}
+            >
+              O tratamento encontra fundamento na LGPD:
+            </p>
+            <ul
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+                paddingLeft: '20px',
+              }}
+            >
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Art. 7., V -- execucao contratual</strong>, para prestacao do servico de consulta</li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Art. 7., IX -- legitimo interesse</strong>, para consulta informacional, analise de risco, diligencia previa e verificacao cadastral</li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Art. 7., X -- protecao ao credito</strong>, para informacoes crediticias de bureaus autorizados</li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Art. 7., II -- cumprimento de obrigacao legal ou regulatoria</strong>, quando aplicavel</li>
+            </ul>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: 0,
+              }}
+            >
+              A utilizacao da plataforma pressupoe que o usuario possua finalidade legitima para a consulta.
+            </p>
+          </section>
+
+          {/* ============================================ */}
+          {/* 4. Dados que Coletamos */}
+          {/* ============================================ */}
+          <section style={{ marginBottom: '32px' }}>
+            <h3
+              style={{
+                fontFamily: 'var(--font-family-heading)',
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                margin: '0 0 12px 0',
+              }}
+            >
+              4. Dados que Coletamos
             </h3>
             <p
               style={{
@@ -222,7 +287,7 @@ export default function Page() {
                 margin: '0 0 16px 0',
               }}
             >
-              Coletamos apenas os dados necessários para prestar o serviço. Existem duas categorias distintas:
+              Coletamos apenas os dados necessarios para prestar o servico. Existem duas categorias:
             </p>
 
             {/* Dados do Comprador */}
@@ -235,7 +300,7 @@ export default function Page() {
                 margin: '0 0 8px 0',
               }}
             >
-              Dados do Comprador (você, que usa o serviço)
+              Dados do Comprador (voce, que usa o servico)
             </h4>
             <div style={{ overflowX: 'auto' }}>
               <table style={tableStyles.table}>
@@ -249,23 +314,28 @@ export default function Page() {
                 <tbody>
                   <tr>
                     <td style={tableStyles.td}>E-mail</td>
-                    <td style={tableStyles.td}>Autenticação, notificações, entrega do relatório</td>
-                    <td style={tableStyles.td}>Execução contratual (Art. 7º, V)</td>
+                    <td style={tableStyles.td}>Autenticacao, notificacoes, acesso ao relatorio</td>
+                    <td style={tableStyles.td}>Execucao contratual (Art. 7., V)</td>
+                  </tr>
+                  <tr>
+                    <td style={tableStyles.td}>Senha (hash)</td>
+                    <td style={tableStyles.td}>Autenticacao segura da conta</td>
+                    <td style={tableStyles.td}>Execucao contratual (Art. 7., V)</td>
                   </tr>
                   <tr>
                     <td style={tableStyles.td}>CPF ou CNPJ consultado</td>
-                    <td style={tableStyles.td}>Identificação do alvo da consulta</td>
-                    <td style={tableStyles.td}>Execução contratual (Art. 7º, V)</td>
+                    <td style={tableStyles.td}>Identificacao do alvo da consulta</td>
+                    <td style={tableStyles.td}>Execucao contratual (Art. 7., V)</td>
                   </tr>
                   <tr>
                     <td style={tableStyles.td}>Nome do comprador</td>
-                    <td style={tableStyles.td}>Identificação (coletado pelo Stripe)</td>
-                    <td style={tableStyles.td}>Execução contratual (Art. 7º, V)</td>
+                    <td style={tableStyles.td}>Identificacao e processamento de pagamento</td>
+                    <td style={tableStyles.td}>Execucao contratual (Art. 7., V)</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}>Endereço IP</td>
-                    <td style={tableStyles.td}>Rate limiting e proteção contra bots</td>
-                    <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX)</td>
+                    <td style={tableStyles.td}>Endereco IP</td>
+                    <td style={tableStyles.td}>Rate limiting, protecao contra bots e auditoria</td>
+                    <td style={tableStyles.td}>Legitimo Interesse (Art. 7., IX)</td>
                   </tr>
                 </tbody>
               </table>
@@ -294,29 +364,29 @@ export default function Page() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td style={tableStyles.td}>Dados cadastrais de CNPJ</td>
-                    <td style={tableStyles.td}>APIFull</td>
-                    <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX) — dados manifestamente públicos</td>
+                    <td style={tableStyles.td}>Dados cadastrais (CPF/CNPJ)</td>
+                    <td style={tableStyles.td}>APIFull (provedor de dados licenciado)</td>
+                    <td style={tableStyles.td}>Legitimo Interesse (Art. 7., IX) -- dados manifestamente publicos</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}>Protestos, dívidas, situação cadastral</td>
+                    <td style={tableStyles.td}>Protestos, dividas, situacao cadastral</td>
                     <td style={tableStyles.td}>APIFull</td>
-                    <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX)</td>
+                    <td style={tableStyles.td}>Legitimo Interesse (Art. 7., IX) / Protecao ao credito (Art. 7., X)</td>
                   </tr>
                   <tr>
                     <td style={tableStyles.td}>Processos judiciais</td>
                     <td style={tableStyles.td}>APIFull</td>
-                    <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX) — dados públicos de tribunais</td>
+                    <td style={tableStyles.td}>Legitimo Interesse (Art. 7., IX) -- dados publicos de tribunais</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}>Menções na web e Reclame Aqui</td>
-                    <td style={tableStyles.td}>Serper</td>
-                    <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX)</td>
+                    <td style={tableStyles.td}>Mencoes na web</td>
+                    <td style={tableStyles.td}>Serper (busca na web)</td>
+                    <td style={tableStyles.td}>Legitimo Interesse (Art. 7., IX)</td>
                   </tr>
                   <tr>
                     <td style={tableStyles.td}>Resumo textual gerado por IA</td>
                     <td style={tableStyles.td}>OpenAI GPT-4o-mini</td>
-                    <td style={tableStyles.td}>Legítimo Interesse (Art. 7º, IX)</td>
+                    <td style={tableStyles.td}>Legitimo Interesse (Art. 7., IX)</td>
                   </tr>
                 </tbody>
               </table>
@@ -331,7 +401,7 @@ export default function Page() {
                 margin: '16px 0 0 0',
               }}
             >
-              <strong style={{ color: 'var(--color-text-primary)' }}>Importante:</strong> Os dados de terceiros são obtidos exclusivamente de fontes públicas. Não coletamos dados diretamente dos titulares consultados. O tratamento é baseado no <strong style={{ color: 'var(--color-text-primary)' }}>Legítimo Interesse</strong> do controlador e dos usuários do serviço, que necessitam verificar a reputação comercial de parceiros antes de relações contratuais.
+              <strong style={{ color: 'var(--color-text-primary)' }}>Importante:</strong> Os dados de terceiros sao obtidos exclusivamente de fontes publicas ou licenciadas. Nao coletamos dados diretamente dos titulares consultados. Um Relatorio de Impacto a Protecao de Dados Pessoais (RIPD) foi elaborado e esta documentado internamente, conforme art. 38 da LGPD.
             </p>
             <p
               style={{
@@ -342,143 +412,7 @@ export default function Page() {
                 margin: '12px 0 0 0',
               }}
             >
-              Um <strong style={{ color: 'var(--color-text-primary)' }}>Legitimate Interest Assessment (LIA)</strong> foi elaborado e está documentado internamente, demonstrando que o tratamento é necessário, proporcional e respeita os direitos e liberdades dos titulares.
-            </p>
-            <p
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: '12px 0 0 0',
-              }}
-            >
-              <strong style={{ color: 'var(--color-text-primary)' }}>Os terceiros consultados podem exercer seus direitos</strong> (exclusão, correção, oposição ao tratamento) através da página{' '}
-              <a
-                href="/privacidade/titular"
-                style={{
-                  color: 'var(--color-text-primary)',
-                  textDecoration: 'underline',
-                }}
-              >
-                Direitos do Titular
-              </a>
-              , independentemente de terem sido clientes do serviço.
-            </p>
-          </section>
-
-          {/* ============================================ */}
-          {/* Fontes de Dados Públicos Consultadas */}
-          {/* ============================================ */}
-          <section style={{ marginBottom: '32px' }}>
-            <h3
-              style={{
-                fontFamily: 'var(--font-family-heading)',
-                fontSize: '18px',
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                margin: '0 0 12px 0',
-              }}
-            >
-              Fontes de Dados Públicos Consultadas
-            </h3>
-            <p
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: '0 0 12px 0',
-              }}
-            >
-              Para gerar o relatório, consultamos as seguintes fontes públicas:
-            </p>
-            <ul
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: '0 0 12px 0',
-                paddingLeft: '20px',
-              }}
-            >
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>APIFull:</strong> dados cadastrais (CPF/CNPJ), protestos, dívidas, situação fiscal/cadastral e processos judiciais</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Serper:</strong> menções na web e perfil no Reclame Aqui</li>
-            </ul>
-            <p
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: 0,
-              }}
-            >
-              Nenhuma dessas fontes recebe o e-mail ou dados pessoais do comprador.
-            </p>
-          </section>
-
-          {/* ============================================ */}
-          {/* Uso de Inteligência Artificial */}
-          {/* ============================================ */}
-          <section style={{ marginBottom: '32px' }}>
-            <h3
-              style={{
-                fontFamily: 'var(--font-family-heading)',
-                fontSize: '18px',
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                margin: '0 0 12px 0',
-              }}
-            >
-              Uso de Inteligência Artificial e Decisões Automatizadas
-            </h3>
-            <p
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: '0 0 12px 0',
-              }}
-            >
-              O serviço utiliza o modelo de linguagem <strong style={{ color: 'var(--color-text-primary)' }}>GPT-4o-mini (OpenAI)</strong> para duas finalidades:
-            </p>
-            <ol
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: '0 0 12px 0',
-                paddingLeft: '20px',
-              }}
-            >
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Geração de resumo factual:</strong> A IA lê os dados encontrados nas fontes públicas e gera um resumo textual de 2-3 frases, sem emitir juízo de valor, recomendações ou avaliações de risco.</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Filtragem de homônimos:</strong> A IA utiliza a região do CPF/CNPJ consultado para descartar menções e notícias que provavelmente se referem a outras pessoas com nome semelhante.</li>
-            </ol>
-            <p
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: '0 0 12px 0',
-              }}
-            >
-              <strong style={{ color: 'var(--color-text-primary)' }}>Não há tomada de decisão automatizada com efeitos legais</strong> para o titular dos dados consultados. Os ícones de clima (☀️/🌧️) são baseados em contagem numérica simples (0 ocorrências = Sol, 1+ = Chuva), não em avaliação da IA.
-            </p>
-            <p
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: 0,
-              }}
-            >
-              O titular pode contestar os resultados da filtragem por IA através da página{' '}
+              <strong style={{ color: 'var(--color-text-primary)' }}>Os terceiros consultados podem exercer seus direitos</strong> atraves da pagina{' '}
               <a
                 href="/privacidade/titular"
                 style={{
@@ -493,7 +427,7 @@ export default function Page() {
           </section>
 
           {/* ============================================ */}
-          {/* Transferência Internacional de Dados */}
+          {/* 5. Ausencia de Banco de Dados Proprio */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -505,7 +439,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Transferência Internacional de Dados
+              5. Ausencia de Banco de Dados Proprio
             </h3>
             <p
               style={{
@@ -516,18 +450,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Para a geração do resumo por inteligência artificial, dados são enviados aos servidores da <strong style={{ color: 'var(--color-text-primary)' }}>OpenAI</strong>, localizados nos <strong style={{ color: 'var(--color-text-primary)' }}>Estados Unidos</strong>. Os dados enviados incluem: nome descoberto nas fontes públicas, dados financeiros resumidos, processos encontrados e menções na web.
-            </p>
-            <p
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: '0 0 12px 0',
-              }}
-            >
-              Essa transferência é realizada com base em <strong style={{ color: 'var(--color-text-primary)' }}>cláusulas contratuais</strong> da OpenAI que estabelecem padrões adequados de proteção de dados, em conformidade com o Art. 33 da LGPD e a Resolução CD/ANPD nº 19/2024.
+              A EOPIX nao constitui nem mantem banco de dados proprio contendo informacoes pessoais consultaveis. Os relatorios sao gerados em tempo real, mediante requisicao automatizada as bases externas, permanecendo tais informacoes sob responsabilidade de seus provedores originarios.
             </p>
             <p
               style={{
@@ -538,12 +461,12 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Nenhum dado pessoal do comprador (e-mail, CPF do comprador) é enviado à OpenAI.
+              A plataforma mantem apenas registros tecnicos minimos indispensaveis a operacao e seguranca (logs de acesso, autenticacao e auditoria).
             </p>
           </section>
 
           {/* ============================================ */}
-          {/* Compartilhamento com Terceiros */}
+          {/* 6. Ausencia de Perfilhamento Automatizado */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -555,7 +478,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Compartilhamento com Terceiros
+              6. Ausencia de Perfilhamento Automatizado
             </h3>
             <p
               style={{
@@ -566,8 +489,113 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Compartilhamos dados estritamente necessários com:
+              A plataforma nao realiza decisoes automatizadas baseadas exclusivamente no tratamento de dados pessoais. Os dados <strong style={{ color: 'var(--color-text-primary)' }}>NAO</strong> sao utilizados para:
             </p>
+            <ul
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+                paddingLeft: '20px',
+              }}
+            >
+              <li>Criacao de score proprio</li>
+              <li>Perfilhamento comportamental</li>
+              <li>Classificacao autonoma de risco</li>
+              <li>Ranqueamento reputacional ou qualquer avaliacao automatizada</li>
+            </ul>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: 0,
+              }}
+            >
+              Os icones de clima (Sol/Chuva) sao baseados em contagem numerica simples (0 ocorrencias = Sol, 1+ = Chuva), nao em avaliacao de IA.
+            </p>
+          </section>
+
+          {/* ============================================ */}
+          {/* 7. Uso de Inteligencia Artificial */}
+          {/* ============================================ */}
+          <section style={{ marginBottom: '32px' }}>
+            <h3
+              style={{
+                fontFamily: 'var(--font-family-heading)',
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                margin: '0 0 12px 0',
+              }}
+            >
+              7. Uso de Inteligencia Artificial
+            </h3>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+              }}
+            >
+              O servico utiliza o modelo de linguagem <strong style={{ color: 'var(--color-text-primary)' }}>GPT-4o-mini (OpenAI)</strong> para duas finalidades:
+            </p>
+            <ol
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+                paddingLeft: '20px',
+              }}
+            >
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Geracao de resumo factual:</strong> A IA le os dados encontrados e gera um resumo de 2-3 frases, sem juizo de valor.</li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Filtragem de homonimos:</strong> A IA utiliza a regiao do CPF/CNPJ para descartar mencoes de pessoas com nome semelhante.</li>
+            </ol>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+              }}
+            >
+              <strong style={{ color: 'var(--color-text-primary)' }}>Nao ha tomada de decisao automatizada com efeitos legais.</strong> O titular pode contestar resultados atraves da pagina{' '}
+              <a
+                href="/privacidade/titular"
+                style={{
+                  color: 'var(--color-text-primary)',
+                  textDecoration: 'underline',
+                }}
+              >
+                Direitos do Titular
+              </a>
+              .
+            </p>
+          </section>
+
+          {/* ============================================ */}
+          {/* 8. Compartilhamento com Terceiros */}
+          {/* ============================================ */}
+          <section style={{ marginBottom: '32px' }}>
+            <h3
+              style={{
+                fontFamily: 'var(--font-family-heading)',
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                margin: '0 0 12px 0',
+              }}
+            >
+              8. Compartilhamento com Terceiros
+            </h3>
             <div style={{ overflowX: 'auto' }}>
               <table style={tableStyles.table}>
                 <thead>
@@ -579,33 +607,38 @@ export default function Page() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td style={tableStyles.td}><strong>Stripe</strong></td>
-                    <td style={tableStyles.td}>E-mail e nome do comprador</td>
-                    <td style={tableStyles.td}>Processamento de pagamento (Pix e cartão)</td>
+                    <td style={tableStyles.td}><strong>AbacatePay</strong></td>
+                    <td style={tableStyles.td}>E-mail e CPF/CNPJ do comprador</td>
+                    <td style={tableStyles.td}>Processamento de pagamento (Pix e cartao)</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}><strong>Brevo</strong></td>
-                    <td style={tableStyles.td}>E-mail do comprador</td>
-                    <td style={tableStyles.td}>Envio de e-mails transacionais (magic link e notificação de conclusão)</td>
+                    <td style={tableStyles.td}><strong>APIFull</strong></td>
+                    <td style={tableStyles.td}>CPF ou CNPJ consultado</td>
+                    <td style={tableStyles.td}>Consulta de dados cadastrais, financeiros e processuais</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}><strong>Neon</strong></td>
-                    <td style={tableStyles.td}>Todos os dados (armazenamento)</td>
-                    <td style={tableStyles.td}>Banco de dados PostgreSQL</td>
+                    <td style={tableStyles.td}><strong>Serper</strong></td>
+                    <td style={tableStyles.td}>Nome associado ao CPF/CNPJ</td>
+                    <td style={tableStyles.td}>Busca na web (mencoes e noticias)</td>
                   </tr>
                   <tr>
                     <td style={tableStyles.td}><strong>OpenAI</strong></td>
                     <td style={tableStyles.td}>Dados do consultado (sem dados do comprador)</td>
-                    <td style={tableStyles.td}>Geração de resumo por IA</td>
+                    <td style={tableStyles.td}>Geracao de resumo por IA</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}><strong>Plausible</strong></td>
-                    <td style={tableStyles.td}>Nenhum dado pessoal</td>
-                    <td style={tableStyles.td}>Analytics anônimo e cookieless</td>
+                    <td style={tableStyles.td}><strong>Neon</strong></td>
+                    <td style={tableStyles.td}>Todos os dados (armazenamento)</td>
+                    <td style={tableStyles.td}>Banco de dados PostgreSQL (servidores nos EUA)</td>
+                  </tr>
+                  <tr>
+                    <td style={tableStyles.td}><strong>Vercel</strong></td>
+                    <td style={tableStyles.td}>Dados tecnicos de requisicao</td>
+                    <td style={tableStyles.td}>Hospedagem e CDN (servidores nos EUA)</td>
                   </tr>
                   <tr>
                     <td style={tableStyles.td}><strong>Sentry</strong></td>
-                    <td style={tableStyles.td}>Dados técnicos de erro</td>
+                    <td style={tableStyles.td}>Dados tecnicos de erro</td>
                     <td style={tableStyles.td}>Monitoramento de erros</td>
                   </tr>
                 </tbody>
@@ -625,7 +658,7 @@ export default function Page() {
           </section>
 
           {/* ============================================ */}
-          {/* Cookies e Tecnologias de Rastreamento */}
+          {/* 9. Transferencia Internacional de Dados */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -637,7 +670,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Cookies e Tecnologias de Rastreamento
+              9. Transferencia Internacional de Dados
             </h3>
             <p
               style={{
@@ -648,7 +681,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              O E O PIX? utiliza o <strong style={{ color: 'var(--color-text-primary)' }}>Plausible</strong> como ferramenta de analytics, que é <strong style={{ color: 'var(--color-text-primary)' }}>cookieless</strong> — não instala cookies e não coleta dados pessoais. Portanto, não utilizamos cookies de rastreamento, analytics ou publicidade.
+              Dados sao processados em servidores nos Estados Unidos pelos seguintes provedores: <strong style={{ color: 'var(--color-text-primary)' }}>OpenAI</strong> (geracao de resumos por IA), <strong style={{ color: 'var(--color-text-primary)' }}>Vercel</strong> (hospedagem e CDN), <strong style={{ color: 'var(--color-text-primary)' }}>Neon</strong> (banco de dados PostgreSQL).
             </p>
             <p
               style={{
@@ -659,7 +692,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              <strong style={{ color: 'var(--color-text-primary)' }}>Cookie de sessão (estritamente necessário):</strong> Utilizamos um cookie <strong style={{ color: 'var(--color-text-primary)' }}>httpOnly</strong> contendo um token JWT exclusivamente para manter a sessão do usuário na área &ldquo;Minhas Consultas&rdquo;. Este cookie é necessário para o funcionamento do serviço, expira em 30 dias e não rastreia comportamento do usuário.
+              A transferencia e realizada com base em clausulas contratuais que estabelecem padroes adequados de protecao, conforme Art. 33 da LGPD e Resolucao CD/ANPD n. 19/2024.
             </p>
             <p
               style={{
@@ -670,12 +703,12 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              O uso deste cookie estritamente necessário é baseado no <strong style={{ color: 'var(--color-text-primary)' }}>Legítimo Interesse</strong> (Art. 7º, IX da LGPD), conforme orientação do Guia Orientativo da ANPD sobre Cookies (outubro/2022).
+              Nenhum dado pessoal do comprador (e-mail, senha) e enviado a OpenAI -- apenas dados do consultado provenientes de fontes publicas.
             </p>
           </section>
 
           {/* ============================================ */}
-          {/* Período de Retenção de Dados */}
+          {/* 10. Cookies e Tecnologias de Rastreamento */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -687,50 +720,110 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Período de Retenção de Dados
+              10. Cookies e Tecnologias de Rastreamento
+            </h3>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+              }}
+            >
+              O E O PIX? <strong style={{ color: 'var(--color-text-primary)' }}>nao utiliza cookies de rastreamento, analytics ou publicidade</strong>.
+            </p>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: 0,
+              }}
+            >
+              <strong style={{ color: 'var(--color-text-primary)' }}>Cookie de sessao (estritamente necessario):</strong> cookie <strong style={{ color: 'var(--color-text-primary)' }}>httpOnly</strong> contendo token JWT para sessao na area &ldquo;Minhas Consultas&rdquo;. Necessario para o servico, expira em 30 dias, nao rastreia comportamento. Base: Legitimo Interesse (Art. 7., IX), conforme Guia da ANPD sobre Cookies (outubro/2022).
+            </p>
+          </section>
+
+          {/* ============================================ */}
+          {/* 11. Periodo de Retencao de Dados */}
+          {/* ============================================ */}
+          <section style={{ marginBottom: '32px' }}>
+            <h3
+              style={{
+                fontFamily: 'var(--font-family-heading)',
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                margin: '0 0 12px 0',
+              }}
+            >
+              11. Periodo de Retencao de Dados
             </h3>
             <div style={{ overflowX: 'auto' }}>
               <table style={tableStyles.table}>
                 <thead>
                   <tr>
                     <th style={tableStyles.th}>Dado</th>
-                    <th style={tableStyles.th}>Período de Retenção</th>
-                    <th style={tableStyles.th}>Ação Após Expirar</th>
+                    <th style={tableStyles.th}>Periodo de Retencao</th>
+                    <th style={tableStyles.th}>Acao Apos Expirar</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td style={tableStyles.td}>Relatório (dados brutos das APIs)</td>
+                    <td style={tableStyles.td}>Relatorio (dados brutos das APIs)</td>
                     <td style={tableStyles.td}><strong>7 dias</strong></td>
-                    <td style={tableStyles.td}>Purga completa do registro</td>
+                    <td style={tableStyles.td}>Exclusao permanente automatica (cron)</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}>Dados de compra (Purchase)</td>
-                    <td style={tableStyles.td}><strong>Indefinido</strong> (obrigação fiscal)</td>
-                    <td style={tableStyles.td}>Anonimização de e-mail, nome e CPF do comprador após 2 anos</td>
+                    <td style={tableStyles.td}>Dados cadastrais do usuario (nome, e-mail)</td>
+                    <td style={tableStyles.td}><strong>Enquanto conta ativa + 6 meses</strong></td>
+                    <td style={tableStyles.td}>Anonimizacao</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}>Leads capturados (API indisponível)</td>
+                    <td style={tableStyles.td}>Registros de transacoes (Purchase)</td>
+                    <td style={tableStyles.td}><strong>5 anos</strong> (obrigacao fiscal)</td>
+                    <td style={tableStyles.td}>Anonimizacao de dados pessoais</td>
+                  </tr>
+                  <tr>
+                    <td style={tableStyles.td}>Logs de auditoria (IP, data, identificador)</td>
+                    <td style={tableStyles.td}><strong>2 anos</strong></td>
+                    <td style={tableStyles.td}>Exclusao permanente</td>
+                  </tr>
+                  <tr>
+                    <td style={tableStyles.td}>Leads capturados (API indisponivel)</td>
                     <td style={tableStyles.td}><strong>90 dias</strong></td>
-                    <td style={tableStyles.td}>Purga completa</td>
+                    <td style={tableStyles.td}>Exclusao permanente</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}>Blocklist (exclusões solicitadas)</td>
+                    <td style={tableStyles.td}>Blocklist (exclusoes solicitadas)</td>
                     <td style={tableStyles.td}><strong>Indefinido</strong></td>
-                    <td style={tableStyles.td}>Mantido para proteção contínua do titular</td>
+                    <td style={tableStyles.td}>Mantido para protecao continua do titular</td>
                   </tr>
                   <tr>
-                    <td style={tableStyles.td}>Códigos de autenticação (magic link)</td>
+                    <td style={tableStyles.td}>Codigos de autenticacao</td>
                     <td style={tableStyles.td}><strong>10 minutos</strong></td>
-                    <td style={tableStyles.td}>Purga diária</td>
+                    <td style={tableStyles.td}>Exclusao diaria automatica</td>
                   </tr>
                 </tbody>
               </table>
             </div>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '16px 0 0 0',
+              }}
+            >
+              Apos o termino do prazo de retencao, os dados sao eliminados de forma definitiva por meio de cron jobs automatizados (Inngest), utilizando exclusao permanente do banco de dados sem possibilidade de recuperacao.
+            </p>
           </section>
 
           {/* ============================================ */}
-          {/* Seus Direitos como Comprador */}
+          {/* 12. Direitos dos Titulares dos Dados Consultados */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -742,7 +835,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Seus Direitos como Comprador
+              12. Direitos dos Titulares dos Dados Consultados
             </h3>
             <p
               style={{
@@ -753,53 +846,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Conforme a LGPD (Art. 18), você tem direito a:
-            </p>
-            <ul
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: 0,
-                paddingLeft: '20px',
-              }}
-            >
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Acessar</strong> os dados que temos sobre você;</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Solicitar correção</strong> de dados incorretos;</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Solicitar exclusão</strong> dos seus dados;</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Solicitar portabilidade</strong> dos seus dados;</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Revogar consentimento</strong> a qualquer momento;</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Obter informações</strong> sobre o compartilhamento de dados com terceiros;</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Opor-se</strong> ao tratamento baseado em legítimo interesse.</li>
-            </ul>
-          </section>
-
-          {/* ============================================ */}
-          {/* Direitos de Terceiros */}
-          {/* ============================================ */}
-          <section style={{ marginBottom: '32px' }}>
-            <h3
-              style={{
-                fontFamily: 'var(--font-family-heading)',
-                fontSize: '18px',
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                margin: '0 0 12px 0',
-              }}
-            >
-              Direitos de Terceiros (Pessoas Consultadas)
-            </h3>
-            <p
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                fontSize: '14px',
-                color: 'var(--color-text-secondary)',
-                lineHeight: 1.7,
-                margin: '0 0 12px 0',
-              }}
-            >
-              Se você foi alvo de uma consulta no E O PIX?, você também possui direitos sob a LGPD, mesmo sem ter sido nosso cliente. Você pode:
+              Conforme artigos 17 a 22 da LGPD, os titulares podem exercer:
             </p>
             <ul
               style={{
@@ -811,11 +858,24 @@ export default function Page() {
                 paddingLeft: '20px',
               }}
             >
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Solicitar exclusão</strong> dos seus dados dos nossos sistemas;</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Solicitar correção</strong> de informações incorretas;</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Informar erro de homônimo</strong> para corrigir atribuição equivocada;</li>
-              <li><strong style={{ color: 'var(--color-text-primary)' }}>Solicitar bloqueio</strong> de futuras consultas ao seu CPF/CNPJ (Blocklist).</li>
+              <li>Confirmacao da existencia de tratamento</li>
+              <li>Acesso aos dados tratados</li>
+              <li>Correcao de dados incompletos, inexatos ou desatualizados</li>
+              <li>Anonimizacao, bloqueio ou eliminacao de dados desnecessarios</li>
+              <li>Informacao sobre compartilhamento com terceiros</li>
+              <li>Oposicao ao tratamento quando em desconformidade com a LGPD</li>
             </ul>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+              }}
+            >
+              Como a EOPIX atua como agregadora, solicitacoes de correcao referentes ao conteudo serao encaminhadas aos provedores originarios.
+            </p>
             <p
               style={{
                 fontFamily: 'var(--font-family-body)',
@@ -825,7 +885,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Para exercer qualquer desses direitos, acesse a página{' '}
+              As solicitacoes devem ser enviadas via pagina{' '}
               <a
                 href="/privacidade/titular"
                 style={{
@@ -835,7 +895,7 @@ export default function Page() {
               >
                 Direitos do Titular
               </a>{' '}
-              ou entre em contato pelo e-mail{' '}
+              ou e-mail{' '}
               <a
                 href="mailto:plataforma@somoseopix.com.br"
                 style={{
@@ -845,12 +905,12 @@ export default function Page() {
               >
                 plataforma@somoseopix.com.br
               </a>
-              .
+              , e serao respondidas em ate 15 dias uteis.
             </p>
           </section>
 
           {/* ============================================ */}
-          {/* Segurança dos Dados */}
+          {/* 13. Seus Direitos como Comprador */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -862,7 +922,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Segurança dos Dados
+              13. Seus Direitos como Comprador
             </h3>
             <p
               style={{
@@ -870,15 +930,33 @@ export default function Page() {
                 fontSize: '14px',
                 color: 'var(--color-text-secondary)',
                 lineHeight: 1.7,
-                margin: 0,
+                margin: '0 0 12px 0',
               }}
             >
-              Adotamos medidas técnicas e organizacionais para proteger os dados pessoais, incluindo: criptografia em trânsito (HTTPS); armazenamento em banco de dados com acesso restrito; autenticação via magic link (sem senhas armazenadas); validação de webhook com assinatura criptográfica; rate limiting para prevenção de abuso; monitoramento de erros via Sentry; e purga automatizada de dados expirados.
+              Conforme a LGPD (Art. 18), voce tem direito a:
             </p>
+            <ul
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: 0,
+                paddingLeft: '20px',
+              }}
+            >
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Acessar</strong> seus dados</li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Solicitar correcao</strong></li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Solicitar exclusao</strong></li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Solicitar portabilidade</strong></li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Revogar consentimento</strong></li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Obter informacoes</strong> sobre compartilhamento</li>
+              <li><strong style={{ color: 'var(--color-text-primary)' }}>Opor-se</strong> ao tratamento baseado em legitimo interesse</li>
+            </ul>
           </section>
 
           {/* ============================================ */}
-          {/* Alterações nesta Política */}
+          {/* 14. Seguranca dos Dados */}
           {/* ============================================ */}
           <section style={{ marginBottom: '32px' }}>
             <h3
@@ -890,7 +968,97 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Alterações nesta Política
+              14. Seguranca dos Dados
+            </h3>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+              }}
+            >
+              Adotamos medidas tecnicas e organizacionais:
+            </p>
+            <ul
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: 0,
+                paddingLeft: '20px',
+              }}
+            >
+              <li>Criptografia em transito (HTTPS/TLS)</li>
+              <li>Senhas armazenadas com hash bcrypt (nunca em texto plano)</li>
+              <li>Validacao de webhooks com HMAC-SHA256</li>
+              <li>Cookies httpOnly com sameSite strict</li>
+              <li>Controle de acesso baseado em funcoes e principio do menor privilegio</li>
+              <li>Rate limiting para prevencao de abuso</li>
+              <li>Monitoramento de erros via Sentry</li>
+              <li>Purga automatizada de dados expirados</li>
+            </ul>
+          </section>
+
+          {/* ============================================ */}
+          {/* 15. Procedimento em Caso de Incidente */}
+          {/* ============================================ */}
+          <section style={{ marginBottom: '32px' }}>
+            <h3
+              style={{
+                fontFamily: 'var(--font-family-heading)',
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                margin: '0 0 12px 0',
+              }}
+            >
+              15. Procedimento em Caso de Incidente
+            </h3>
+            <p
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: '0 0 12px 0',
+              }}
+            >
+              Em caso de incidente de seguranca com risco ou dano relevante, a EOPIX se compromete a:
+            </p>
+            <ul
+              style={{
+                fontFamily: 'var(--font-family-body)',
+                fontSize: '14px',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.7,
+                margin: 0,
+                paddingLeft: '20px',
+              }}
+            >
+              <li>Comunicar a ANPD em ate 72 horas apos confirmacao do incidente</li>
+              <li>Comunicar os titulares afetados</li>
+              <li>Adotar medidas para reverter ou mitigar os efeitos</li>
+              <li>Documentar integralmente o incidente, incluindo causas e medidas corretivas</li>
+            </ul>
+          </section>
+
+          {/* ============================================ */}
+          {/* 16. Alteracoes nesta Politica */}
+          {/* ============================================ */}
+          <section style={{ marginBottom: '32px' }}>
+            <h3
+              style={{
+                fontFamily: 'var(--font-family-heading)',
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                margin: '0 0 12px 0',
+              }}
+            >
+              16. Alteracoes nesta Politica
             </h3>
             <p
               style={{
@@ -901,7 +1069,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Esta Política pode ser atualizada a qualquer momento. A versão vigente estará sempre disponível em{' '}
+              Esta Politica pode ser atualizada a qualquer momento. A versao vigente estara sempre disponivel em{' '}
               <a
                 href="/privacidade"
                 style={{
@@ -911,12 +1079,12 @@ export default function Page() {
               >
                 /privacidade
               </a>{' '}
-              com a data da última atualização.
+              com a data da ultima atualizacao.
             </p>
           </section>
 
           {/* ============================================ */}
-          {/* Contato */}
+          {/* 17. Contato */}
           {/* ============================================ */}
           <section style={{ marginBottom: '40px' }}>
             <h3
@@ -928,7 +1096,7 @@ export default function Page() {
                 margin: '0 0 12px 0',
               }}
             >
-              Contato
+              17. Contato
             </h3>
             <p
               style={{
@@ -939,7 +1107,7 @@ export default function Page() {
                 margin: 0,
               }}
             >
-              Para questões relacionadas a dados pessoais e privacidade:<br />
+              Para questoes sobre dados pessoais e privacidade:<br />
               <a
                 href="mailto:plataforma@somoseopix.com.br"
                 style={{
@@ -960,7 +1128,7 @@ export default function Page() {
                 margin: '12px 0 0 0',
               }}
             >
-              Para dúvidas gerais sobre o serviço:<br />
+              Para duvidas gerais:<br />
               <a
                 href="mailto:plataforma@somoseopix.com.br"
                 style={{
@@ -975,7 +1143,7 @@ export default function Page() {
           </section>
 
           {/* ============================================ */}
-          {/* Rodapé do Card */}
+          {/* Rodape do Card */}
           {/* ============================================ */}
           <div
             style={{

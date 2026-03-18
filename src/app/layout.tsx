@@ -21,44 +21,81 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "E o Pix? | Consulta de Empresas e Pessoas",
-    template: "%s | E o Pix?",
+    default: "EOPIX | Consulta de Risco CPF e CNPJ",
+    template: "%s | EOPIX",
   },
   description:
-    "Consulte informações públicas sobre empresas e pessoas antes de fechar negócio. Relatórios completos com análise de risco.",
+    "Consulte CPF e CNPJ antes de fechar negócio. Relatório completo: dados cadastrais, processos judiciais e análise de risco por R$ 39,90.",
   keywords: [
     "consulta cnpj",
     "consulta cpf",
+    "consultar cnpj online",
+    "consultar cpf de terceiros",
     "análise de risco",
-    "inadimplência",
     "due diligence",
+    "verificar empresa",
+    "score cnpj",
   ],
-  authors: [{ name: "E o Pix?" }],
-  creator: "E o Pix?",
-  publisher: "E o Pix?",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  ),
+  authors: [{ name: "EOPIX" }],
+  creator: "EOPIX",
+  publisher: "EOPIX",
+  metadataBase: new URL("https://somoseopix.com.br"),
+  alternates: {
+    canonical: "https://somoseopix.com.br",
+  },
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    url: "/",
-    title: "E o Pix? | Consulta de Empresas e Pessoas",
+    url: "https://somoseopix.com.br",
+    title: "EOPIX | Consulta de Risco CPF e CNPJ",
     description:
-      "Consulte informações públicas sobre empresas e pessoas antes de fechar negócio.",
-    siteName: "E o Pix?",
+      "Consulte CPF e CNPJ antes de fechar negócio. Relatório completo com análise de risco por R$ 39,90.",
+    siteName: "EOPIX",
   },
   twitter: {
     card: "summary_large_image",
-    title: "E o Pix? | Consulta de Empresas e Pessoas",
+    title: "EOPIX | Consulta de Risco CPF e CNPJ",
     description:
-      "Consulte informações públicas sobre empresas e pessoas antes de fechar negócio.",
+      "Consulte CPF e CNPJ antes de fechar negócio. Relatório completo com análise de risco por R$ 39,90.",
   },
   robots: {
     index: true,
     follow: true,
   },
 };
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://somoseopix.com.br/#organization",
+      name: "EOPIX",
+      url: "https://somoseopix.com.br",
+      logo: "https://somoseopix.com.br/icon.png",
+      description:
+        "Plataforma brasileira de verificação de risco CPF e CNPJ. Relatórios completos com análise de dados cadastrais, processos judiciais e reputação web.",
+      areaServed: "BR",
+      knowsLanguage: "pt-BR",
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://somoseopix.com.br/#website",
+      url: "https://somoseopix.com.br",
+      name: "EOPIX",
+      publisher: { "@id": "https://somoseopix.com.br/#organization" },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate:
+            "https://somoseopix.com.br/consulta/{search_term_string}",
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
+}
 
 export default function RootLayout({
   children,
@@ -74,6 +111,10 @@ export default function RootLayout({
           data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || 'localhost'}
           src="https://plausible.io/js/script.js"
           strategy="afterInteractive"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
       <body
