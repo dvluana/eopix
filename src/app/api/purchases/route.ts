@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
           const apiKey = process.env.ABACATEPAY_API_KEY
           if (apiKey) {
             const billingRes = await fetch(
-              `https://api.abacatepay.com/v1/billing/get?id=${existingPending.paymentExternalId}`,
+              `https://api.abacatepay.com/v2/checkouts/get?id=${existingPending.paymentExternalId}`,
               { headers: { Authorization: `Bearer ${apiKey}`, Accept: 'application/json' } }
             )
             if (billingRes.ok) {
@@ -293,19 +293,11 @@ export async function POST(request: NextRequest) {
 
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-      const customerName = name || user.name || undefined
-      const customerEmail = email || user.email
-      const customerCellphone = cellphone || user.cellphone || undefined
-      const customerTaxId = buyerTaxId || user.taxId || undefined
 
       const { sessionId, checkoutUrl } = await createCheckout({
         externalRef: code,
         successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
         cancelUrl: `${appUrl}/`,
-        ...(customerName ? { customerName } : {}),
-        ...(customerEmail ? { customerEmail } : {}),
-        ...(customerCellphone ? { customerCellphone } : {}),
-        ...(customerTaxId ? { customerTaxId } : {}),
       })
 
       console.log(`[${provider}] Checkout session created:`, { code, sessionId })
