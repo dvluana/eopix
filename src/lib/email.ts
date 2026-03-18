@@ -320,7 +320,7 @@ export async function sendPurchaseReceivedEmail(
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
             <tr>
               <td style="text-align:center;padding-top:12px;">
-                ${ctaButton(`${appUrl}/minhas-consultas`, 'ACOMPANHAR EM MINHAS CONSULTAS', '#1A1A1A', '#FFD600')}
+                ${ctaButton(`${appUrl}/minhas-consultas`, 'ACOMPANHAR EM MINHAS CONSULTAS')}
               </td>
             </tr>
           </table>
@@ -770,39 +770,17 @@ export async function sendAbandonmentEmail3(
 
   const html = emailShell(`
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
-      style="max-width:600px;margin:0 auto;background-color:#1A1A1A;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
+      style="max-width:600px;margin:0 auto;background-color:#FFFFFF;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
 
-      <!-- Header invertido — impacto máximo -->
+      ${emailHeader('ÚLTIMO AVISO', '#FFD600', '#1A1A1A')}
+
       <tr>
-        <td style="background-color:#FFD600;padding:28px 40px 24px;">
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-            <tr>
-              <td>
-                <span style="font-family:'Zilla Slab',Georgia,serif;font-size:22px;font-weight:700;color:#1A1A1A;letter-spacing:-0.3px;">
-                  E o Pix<span style="color:#1A1A1A;">?</span>
-                </span>
-              </td>
-              <td style="text-align:right;vertical-align:middle;">
-                <span style="display:inline-block;background-color:#1A1A1A;color:#FFD600;font-family:'IBM Plex Mono','Courier New',monospace;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:2px;">
-                  ÚLTIMO AVISO
-                </span>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-
-      <!-- Body -->
-      <tr>
-        <td style="padding:40px 40px 32px;background-color:#1A1A1A;">
-
-          <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#FFFFFF;line-height:1.1;">
-            Antes ou depois?
-          </h2>
-          <p style="margin:0 0 20px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#BBBBBB;">
+        <td style="padding:40px 40px 32px;">
+          <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#1A1A1A;line-height:1.1;">Antes ou depois?</h2>
+          <p style="margin:0 0 20px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
             Olá, ${firstName}. Calote acontece. Processo acontece. A pergunta não é "se vai acontecer". É "com quem".
           </p>
-          <p style="margin:0 0 32px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#FFFFFF;">
+          <p style="margin:0 0 32px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#1A1A1A;">
             R$&nbsp;39,90 é quanto custa saber.<br>
             <span style="color:#888888;">Processo trabalhista custa quanto mesmo?</span>
           </p>
@@ -814,18 +792,14 @@ export async function sendAbandonmentEmail3(
               </td>
             </tr>
           </table>
-
         </td>
       </tr>
 
+      <tr><td style="padding:0 40px;"><div style="height:1px;background-color:#E8E7E3;"></div></td></tr>
       <tr>
-        <td style="padding:16px 40px 24px;background-color:#1A1A1A;border-top:1px solid rgba(255,255,255,0.08);">
-          <p style="margin:0 0 4px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:11px;color:#444444;">
-            Você recebeu este email porque iniciou uma consulta no EOPIX. Este é o último lembrete.
-          </p>
-          <p style="margin:0;font-family:'IBM Plex Mono','Courier New',monospace;font-size:11px;color:#444444;">
-            Para cancelar recebimento de lembretes, responda com PARAR.
-          </p>
+        <td style="padding:20px 40px 32px;">
+          <p style="margin:0 0 6px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;line-height:1.5;color:#888888;">Você recebeu este email porque iniciou uma consulta no EOPIX. Este é o último lembrete.</p>
+          <p style="margin:0 0 6px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;line-height:1.5;color:#888888;">Para não receber mais emails de lembrete, responda com PARAR.</p>
         </td>
       </tr>
 
@@ -840,45 +814,3 @@ export async function sendAbandonmentEmail3(
   })
 }
 
-// ─── Legado — mantidos para compatibilidade ───────────────────────────────────
-
-export async function sendMagicCode(email: string, code: string): Promise<SendEmailResponse> {
-  return sendEmail({
-    to: email,
-    subject: `Seu código de acesso: ${code}`,
-    html: emailShell(`
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
-        style="max-width:600px;margin:0 auto;background-color:#FFFFFF;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
-
-        ${emailHeader('CÓDIGO DE ACESSO', '#FFD600', '#1A1A1A')}
-
-        <tr>
-          <td style="padding:40px 40px 32px;">
-            <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#1A1A1A;line-height:1.1;">
-              Acesso solicitado.
-            </h2>
-            <p style="margin:0 0 28px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
-              Use o código abaixo para acessar sua conta. Ele expira em <strong style="color:#1A1A1A;">10 minutos</strong>.
-            </p>
-            ${codeBox(code)}
-            <p style="margin:20px 0 0;font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;line-height:1.5;color:#888888;text-align:center;">
-              Se você não solicitou este código, ignore este email.
-            </p>
-          </td>
-        </tr>
-
-        ${emailDivider()}
-        ${emailFooter(['🔒 Nunca compartilhe este código com ninguém.'])}
-
-      </table>
-    `),
-  })
-}
-
-export async function sendCompletionEmail(
-  email: string,
-  code: string,
-  reportUrl: string
-): Promise<SendEmailResponse> {
-  return sendPurchaseApprovedEmail(email, '', code, reportUrl)
-}
