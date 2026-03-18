@@ -2,7 +2,7 @@
 title: "Status"
 ---
 
-**Atualizado em:** 2026-03-13
+**Atualizado em:** 2026-03-17
 **Branch atual:** develop (merged to main for production)
 **Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
@@ -67,6 +67,8 @@ title: "Status"
 - ~~Configurar GitHub Secrets~~ ✓ — `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY` todos configurados
 
 ## Últimas mudanças
+
+- **AbacatePay v2 migration** (2026-03-17): (1) `abacatepay.ts` reescrito — `/v1/billing/create` → `/v2/checkouts/create` com produto por ID (`items: [{ id }]`), `externalId: purchase.code`, sem customer inline. (2) Webhook: evento `billing.paid` → `checkout.completed`, estrutura `data.billing` → `data.checkout`, customer disponível via `data.customer`. Lookup primário por `externalId` (purchase code), fallback por `paymentExternalId`. (3) PENDING reuse: `GET /v2/checkouts/get`. (4) Produtos criados: sandbox `prod_CYEPYBhZBn0YcyFJHJ0DeKTw`, produção `prod_P56DhUkBx2RSdFSfNPTqrhue`, ambos a R$39,90 (`PRICE_CENTS=3990`). vitest 100/100, tsc/lint clean.
 
 - **Serper query improvement** (2026-03-08): (1) `simplifyCompanyName()` para CNPJ — remove sufixos jurídicos (S/A, LTDA, ME, EIRELI, EPP) e status (EM LIQUIDACAO EXTRAJUDICIAL, EM RECUPERACAO JUDICIAL, EM FALENCIA), converte para title case. CPF mantém nome completo. (2) Locale `gl: 'br'` + `hl: 'pt-br'` em todas as queries Serper. (3) Termos `byName` melhorados: "golpe OR fraude OR processo OR reclamacao" → "escândalo OR investigação OR denúncia OR irregularidade OR fraude OR lavagem". (4) Nova 4a query `news`: busca aberta só pelo nome (sem filtros), Google retorna resultados mais relevantes naturalmente. (5) OpenAI prompt: classifica `sourceType` de cada menção (news/legal/complaint/government/other), dá peso maior a notícias jornalísticas. (6) Tipos: `GoogleSearchResult.sourceType`, `GoogleSearchResponse.news`, `MentionClassification.sourceType`. (7) Pipeline, mocks, hooks, sync fallback atualizados. 9 testes `simplifyCompanyName`, tsc clean, lint clean, vitest 100/100.
 - **FAILED invisivel pro usuario + retry queue** (2026-03-13): (1) Frontend: `minhas-consultas` mapeia FAILED→"PROCESSANDO" (badge + timeline). Confirmacao page ja tratava FAILED como `approved`. (2) Backend: `validateCanProcess` aceita FAILED (pre-existente), Inngest retries 3→10 (backoff exponencial). (3) Admin: botao "Reprocessar" para FAILED no menu de acoes (reutiliza flow existente). (4) Batch reprocess: `POST /api/admin/purchases/batch-process` reprocessa todas FAILED sem report. Botao "Reprocessar FAILED" no header da pagina de compras. (5) Test: `tests/lib/purchase-workflow.test.ts` com 5 testes (PAID, FAILED, FAILED+report, COMPLETED, REFUNDED). tsc clean, lint clean, vitest 72/72.
