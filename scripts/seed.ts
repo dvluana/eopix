@@ -64,7 +64,6 @@ async function main() {
   try {
     // Limpar dados existentes (cuidado em producao!)
     console.log('Limpando dados existentes...')
-    await prisma.magicCode.deleteMany()
     await prisma.leadCapture.deleteMany()
     await prisma.rateLimit.deleteMany()
     await prisma.purchase.deleteMany()

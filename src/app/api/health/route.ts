@@ -158,19 +158,76 @@ export async function GET() {
       if (!process.env.INNGEST_SIGNING_KEY) throw new Error('INNGEST_SIGNING_KEY not set')
     }),
 
-    // Resend check — API key validity + domain verification status
+    // Resend check — domain verification + usage count (daily/monthly vs free plan limits)
     checkServiceWithBalance('resend', async () => {
       if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY not set')
-      const res = await fetch('https://api.resend.com/domains', {
-        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
-        cache: 'no-store',
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json() as { data?: { name: string; status: string }[] }
-      const domain = data.data?.find((d) => d.name === 'somoseopix.com.br')
+
+      const DAILY_LIMIT = 100
+      const MONTHLY_LIMIT = 3000
+      const WARN_PCT = 0.8
+
+      // Domain check + usage count run in parallel
+      const [domainsRes] = await Promise.all([
+        fetch('https://api.resend.com/domains', {
+          headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+          cache: 'no-store',
+        }),
+      ])
+
+      if (!domainsRes.ok) throw new Error(`HTTP ${domainsRes.status}`)
+      const domainsData = await domainsRes.json() as { data?: { name: string; status: string }[] }
+      const domain = domainsData.data?.find((d) => d.name === 'somoseopix.com.br')
       if (!domain) throw new Error('Domínio somoseopix.com.br não encontrado')
       if (domain.status !== 'verified') throw new Error(`Domínio ${domain.status}`)
-      return { current: 'verificado', unit: 'domínio', low: false }
+
+      // Count emails sent today and this month via pagination (stop when past month start)
+      const now = new Date()
+      const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+      const todayStr = now.toISOString().slice(0, 10) // 'YYYY-MM-DD'
+
+      let dailyCount = 0
+      let monthlyCount = 0
+      let cursor: string | undefined
+      let done = false
+
+      for (let page = 0; page < 10 && !done; page++) {
+        const url = new URL('https://api.resend.com/emails')
+        url.searchParams.set('limit', '100')
+        if (cursor) url.searchParams.set('after', cursor)
+
+        const res = await fetch(url.toString(), {
+          headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+          cache: 'no-store',
+        })
+        if (!res.ok) break
+
+        const data = await res.json() as {
+          data?: { id: string; created_at: string }[]
+          has_more?: boolean
+        }
+        const emails = data.data ?? []
+
+        for (const email of emails) {
+          const sentAt = new Date(email.created_at)
+          if (sentAt < monthStart) { done = true; break }
+          monthlyCount++
+          if (email.created_at.slice(0, 10) === todayStr) dailyCount++
+        }
+
+        if (!data.has_more || emails.length === 0) done = true
+        else cursor = emails[emails.length - 1].id
+      }
+
+      if (dailyCount >= DAILY_LIMIT) {
+        throw new Error(`Limite diário atingido (${dailyCount}/${DAILY_LIMIT})`)
+      }
+
+      const low = dailyCount / DAILY_LIMIT >= WARN_PCT || monthlyCount / MONTHLY_LIMIT >= WARN_PCT
+      return {
+        current: `${dailyCount}/${DAILY_LIMIT} hoje · ${monthlyCount}/${MONTHLY_LIMIT} mês`,
+        unit: '',
+        low,
+      }
     }),
   ]
 

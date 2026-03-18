@@ -85,15 +85,6 @@ model LeadCapture {
   createdAt  DateTime @default(now())
 }
 
-model MagicCode {
-  id        String   @id @default(cuid())
-  email     String
-  code      String
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-}
-
 model RateLimit {
   id          String   @id @default(cuid())
   identifier  String
