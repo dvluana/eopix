@@ -7,6 +7,7 @@ import { getSession, isAdminEmail } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument, formatDocument } from '@/lib/validators'
 import { isBypassMode, isBypassPayment, isMockMode } from '@/lib/mock-mode'
+import { inngest } from '@/lib/inngest'
 
 interface CreatePurchaseRequest {
   term: string
@@ -323,6 +324,22 @@ export async function POST(request: NextRequest) {
         where: { id: purchase.id },
         data: { paymentExternalId: sessionId },
       })
+
+      // Disparar funil de abandono apenas em live mode (pagamento real)
+      // Não disparar para guest users (não têm conta para acompanhar)
+      if (!userEmail.includes('@guest.eopix.app')) {
+        inngest.send({
+          name: 'purchase/created',
+          data: {
+            purchaseId: purchase.id,
+            email: userEmail,
+            name: user.name || '',
+            term: cleanedTerm,
+          },
+        }).catch(err => {
+          console.warn('[Purchases] Abandonment event send failed:', err)
+        })
+      }
 
       return NextResponse.json({
         code: purchase.code,
