@@ -97,7 +97,6 @@ export async function createCheckout(
   const body = {
     items: [{ id: productId, quantity: 1 }],
     externalId: params.externalRef,
-    methods: ['PIX', 'CARD'],
     completionUrl: params.successUrl,
     returnUrl: params.cancelUrl,
     ...(params.customerId ? { customerId: params.customerId } : {}),

@@ -172,13 +172,16 @@ export default function Page({ params }: PageProps) {
     return () => clearInterval(interval);
   }, [isMaintenance]);
 
-  const createPurchase = async (customerFields?: {
-    email?: string
-    name?: string
-    cellphone?: string
-    buyerTaxId?: string
-    password?: string
-  }) => {
+  const createPurchase = async (
+    customerFields?: {
+      email?: string
+      name?: string
+      cellphone?: string
+      buyerTaxId?: string
+      password?: string
+    },
+    checkoutTab?: Window | null
+  ) => {
     const body: Record<string, unknown> = {
       term: params.term,
       termsAccepted: true,
@@ -198,18 +201,26 @@ export default function Page({ params }: PageProps) {
     const data = await res.json();
 
     if (res.status === 409 && data.existingReportId) {
+      checkoutTab?.close();
       alert('Você já possui um relatório ativo para este documento.');
       router.push(`/relatorio/${data.existingReportId}`);
       return;
     }
 
     if (!res.ok) {
+      checkoutTab?.close();
       throw new Error(data.error || 'Erro ao criar compra');
     }
 
-    if (data.checkoutUrl) {
+    if (data.checkoutUrl && checkoutTab) {
+      // Checkout opens in pre-opened tab; current tab goes to confirmation
+      checkoutTab.location.href = data.checkoutUrl;
+      router.push(`/compra/confirmacao?code=${data.code}`);
+    } else if (data.checkoutUrl) {
+      // Popup blocked — fallback to same-tab redirect
       window.location.href = data.checkoutUrl;
     } else {
+      // Bypass mode — no external checkout
       router.push(`/compra/confirmacao?code=${data.code}`);
     }
   };
