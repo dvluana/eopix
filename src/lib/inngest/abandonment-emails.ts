@@ -41,7 +41,7 @@ export const abandonmentEmailSequence = inngest.createFunction(
     }
 
     await step.run('send-r1', async () => {
-      await sendAbandonmentEmail1(email, name, term)
+      await sendAbandonmentEmail1(email, name, term, purchaseId)
     })
 
     // ── R2: espera mais ~23.5h (total ~24h desde criação) ─────────────────
@@ -59,7 +59,7 @@ export const abandonmentEmailSequence = inngest.createFunction(
     }
 
     await step.run('send-r2', async () => {
-      await sendAbandonmentEmail2(email, name, term)
+      await sendAbandonmentEmail2(email, name, term, purchaseId)
     })
 
     // ── R3: espera mais 48h (total ~72h desde criação) ────────────────────
@@ -77,7 +77,7 @@ export const abandonmentEmailSequence = inngest.createFunction(
     }
 
     await step.run('send-r3', async () => {
-      await sendAbandonmentEmail3(email, name, term)
+      await sendAbandonmentEmail3(email, name, term, purchaseId)
     })
 
     return { completed: true, emailsSent: 3 }

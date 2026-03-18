@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { sendPurchaseRefundedEmail } from '@/lib/email'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -22,6 +23,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const purchase = await prisma.purchase.findUnique({
       where: { id },
+      include: { user: { select: { email: true, name: true } } },
     })
 
     if (!purchase) {
@@ -38,12 +40,28 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // AbacatePay has no refund API — admin must use dashboard directly
+    // Mark as REFUNDED in our DB
+    await prisma.purchase.update({
+      where: { id },
+      data: { status: 'REFUNDED' },
+    })
+
+    // Fire-and-forget refunded email (skip guests)
+    if (!purchase.user.email.includes('@guest.eopix.app')) {
+      sendPurchaseRefundedEmail(
+        purchase.user.email,
+        purchase.user.name || '',
+        purchase.code,
+        purchase.id
+      ).catch(err => console.error(`[Admin] Refunded email failed for ${purchase.code}:`, err))
+    }
+
+    // AbacatePay has no refund API — admin must process the actual payment in dashboard
     const externalId = purchase.paymentExternalId
-    return NextResponse.json(
-      { error: `Reembolso deve ser feito pelo dashboard AbacatePay${externalId ? '. ID: ' + externalId : ''}` },
-      { status: 400 }
-    )
+    return NextResponse.json({
+      success: true,
+      message: `Compra marcada como reembolsada. Processe o pagamento pelo dashboard AbacatePay${externalId ? '. ID: ' + externalId : ''}.`,
+    })
   } catch (error) {
     console.error('Refund error:', error)
     return NextResponse.json(

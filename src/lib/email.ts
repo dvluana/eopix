@@ -753,15 +753,17 @@ export async function sendAbandonmentEmail2(
     to: email,
     subject: 'Enquanto você esperava...',
     html,
+    ...(purchaseId ? { idempotencyKey: `abandonment-r2/${purchaseId}` } : {}),
   })
 }
 
-// ─── 8. Abandono R3 — 72 horas ────────────────────────────────────────────────
+// ─── 9. Abandono R3 — 72 horas ────────────────────────────────────────────────
 
 export async function sendAbandonmentEmail3(
   email: string,
   name: string,
-  term: string
+  term: string,
+  purchaseId = ''
 ): Promise<SendEmailResponse> {
   const firstName = name?.split(' ')[0] || 'você'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
@@ -834,6 +836,7 @@ export async function sendAbandonmentEmail3(
     to: email,
     subject: 'Antes ou depois?',
     html,
+    ...(purchaseId ? { idempotencyKey: `abandonment-r3/${purchaseId}` } : {}),
   })
 }
 

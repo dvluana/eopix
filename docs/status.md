@@ -2,12 +2,13 @@
 title: "Status"
 ---
 
-**Atualizado em:** 2026-03-17
+**Atualizado em:** 2026-03-18
 **Branch atual:** develop (merged to main for production)
 **Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
 ## O que está funcionando ✓
 
+- **Sistema de email completo (Resend)** — 9 funções: welcome, purchase-received, purchase-approved, purchase-denied, purchase-refunded, purchase-expired + abandonment funnel R1/R2/R3. Idempotency keys em todas. HTML brutalist com Zilla Slab + IBM Plex Mono. Wired em: register route, webhook, process-search Inngest, cleanupPendingPurchases cron, refund route. Funil de abandono via Inngest `step.sleep` (R1 30min, R2 24h, R3 72h). Vitest 110/110.
 - AbacatePay v2 checkout + webhook (`checkout.completed`)
 - Pipeline Inngest básico (cache + APIFull)
 - Relatório display (page.tsx)
@@ -67,6 +68,8 @@ title: "Status"
 - ~~Configurar GitHub Secrets~~ ✓ — `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY` todos configurados
 
 ## Últimas mudanças
+
+- **Sistema de email completo (Resend)** (2026-03-18): (1) `src/lib/email.ts` reescrito — 9 funções: `sendWelcomeEmail`, `sendPurchaseReceivedEmail`, `sendPurchaseApprovedEmail`, `sendPurchaseDeniedEmail`, `sendPurchaseRefundedEmail`, `sendPurchaseExpiredEmail`, `sendAbandonmentEmail1/2/3`. Todas com idempotencyKey. HTML brutalist com Zilla Slab + IBM Plex Mono, max-width 600px, table-based. (2) `src/lib/inngest/abandonment-emails.ts` criado — funil R1 (30min) / R2 (24h) / R3 (72h) via `step.sleep`, guard `isAbandoned()`, `idempotency: event.data.purchaseId`, purchaseId repassado a todas funções de email. (3) `purchases/route.ts`: dispara `purchase/created` fire-and-forget em live mode. (4) `register/route.ts`: `sendWelcomeEmail` fire-and-forget após criação. (5) `webhooks/abacatepay`: `sendPurchaseReceivedEmail` após PAID. (6) `process-search.ts`: `sendPurchaseApprovedEmail` em cache hit + novo processamento; `sendPurchaseDeniedEmail` em FAILED (exceto PAYMENT_EXPIRED). (7) `cleanupPendingPurchases` cron: batch update → `sendPurchaseExpiredEmail` per-user fire-and-forget. (8) `refund/route.ts`: update status→REFUNDED + `sendPurchaseRefundedEmail` fire-and-forget. (9) 7 funções no array Inngest. vitest 110/110, tsc/lint clean.
 
 - **AbacatePay v2 migration** (2026-03-17): (1) `abacatepay.ts` reescrito — `/v1/billing/create` → `/v2/checkouts/create` com produto por ID (`items: [{ id }]`), `externalId: purchase.code`, sem customer inline. (2) Webhook: evento `billing.paid` → `checkout.completed`, estrutura `data.billing` → `data.checkout`, customer disponível via `data.customer`. Lookup primário por `externalId` (purchase code), fallback por `paymentExternalId`. (3) PENDING reuse: `GET /v2/checkouts/get`. (4) Produtos criados: sandbox `prod_CYEPYBhZBn0YcyFJHJ0DeKTw`, produção `prod_P56DhUkBx2RSdFSfNPTqrhue`, ambos a R$39,90 (`PRICE_CENTS=3990`). vitest 100/100, tsc/lint clean.
 

@@ -20,6 +20,7 @@ import {
   sendPurchaseApprovedEmail,
   sendPurchaseDeniedEmail,
   sendPurchaseRefundedEmail,
+  sendPurchaseExpiredEmail,
   sendAbandonmentEmail1,
   sendAbandonmentEmail2,
   sendAbandonmentEmail3,
@@ -54,6 +55,11 @@ describe('email functions', () => {
 
   it('sendPurchaseRefundedEmail — retorna id', async () => {
     const res = await sendPurchaseRefundedEmail('ana@test.com', 'Ana', 'XKPQ2R', 'purchase-456')
+    expect(res.id).toBe('mock-id')
+  })
+
+  it('sendPurchaseExpiredEmail — retorna id', async () => {
+    const res = await sendPurchaseExpiredEmail('ana@test.com', 'Ana', 'XKPQ2R', '12345678900', 'purchase-456')
     expect(res.id).toBe('mock-id')
   })
 

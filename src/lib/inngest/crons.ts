@@ -2,6 +2,7 @@ import { inngest } from './client'
 import { processSearch } from './process-search'
 import { abandonmentEmailSequence } from './abandonment-emails'
 import { prisma } from '../prisma'
+import { sendPurchaseExpiredEmail } from '../email'
 
 // Cleanup expired search results (daily at 03:00)
 export const cleanupSearchResults = inngest.createFunction(
@@ -77,12 +78,30 @@ export const cleanupPendingPurchases = inngest.createFunction(
   async ({ step }) => {
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000)
 
-    const result = await step.run('expire-old-pending', async () => {
-      return prisma.purchase.updateMany({
+    // Find purchases to expire (include user data for emails)
+    const toExpire = await step.run('find-pending', async () => {
+      return prisma.purchase.findMany({
         where: {
           status: 'PENDING',
           createdAt: { lt: thirtyMinutesAgo },
         },
+        select: {
+          id: true,
+          code: true,
+          term: true,
+          user: { select: { email: true, name: true } },
+        },
+      })
+    })
+
+    if (toExpire.length === 0) {
+      return { expired: 0 }
+    }
+
+    // Batch update to FAILED+PAYMENT_EXPIRED
+    await step.run('expire-old-pending', async () => {
+      return prisma.purchase.updateMany({
+        where: { id: { in: toExpire.map(p => p.id) } },
         data: {
           status: 'FAILED',
           failureReason: 'PAYMENT_EXPIRED',
@@ -94,8 +113,21 @@ export const cleanupPendingPurchases = inngest.createFunction(
       })
     })
 
-    console.log(`Expired ${result.count} pending purchases`)
-    return { expired: result.count }
+    // Fire-and-forget expired emails (skip guests)
+    for (const p of toExpire) {
+      if (!p.user.email.includes('@guest.eopix.app')) {
+        sendPurchaseExpiredEmail(
+          p.user.email,
+          p.user.name || '',
+          p.code,
+          p.term,
+          p.id
+        ).catch(err => console.error(`[Cron] Expired email failed for ${p.code}:`, err))
+      }
+    }
+
+    console.log(`Expired ${toExpire.length} pending purchases`)
+    return { expired: toExpire.length }
   }
 )
 
