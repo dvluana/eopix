@@ -1,5 +1,6 @@
 import { inngest } from './client'
 import { processSearch } from './process-search'
+import { abandonmentEmailSequence } from './abandonment-emails'
 import { prisma } from '../prisma'
 
 // Cleanup expired search results (daily at 03:00)
@@ -169,4 +170,5 @@ export const functions = [
   cleanupMagicCodes,
   cleanupPendingPurchases,
   anonymizePurchases,
+  abandonmentEmailSequence,
 ]

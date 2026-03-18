@@ -23,7 +23,17 @@ type CleanupEvent = {
   data: Record<string, never>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type AllEvents = SearchProcessEvent | CleanupEvent
+type PurchaseCreatedEvent = {
+  name: 'purchase/created'
+  data: {
+    purchaseId: string
+    email: string
+    name: string
+    term: string  // CPF/CNPJ limpo (só dígitos)
+  }
+}
 
-export type { SearchProcessEvent, CleanupEvent, AllEvents }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type AllEvents = SearchProcessEvent | CleanupEvent | PurchaseCreatedEvent
+
+export type { SearchProcessEvent, CleanupEvent, PurchaseCreatedEvent, AllEvents }
