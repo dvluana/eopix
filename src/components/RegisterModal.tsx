@@ -13,6 +13,7 @@ interface RegisterModalProps {
   isLoading: boolean
   initialMode?: 'register' | 'login'
   hideToggle?: boolean
+  onForgotPassword?: (email: string) => Promise<void>
 }
 
 export interface RegisterData {
@@ -40,8 +41,8 @@ function maskTaxId(value: string): string {
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`
 }
 
-export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading, initialMode, hideToggle }: RegisterModalProps) {
-  const [mode, setMode] = useState<'register' | 'login'>(initialMode ?? 'register')
+export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading, initialMode, hideToggle, onForgotPassword }: RegisterModalProps) {
+  const [mode, setMode] = useState<'register' | 'login' | 'forgot'>(initialMode ?? 'register')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [cellphone, setCellphone] = useState('')
@@ -51,6 +52,30 @@ export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading,
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotSuccess, setForgotSuccess] = useState(false)
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (!forgotEmail || !forgotEmail.includes('@')) {
+      setError('E-mail inválido')
+      return
+    }
+    setForgotLoading(true)
+    try {
+      if (onForgotPassword) {
+        await onForgotPassword(forgotEmail.trim().toLowerCase())
+      }
+      setForgotSuccess(true)
+    } catch {
+      // Always show success to prevent user enumeration
+      setForgotSuccess(true)
+    } finally {
+      setForgotLoading(false)
+    }
+  }
 
   const validate = (): string | null => {
     if (mode === 'login') {
@@ -139,19 +164,78 @@ export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading,
               {/* Header */}
               <div className="rm-header">
                 <div className="rm-badge">
-                  {mode === 'register' ? 'CRIAR CONTA' : 'LOGIN'}
+                  {mode === 'register' ? 'CRIAR CONTA' : mode === 'login' ? 'LOGIN' : 'RECUPERAR SENHA'}
                 </div>
                 <DialogPrimitive.Title className="rm-title">
-                  {mode === 'register' ? 'Crie sua conta em 30 segundos' : 'Bem-vindo de volta'}
+                  {mode === 'register'
+                    ? 'Crie sua conta em 30 segundos'
+                    : mode === 'login'
+                      ? 'Bem-vindo de volta'
+                      : 'Esqueceu a senha?'}
                 </DialogPrimitive.Title>
                 <p id="register-modal-desc" className="rm-subtitle">
                   {mode === 'register'
                     ? 'Seus dados ficam salvos para próximas consultas'
-                    : 'Entre com seu e-mail e senha'}
+                    : mode === 'login'
+                      ? 'Entre com seu e-mail e senha'
+                      : 'Informe seu e-mail e enviaremos um link para redefinir'}
                 </p>
               </div>
 
-              {/* Form */}
+              {/* ── Forgot password flow ── */}
+              {mode === 'forgot' ? (
+                forgotSuccess ? (
+                  <div className="rm-forgot-success">
+                    <div className="rm-forgot-success__icon">✓</div>
+                    <p className="rm-forgot-success__title">Link enviado!</p>
+                    <p className="rm-forgot-success__text">
+                      Se esse e-mail estiver cadastrado, você receberá as instruções em breve. Verifique também a pasta de spam.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setMode('login'); setForgotSuccess(false); setForgotEmail(''); setError('') }}
+                      className="btn btn--cta btn--full"
+                      style={{ marginTop: '4px' }}
+                    >
+                      VOLTAR AO LOGIN
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotSubmit} className="rm-form">
+                    {error && <div className="rm-error">{error}</div>}
+                    <div className="rm-field">
+                      <label htmlFor="forgot-email" className="rm-label">Seu e-mail</label>
+                      <input
+                        id="forgot-email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="seu@email.com"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        required
+                        autoFocus
+                        className="rm-input"
+                      />
+                    </div>
+                    <div className="rm-divider" />
+                    <button
+                      type="submit"
+                      disabled={forgotLoading}
+                      className="btn btn--cta btn--full"
+                    >
+                      {forgotLoading
+                        ? <span className="epl-inline"><EopixLoader size="sm" />Enviando...</span>
+                        : 'ENVIAR LINK DE REDEFINIÇÃO'}
+                    </button>
+                    <p className="rm-toggle">
+                      <button type="button" onClick={() => { setMode('login'); setError('') }} className="rm-toggle-btn">
+                        ← Voltar ao login
+                      </button>
+                    </p>
+                  </form>
+                )
+              ) : (
+              /* ── Register / Login flow ── */
               <form onSubmit={handleSubmit} className="rm-form">
                 {error && <div className="rm-error">{error}</div>}
 
@@ -271,6 +355,19 @@ export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading,
                   </div>
                 )}
 
+                {/* Forgot password link — login mode only */}
+                {mode === 'login' && onForgotPassword !== undefined && (
+                  <p className="rm-forgot-link">
+                    <button
+                      type="button"
+                      onClick={() => { setMode('forgot'); setForgotEmail(email); setError('') }}
+                      className="rm-toggle-btn"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </p>
+                )}
+
                 {/* Divider */}
                 <div className="rm-divider" />
 
@@ -310,6 +407,7 @@ export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading,
                   <a href="#termos">Termos de Uso</a>
                 </p>
               </form>
+              )}
             </div>
           </div>
 
@@ -609,6 +707,53 @@ export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading,
             .rm-legal a {
               color: var(--color-text-secondary);
               text-decoration: underline;
+            }
+
+            /* ── Forgot password link ── */
+            .rm-forgot-link {
+              text-align: right;
+              font-family: var(--font-family-body);
+              font-size: 11px;
+              margin: -4px 0 0;
+            }
+
+            /* ── Forgot success state ── */
+            .rm-forgot-success {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              text-align: center;
+              gap: 10px;
+              padding: 8px 0 4px;
+            }
+            .rm-forgot-success__icon {
+              width: 48px;
+              height: 48px;
+              border-radius: 50%;
+              background: var(--primitive-yellow-500);
+              border: 2px solid var(--primitive-black-900);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 22px;
+              font-weight: 700;
+              color: var(--primitive-black-900);
+              box-shadow: 3px 3px 0 var(--primitive-black-900);
+            }
+            .rm-forgot-success__title {
+              font-family: var(--font-family-heading);
+              font-size: 20px;
+              font-weight: 700;
+              color: var(--color-text-primary);
+              margin: 0;
+            }
+            .rm-forgot-success__text {
+              font-family: var(--font-family-body);
+              font-size: 13px;
+              line-height: 1.6;
+              color: var(--color-text-secondary);
+              margin: 0;
+              max-width: 300px;
             }
 
             /* ── Animations ── */

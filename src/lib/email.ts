@@ -830,3 +830,150 @@ export async function sendAbandonmentEmail3(
   })
 }
 
+// ─── 10. Redefinição de senha — link ─────────────────────────────────────────
+
+export async function sendPasswordResetEmail(
+  email: string,
+  name: string,
+  token: string
+): Promise<SendEmailResponse> {
+  const firstName = name?.split(' ')[0] || 'você'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
+  const resetUrl = `${appUrl}/redefinir-senha?token=${token}`
+
+  const html = emailShell(`
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+      style="max-width:600px;margin:0 auto;background-color:#FFFFFF;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
+
+      ${emailHeader('REDEFINIR SENHA', '#1A1A1A', '#FFD600')}
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:40px 40px 32px;">
+
+          <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#1A1A1A;line-height:1.1;">
+            Redefinir senha, ${firstName}.
+          </h2>
+          <p style="margin:0 0 28px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
+            Recebemos um pedido para redefinir a senha da sua conta. Clique no botão abaixo para criar uma nova senha.
+          </p>
+
+          <!-- CTA -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="text-align:center;padding-bottom:32px;">
+                ${ctaButton(resetUrl, 'REDEFINIR MINHA SENHA')}
+              </td>
+            </tr>
+          </table>
+
+          <!-- Info box -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+            style="background-color:#F0EFEB;border-radius:6px;border:1px solid #E8E7E3;">
+            <tr>
+              <td style="padding:20px 24px;">
+                <p style="margin:0 0 8px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888888;">Importante</p>
+                <p style="margin:0 0 6px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;line-height:1.6;color:#666666;">
+                  → Link válido por <strong style="color:#1A1A1A;">1 hora</strong> a partir do envio deste email.
+                </p>
+                <p style="margin:0;font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;line-height:1.6;color:#666666;">
+                  → Se você não solicitou a redefinição, ignore este email. Sua senha permanece a mesma.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+
+      ${emailDivider()}
+      ${emailFooter([
+        '🔒 Este link é de uso único e expira em 1 hora.',
+        'Nunca compartilhe este email com ninguém.',
+      ])}
+
+    </table>
+  `)
+
+  return sendEmail({
+    to: email,
+    subject: 'Redefinir sua senha — EOPIX',
+    html,
+    idempotencyKey: `password-reset/${token}`,
+  })
+}
+
+// ─── 11. Confirmação de senha alterada ───────────────────────────────────────
+
+export async function sendPasswordChangedEmail(
+  email: string,
+  name: string
+): Promise<SendEmailResponse> {
+  const firstName = name?.split(' ')[0] || 'você'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
+  const now = new Date().toLocaleString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
+  const html = emailShell(`
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+      style="max-width:600px;margin:0 auto;background-color:#FFFFFF;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
+
+      ${emailHeader('SENHA ALTERADA', '#CC3333', '#FFFFFF')}
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:40px 40px 32px;">
+
+          <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#1A1A1A;line-height:1.1;">
+            Sua senha foi alterada.
+          </h2>
+          <p style="margin:0 0 28px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
+            Olá, ${firstName}. Sua senha foi redefinida com sucesso em <strong style="color:#1A1A1A;">${now}</strong> (horário de Brasília).
+          </p>
+
+          <!-- Security box -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+            style="background-color:#FFF5F5;border-radius:6px;border:1px solid #FFCCCC;margin-bottom:32px;">
+            <tr>
+              <td style="padding:20px 24px;">
+                <p style="margin:0 0 8px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#CC3333;">⚠ Não foi você?</p>
+                <p style="margin:0;font-family:'IBM Plex Mono','Courier New',monospace;font-size:13px;line-height:1.6;color:#666666;">
+                  Se você não realizou esta alteração, entre em contato imediatamente respondendo este email. Sua conta pode estar comprometida.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- CTA -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="text-align:center;">
+                ${ctaButton(`${appUrl}/minhas-consultas`, 'ACESSAR MINHA CONTA')}
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+
+      ${emailDivider()}
+      ${emailFooter([
+        '🔒 Dados tratados conforme LGPD. Acesso restrito à sua conta.',
+        'Dúvidas? Responda este email.',
+      ])}
+
+    </table>
+  `)
+
+  return sendEmail({
+    to: email,
+    subject: 'Sua senha foi alterada — EOPIX',
+    html,
+  })
+}
