@@ -248,9 +248,11 @@ export async function sendPurchaseReceivedEmail(
   email: string,
   name: string,
   code: string,
-  document: string
+  document: string,
+  purchaseId: string
 ): Promise<SendEmailResponse> {
   const firstName = name?.split(' ')[0] || 'você'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
 
   const steps = [
     'Verificando dados cadastrais',
@@ -309,10 +311,19 @@ export async function sendPurchaseReceivedEmail(
             </tr>
           </table>
 
-          <p style="margin:24px 0 0;font-family:'IBM Plex Mono','Courier New',monospace;font-size:13px;line-height:1.7;color:#666666;text-align:center;">
+          <p style="margin:24px 0 16px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:13px;line-height:1.7;color:#666666;text-align:center;">
             Você receberá um email quando o relatório estiver pronto.<br>
             <strong style="color:#1A1A1A;">Isso leva em torno de 1 a 3 minutos.</strong>
           </p>
+
+          <!-- CTA -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="text-align:center;padding-top:12px;">
+                ${ctaButton(`${appUrl}/minhas-consultas`, 'ACOMPANHAR EM MINHAS CONSULTAS', '#1A1A1A', '#FFD600')}
+              </td>
+            </tr>
+          </table>
 
         </td>
       </tr>
@@ -330,6 +341,7 @@ export async function sendPurchaseReceivedEmail(
     to: email,
     subject: `Pedido ${code} recebido — processando seu relatório`,
     html,
+    idempotencyKey: `purchase-received/${purchaseId}`,
   })
 }
 
@@ -339,7 +351,8 @@ export async function sendPurchaseApprovedEmail(
   email: string,
   name: string,
   code: string,
-  reportUrl: string
+  reportUrl: string,
+  purchaseId = ''
 ): Promise<SendEmailResponse> {
   const firstName = name?.split(' ')[0] || 'você'
 
@@ -381,14 +394,10 @@ export async function sendPurchaseApprovedEmail(
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
             <tr>
               <td style="text-align:center;">
-                ${ctaButton(reportUrl, 'VER RELATÓRIO COMPLETO')}
+                ${ctaButton(`${process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'}/minhas-consultas`, 'VER RELATÓRIO EM MINHAS CONSULTAS')}
               </td>
             </tr>
           </table>
-
-          <p style="margin:20px 0 0;font-family:'IBM Plex Mono','Courier New',monospace;font-size:11px;line-height:1.6;color:#BBBBBB;text-align:center;">
-            Ou acesse via <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'}/minhas-consultas" style="color:#1A1A1A;">Minhas Consultas</a>
-          </p>
 
         </td>
       </tr>
@@ -406,6 +415,7 @@ export async function sendPurchaseApprovedEmail(
     to: email,
     subject: `Relatório pronto — pedido ${code}`,
     html,
+    ...(purchaseId ? { idempotencyKey: `purchase-approved/${purchaseId}` } : {}),
   })
 }
 
@@ -414,7 +424,8 @@ export async function sendPurchaseApprovedEmail(
 export async function sendPurchaseDeniedEmail(
   email: string,
   name: string,
-  code: string
+  code: string,
+  purchaseId = ''
 ): Promise<SendEmailResponse> {
   const firstName = name?.split(' ')[0] || 'você'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
@@ -490,6 +501,268 @@ export async function sendPurchaseDeniedEmail(
   return sendEmail({
     to: email,
     subject: `Problema no pedido ${code} — ação necessária`,
+    html,
+    ...(purchaseId ? { idempotencyKey: `purchase-denied/${purchaseId}` } : {}),
+  })
+}
+
+// ─── 5. Reembolso processado ──────────────────────────────────────────────────
+
+export async function sendPurchaseRefundedEmail(
+  email: string,
+  name: string,
+  code: string,
+  purchaseId = ''
+): Promise<SendEmailResponse> {
+  const firstName = name?.split(' ')[0] || 'você'
+
+  const html = emailShell(`
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+      style="max-width:600px;margin:0 auto;background-color:#FFFFFF;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
+
+      ${emailHeader('REEMBOLSO PROCESSADO', '#66CC66', '#FFFFFF')}
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:40px 40px 32px;">
+
+          <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#1A1A1A;line-height:1.1;">
+            Seu dinheiro voltou.
+          </h2>
+          <p style="margin:0 0 28px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
+            Olá, ${firstName}. O reembolso referente ao pedido abaixo foi processado. O valor será estornado em até <strong style="color:#1A1A1A;">5 dias úteis</strong>, conforme sua operadora.
+          </p>
+
+          <p style="margin:0 0 10px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888888;">Código do pedido</p>
+          ${codeBox(code)}
+
+          <p style="margin:24px 0 0;font-family:'IBM Plex Mono','Courier New',monospace;font-size:13px;line-height:1.7;color:#666666;">
+            Se tiver alguma dúvida, responda este email.
+          </p>
+
+        </td>
+      </tr>
+
+      ${emailDivider()}
+      ${emailFooter(['Pedimos desculpas pelo inconveniente.'])}
+
+    </table>
+  `)
+
+  return sendEmail({
+    to: email,
+    subject: `Reembolso confirmado — pedido ${code}`,
+    html,
+    ...(purchaseId ? { idempotencyKey: `purchase-refunded/${purchaseId}` } : {}),
+  })
+}
+
+// ─── 6. Abandono R1 — 30 minutos ─────────────────────────────────────────────
+
+export async function sendAbandonmentEmail1(
+  email: string,
+  name: string,
+  term: string
+): Promise<SendEmailResponse> {
+  const firstName = name?.split(' ')[0] || 'você'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
+  const formattedTerm = term.length === 11
+    ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+    : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+
+  const html = emailShell(`
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+      style="max-width:600px;margin:0 auto;background-color:#FFFFFF;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
+
+      ${emailHeader('CONSULTA PENDENTE', '#1A1A1A', '#FFD600')}
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:40px 40px 32px;">
+
+          <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#1A1A1A;line-height:1.1;">
+            Você quase se protegeu.
+          </h2>
+          <p style="margin:0 0 20px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
+            Olá, ${firstName}. Você foi lá, iniciou uma consulta para <strong style="color:#1A1A1A;">${formattedTerm}</strong> e parou no pagamento.
+          </p>
+          <p style="margin:0 0 32px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
+            O documento ainda pode ser verificado agora, por R$&nbsp;39,90.
+          </p>
+
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="text-align:center;">
+                ${ctaButton(`${appUrl}/consulta/${term}`, 'COMPLETAR CONSULTA — R$ 39,90')}
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+
+      ${emailDivider()}
+      ${emailFooter([
+        'Você recebeu este email porque iniciou uma consulta no EOPIX.',
+        'Para não receber mais emails de lembrete, responda com PARAR.',
+      ])}
+
+    </table>
+  `)
+
+  return sendEmail({
+    to: email,
+    subject: 'Você quase se protegeu.',
+    html,
+  })
+}
+
+// ─── 7. Abandono R2 — 24 horas ────────────────────────────────────────────────
+
+export async function sendAbandonmentEmail2(
+  email: string,
+  name: string,
+  term: string
+): Promise<SendEmailResponse> {
+  const firstName = name?.split(' ')[0] || 'você'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
+  const formattedTerm = term.length === 11
+    ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+    : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+
+  const html = emailShell(`
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+      style="max-width:600px;margin:0 auto;background-color:#FFFFFF;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
+
+      ${emailHeader('AINDA DÁ TEMPO', '#FFD600', '#1A1A1A')}
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:40px 40px 32px;">
+
+          <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#1A1A1A;line-height:1.1;">
+            A consulta que você não fez.
+          </h2>
+          <p style="margin:0 0 20px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#666666;">
+            Olá, ${firstName}. Todo dia alguém fecha um contrato sem checar quem está do outro lado. Você já sabe que <strong style="color:#1A1A1A;">${formattedTerm}</strong> precisava ser verificado.
+          </p>
+
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+            style="background-color:#F0EFEB;border-radius:6px;border:1px solid #E8E7E3;margin-bottom:32px;">
+            <tr>
+              <td style="padding:20px 24px;">
+                <p style="margin:0 0 10px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888888;">Você vai descobrir</p>
+                ${['Processos judiciais ativos', 'Dívidas e negativações', 'Reclamações no Reclame Aqui', 'Notícias comprometedoras'].map(item => `
+                  <p style="margin:0 0 6px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:13px;color:#1A1A1A;">→ ${item}</p>
+                `).join('')}
+              </td>
+            </tr>
+          </table>
+
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="text-align:center;">
+                ${ctaButton(`${appUrl}/consulta/${term}`, 'VERIFICAR AGORA — R$ 39,90')}
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+
+      ${emailDivider()}
+      ${emailFooter([
+        'Você recebeu este email porque iniciou uma consulta no EOPIX.',
+        'Para não receber mais emails de lembrete, responda com PARAR.',
+      ])}
+
+    </table>
+  `)
+
+  return sendEmail({
+    to: email,
+    subject: 'Enquanto você esperava...',
+    html,
+  })
+}
+
+// ─── 8. Abandono R3 — 72 horas ────────────────────────────────────────────────
+
+export async function sendAbandonmentEmail3(
+  email: string,
+  name: string,
+  term: string
+): Promise<SendEmailResponse> {
+  const firstName = name?.split(' ')[0] || 'você'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
+
+  const html = emailShell(`
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+      style="max-width:600px;margin:0 auto;background-color:#1A1A1A;border:2px solid #1A1A1A;border-radius:8px;overflow:hidden;">
+
+      <!-- Header invertido — impacto máximo -->
+      <tr>
+        <td style="background-color:#FFD600;padding:28px 40px 24px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td>
+                <span style="font-family:'Zilla Slab',Georgia,serif;font-size:22px;font-weight:700;color:#1A1A1A;letter-spacing:-0.3px;">
+                  E o Pix<span style="color:#1A1A1A;">?</span>
+                </span>
+              </td>
+              <td style="text-align:right;vertical-align:middle;">
+                <span style="display:inline-block;background-color:#1A1A1A;color:#FFD600;font-family:'IBM Plex Mono','Courier New',monospace;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:2px;">
+                  ÚLTIMO AVISO
+                </span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:40px 40px 32px;background-color:#1A1A1A;">
+
+          <h2 style="margin:0 0 8px;font-family:'Zilla Slab',Georgia,serif;font-size:30px;font-weight:700;color:#FFFFFF;line-height:1.1;">
+            Antes ou depois?
+          </h2>
+          <p style="margin:0 0 20px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#BBBBBB;">
+            Olá, ${firstName}. Calote acontece. Processo acontece. A pergunta não é "se vai acontecer". É "com quem".
+          </p>
+          <p style="margin:0 0 32px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;line-height:1.7;color:#FFFFFF;">
+            R$&nbsp;39,90 é quanto custa saber.<br>
+            <span style="color:#888888;">Processo trabalhista custa quanto mesmo?</span>
+          </p>
+
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="text-align:center;">
+                ${ctaButton(`${appUrl}/consulta/${term}`, 'CONSULTAR AGORA — R$ 39,90')}
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:16px 40px 24px;background-color:#1A1A1A;border-top:1px solid rgba(255,255,255,0.08);">
+          <p style="margin:0 0 4px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:11px;color:#444444;">
+            Você recebeu este email porque iniciou uma consulta no EOPIX. Este é o último lembrete.
+          </p>
+          <p style="margin:0;font-family:'IBM Plex Mono','Courier New',monospace;font-size:11px;color:#444444;">
+            Para cancelar recebimento de lembretes, responda com PARAR.
+          </p>
+        </td>
+      </tr>
+
+    </table>
+  `)
+
+  return sendEmail({
+    to: email,
+    subject: 'Antes ou depois?',
     html,
   })
 }
