@@ -62,10 +62,10 @@ export async function createCheckout(
 
   const body = {
     frequency: 'ONE_TIME',
-    methods: ['PIX'],
+    methods: ['PIX', 'CARD'],
     products: [
       {
-        externalId: params.externalRef,
+        externalId: 'relatorio-risco',
         name: 'Relatório de Risco CPF/CNPJ',
         quantity: 1,
         price: priceCents,
