@@ -2,29 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { validateWebhookSecret, validateWebhookSignature } from '@/lib/abacatepay'
 
-// v1 billing.paid payload — nested under data.billing (confirmed from production logs)
+// v2 billing.paid payload (confirmed via abacatepay-cli events sample billing.paid)
 interface AbacateWebhookEvent {
+  id: string       // evt_*
   event: string
   devMode?: boolean
   data: {
     billing: {
-      id: string
+      id: string         // bill_*
+      externalId?: string
+      url?: string
       amount: number
-      paidAmount?: number
       status: string
-      frequency?: string
-      kind?: string[]
-      products?: { publicId?: string; externalId?: string; quantity: number }[]
-      customer?: {
-        id: string
-        metadata?: {
-          name?: string
-          email?: string
-          cellphone?: string
-          taxId?: string
-        }
-      }
-      couponsUsed?: string[]
     }
     payment?: {
       amount: number
