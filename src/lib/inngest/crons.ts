@@ -46,28 +46,6 @@ export const cleanupLeads = inngest.createFunction(
   }
 )
 
-// Cleanup expired magic codes (daily at 03:30)
-export const cleanupMagicCodes = inngest.createFunction(
-  {
-    id: 'cleanup-magic-codes',
-  },
-  { cron: '30 3 * * *' },
-  async ({ step }) => {
-    const result = await step.run('delete-expired-codes', async () => {
-      return prisma.magicCode.deleteMany({
-        where: {
-          OR: [
-            { expiresAt: { lt: new Date() } },
-            { used: true },
-          ],
-        },
-      })
-    })
-
-    console.log(`Cleaned up ${result.count} expired magic codes`)
-    return { deleted: result.count }
-  }
-)
 
 // Cleanup pending purchases (every 15 minutes) - cancel after 30 min per spec
 export const cleanupPendingPurchases = inngest.createFunction(
@@ -199,7 +177,6 @@ export const functions = [
   processSearch,
   cleanupSearchResults,
   cleanupLeads,
-  cleanupMagicCodes,
   cleanupPendingPurchases,
   anonymizePurchases,
   abandonmentEmailSequence,

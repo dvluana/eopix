@@ -19,7 +19,7 @@ type SearchProcessEvent = {
 }
 
 type CleanupEvent = {
-  name: 'cleanup/search-results' | 'cleanup/leads' | 'cleanup/magic-codes' | 'cleanup/pending-purchases'
+  name: 'cleanup/search-results' | 'cleanup/leads' | 'cleanup/pending-purchases'
   data: Record<string, never>
 }
 

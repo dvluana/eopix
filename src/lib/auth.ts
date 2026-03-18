@@ -209,9 +209,3 @@ export async function isAdminEmail(email: string): Promise<boolean> {
   }
 }
 
-/**
- * Generate a 6-digit magic code
- */
-export function generateMagicCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
