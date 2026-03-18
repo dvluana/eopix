@@ -180,7 +180,6 @@ export default function Page({ params }: PageProps) {
       buyerTaxId?: string
       password?: string
     },
-    checkoutTab?: Window | null
   ) => {
     const body: Record<string, unknown> = {
       term: params.term,
@@ -201,23 +200,19 @@ export default function Page({ params }: PageProps) {
     const data = await res.json();
 
     if (res.status === 409 && data.existingReportId) {
-      checkoutTab?.close();
       alert('Você já possui um relatório ativo para este documento.');
       router.push(`/relatorio/${data.existingReportId}`);
       return;
     }
 
     if (!res.ok) {
-      checkoutTab?.close();
       throw new Error(data.error || 'Erro ao criar compra');
     }
 
-    if (data.checkoutUrl && checkoutTab) {
-      // Checkout opens in pre-opened tab; current tab goes to confirmation
-      checkoutTab.location.href = data.checkoutUrl;
-      router.push(`/compra/confirmacao?code=${data.code}`);
-    } else if (data.checkoutUrl) {
-      // Popup blocked — fallback to same-tab redirect
+    if (data.checkoutUrl) {
+      // Redirect to AbacatePay checkout (same tab).
+      // After payment: completionUrl brings user back to /compra/confirmacao.
+      // If cancelled: returnUrl brings user back to /.
       window.location.href = data.checkoutUrl;
     } else {
       // Bypass mode — no external checkout
@@ -225,23 +220,12 @@ export default function Page({ params }: PageProps) {
     }
   };
 
-  function openLoadingTab(): WindowProxy | null {
-    const tab = window.open('about:blank', '_blank');
-    if (tab) {
-      tab.document.write(`<!DOCTYPE html><html><head><title>Redirecionando...</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1a1a1a;color:#fff;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh}.c{text-align:center}.s{width:40px;height:40px;border:3px solid #333;border-top-color:#facc15;border-radius:50%;animation:r .8s linear infinite;margin:0 auto 16px}@keyframes r{to{transform:rotate(360deg)}}p{font-size:15px;color:#888}</style></head><body><div class="c"><div class="s"></div><p>Redirecionando para pagamento...</p></div></body></html>`);
-      tab.document.close();
-    }
-    return tab;
-  }
-
   const handlePurchaseLoggedIn = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsLoading(true);
-    const checkoutTab = openLoadingTab();
     try {
-      await createPurchase(undefined, checkoutTab);
+      await createPurchase();
     } catch (err) {
-      checkoutTab?.close();
       console.error('Purchase error:', err);
       alert(err instanceof Error ? err.message : 'Erro ao processar compra. Tente novamente.');
     } finally {
@@ -251,7 +235,6 @@ export default function Page({ params }: PageProps) {
 
   const handleModalSubmit = async (data: RegisterData) => {
     setIsLoading(true);
-    const checkoutTab = openLoadingTab();
     try {
       const isLoginMode = !data.name;
 
@@ -266,23 +249,29 @@ export default function Page({ params }: PageProps) {
         if (!loginRes.ok) {
           throw new Error(loginData.error || 'Erro ao fazer login');
         }
-        // Logged in — create purchase (password not needed, user already has account)
-        await createPurchase({
-          email: data.email,
-        }, checkoutTab);
       } else {
-        // Register mode: defer account creation — pass all data to purchases route
-        // Account is activated only after payment succeeds (webhook sets passwordHash)
-        await createPurchase({
-          email: data.email,
-          name: data.name,
-          cellphone: data.cellphone,
-          buyerTaxId: data.taxId,
-          password: data.password,
-        }, checkoutTab);
+        // Register mode: create account first (validates email/taxId duplicates)
+        const registerRes = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: data.email,
+            name: data.name,
+            password: data.password,
+            cellphone: data.cellphone,
+            taxId: data.taxId,
+          }),
+        });
+        const registerData = await registerRes.json();
+        if (!registerRes.ok) {
+          throw new Error(registerData.error || 'Erro ao criar conta');
+        }
+        // Account created + session active
       }
+
+      // User is authenticated → create purchase
+      await createPurchase({ email: data.email });
     } catch (err) {
-      checkoutTab?.close();
       throw err;
     } finally {
       setIsLoading(false);
