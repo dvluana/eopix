@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { isBypassMode } from './mock-mode'
+import { buildUnsubscribeUrl } from './unsubscribe'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -124,6 +125,7 @@ export interface SendEmailParams {
   subject: string
   html: string
   idempotencyKey?: string
+  headers?: Record<string, string>
 }
 
 export interface SendEmailResponse {
@@ -146,6 +148,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailRespo
       to: [params.to],
       subject: params.subject,
       html: params.html,
+      ...(params.headers ? { headers: params.headers } : {}),
     },
     sendOptions
   )
@@ -634,6 +637,7 @@ export async function sendAbandonmentEmail1(
   const formattedTerm = term.length === 11
     ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
     : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+  const unsubUrl = await buildUnsubscribeUrl(email)
 
   const html = emailShell(`
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
@@ -669,7 +673,7 @@ export async function sendAbandonmentEmail1(
       ${emailDivider()}
       ${emailFooter([
         'Você recebeu este email porque iniciou uma consulta no EOPIX.',
-        'Para não receber mais emails de lembrete, responda com PARAR.',
+        `Para não receber mais lembretes: <a href="${unsubUrl}" style="color:#888888;">cancelar emails</a>`,
       ])}
 
     </table>
@@ -679,6 +683,10 @@ export async function sendAbandonmentEmail1(
     to: email,
     subject: 'Você quase se protegeu.',
     html,
+    headers: {
+      'List-Unsubscribe': `<${unsubUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
     ...(purchaseId ? { idempotencyKey: `abandonment-r1/${purchaseId}` } : {}),
   })
 }
@@ -696,6 +704,7 @@ export async function sendAbandonmentEmail2(
   const formattedTerm = term.length === 11
     ? term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
     : term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+  const unsubUrl = await buildUnsubscribeUrl(email)
 
   const html = emailShell(`
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
@@ -743,7 +752,7 @@ export async function sendAbandonmentEmail2(
       ${emailDivider()}
       ${emailFooter([
         'Você recebeu este email porque iniciou uma consulta no EOPIX.',
-        'Para não receber mais emails de lembrete, responda com PARAR.',
+        `Para não receber mais lembretes: <a href="${unsubUrl}" style="color:#888888;">cancelar emails</a>`,
       ])}
 
     </table>
@@ -753,6 +762,10 @@ export async function sendAbandonmentEmail2(
     to: email,
     subject: 'Enquanto você esperava...',
     html,
+    headers: {
+      'List-Unsubscribe': `<${unsubUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
     ...(purchaseId ? { idempotencyKey: `abandonment-r2/${purchaseId}` } : {}),
   })
 }
@@ -767,6 +780,7 @@ export async function sendAbandonmentEmail3(
 ): Promise<SendEmailResponse> {
   const firstName = name?.split(' ')[0] || 'você'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://somoseopix.com.br'
+  const unsubUrl = await buildUnsubscribeUrl(email)
 
   const html = emailShell(`
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
@@ -795,13 +809,11 @@ export async function sendAbandonmentEmail3(
         </td>
       </tr>
 
-      <tr><td style="padding:0 40px;"><div style="height:1px;background-color:#E8E7E3;"></div></td></tr>
-      <tr>
-        <td style="padding:20px 40px 32px;">
-          <p style="margin:0 0 6px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;line-height:1.5;color:#888888;">Você recebeu este email porque iniciou uma consulta no EOPIX. Este é o último lembrete.</p>
-          <p style="margin:0 0 6px;font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;line-height:1.5;color:#888888;">Para não receber mais emails de lembrete, responda com PARAR.</p>
-        </td>
-      </tr>
+      ${emailDivider()}
+      ${emailFooter([
+        'Você recebeu este email porque iniciou uma consulta no EOPIX. Este é o último lembrete.',
+        `Para não receber mais lembretes: <a href="${unsubUrl}" style="color:#888888;">cancelar emails</a>`,
+      ])}
 
     </table>
   `)
@@ -810,6 +822,10 @@ export async function sendAbandonmentEmail3(
     to: email,
     subject: 'Antes ou depois?',
     html,
+    headers: {
+      'List-Unsubscribe': `<${unsubUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
     ...(purchaseId ? { idempotencyKey: `abandonment-r3/${purchaseId}` } : {}),
   })
 }

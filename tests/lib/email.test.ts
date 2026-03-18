@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// JWT_SECRET necessário para buildUnsubscribeUrl nos emails de abandono
+process.env.JWT_SECRET = 'test-secret-for-vitest'
+
 // vi.hoisted garante que mockSend é criado antes do hoist do vi.mock
 const mockSend = vi.hoisted(() =>
   vi.fn().mockResolvedValue({ data: { id: 'mock-id' }, error: null })

@@ -40,6 +40,15 @@ export const abandonmentEmailSequence = inngest.createFunction(
       return { aborted: 'paid_or_not_found', step: 'r1' }
     }
 
+    const optOut1 = await step.run('check-optout-r1', async () => {
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: { emailOptOut: true },
+      })
+      return user?.emailOptOut ?? false
+    })
+    if (optOut1) return { aborted: 'opted_out', step: 'r1' }
+
     await step.run('send-r1', async () => {
       await sendAbandonmentEmail1(email, name, term, purchaseId)
     })
@@ -58,6 +67,15 @@ export const abandonmentEmailSequence = inngest.createFunction(
       return { aborted: 'paid_or_not_found', step: 'r2' }
     }
 
+    const optOut2 = await step.run('check-optout-r2', async () => {
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: { emailOptOut: true },
+      })
+      return user?.emailOptOut ?? false
+    })
+    if (optOut2) return { aborted: 'opted_out', step: 'r2' }
+
     await step.run('send-r2', async () => {
       await sendAbandonmentEmail2(email, name, term, purchaseId)
     })
@@ -75,6 +93,15 @@ export const abandonmentEmailSequence = inngest.createFunction(
     if (!p3 || !isAbandoned(p3.status, p3.failureReason)) {
       return { aborted: 'paid_or_not_found', step: 'r3' }
     }
+
+    const optOut3 = await step.run('check-optout-r3', async () => {
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: { emailOptOut: true },
+      })
+      return user?.emailOptOut ?? false
+    })
+    if (optOut3) return { aborted: 'opted_out', step: 'r3' }
 
     await step.run('send-r3', async () => {
       await sendAbandonmentEmail3(email, name, term, purchaseId)
