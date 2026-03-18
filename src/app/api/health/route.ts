@@ -162,7 +162,7 @@ export async function GET() {
   if (mode === 'live') {
     checks.push(
       checkService('payment', async () => {
-        const res = await fetch('https://api.abacatepay.com/v1/billing/list', {
+        const res = await fetch('https://api.abacatepay.com/v2/products/list', {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${process.env.ABACATEPAY_API_KEY || ''}`,
