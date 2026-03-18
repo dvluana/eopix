@@ -123,10 +123,22 @@ export async function POST(request: NextRequest) {
         })
 
         if (existingPending && existingPending.paymentExternalId) {
-          return NextResponse.json({
-            code: existingPending.code,
-            checkoutUrl: existingPending.paymentExternalId,
-          })
+          // Busca URL da billing existente via API (paymentExternalId agora guarda billingId)
+          const apiKey = process.env.ABACATEPAY_API_KEY
+          if (apiKey) {
+            const billingRes = await fetch(
+              `https://api.abacatepay.com/v1/billing/get?id=${existingPending.paymentExternalId}`,
+              { headers: { Authorization: `Bearer ${apiKey}`, Accept: 'application/json' } }
+            )
+            if (billingRes.ok) {
+              const billingData = await billingRes.json()
+              const checkoutUrl = billingData?.data?.url
+              if (checkoutUrl) {
+                return NextResponse.json({ code: existingPending.code, checkoutUrl })
+              }
+            }
+          }
+          // Se não conseguir recuperar URL, cria nova billing abaixo
         }
       }
     }
@@ -298,10 +310,10 @@ export async function POST(request: NextRequest) {
 
       console.log(`[${provider}] Checkout session created:`, { code, sessionId })
 
-      // Save checkout URL for reuse if user returns
+      // Save billingId for webhook lookup
       await prisma.purchase.update({
         where: { id: purchase.id },
-        data: { paymentExternalId: checkoutUrl },
+        data: { paymentExternalId: sessionId },
       })
 
       return NextResponse.json({
