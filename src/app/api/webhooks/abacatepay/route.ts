@@ -2,22 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { validateWebhookSecret, validateWebhookSignature } from '@/lib/abacatepay'
 
-// v2 billing.paid payload (confirmed via abacatepay-cli events sample billing.paid)
+// v2 checkout.completed payload (from AbacatePay v2 webhook docs)
 interface AbacateWebhookEvent {
-  id: string       // evt_*
   event: string
+  apiVersion?: number
   devMode?: boolean
   data: {
-    billing: {
-      id: string         // bill_*
-      externalId?: string
+    checkout: {
+      id: string          // bill_*
+      externalId?: string // purchase code (set by us at checkout creation)
       url?: string
       amount: number
+      paidAmount?: number
       status: string
+      methods?: string[]
+      customerId?: string
     }
-    payment?: {
-      amount: number
-      fee: number
+    customer?: {
+      id: string
+      name?: string
+      email?: string
+      taxId?: string  // masked: "123.***.***-**"
+    }
+    payerInformation?: {
       method: string
     }
   }
@@ -58,25 +65,21 @@ export async function POST(request: NextRequest) {
 
     console.log('[AbacatePay Webhook] Event:', event.event, 'Data:', JSON.stringify(event.data).slice(0, 500))
 
-    if (event.event !== 'billing.paid') {
+    if (event.event !== 'checkout.completed') {
       console.log(`[AbacatePay Webhook] Ignoring event: ${event.event}`)
       return NextResponse.json({ received: true })
     }
 
-    // Extract fields from nested v1 payload (data.billing)
-    const billing = event.data.billing
-    if (!billing) {
-      console.warn('[AbacatePay Webhook] No billing object in payload')
+    const checkout = event.data.checkout
+    if (!checkout) {
+      console.warn('[AbacatePay Webhook] No checkout object in payload')
       return NextResponse.json({ received: true })
     }
 
-    const billingId = billing.id
-    const customerMeta = billing.customer?.metadata
-    const customerEmail = customerMeta?.email || null
-    const customerName = customerMeta?.name || null
+    const checkoutId = checkout.id
 
     // Idempotency check
-    const webhookKey = `abacate:${event.event}:${billingId}`
+    const webhookKey = `abacate:${event.event}:${checkoutId}`
     const existing = await prisma.webhookLog.findUnique({
       where: { eventKey: webhookKey },
     })
@@ -86,35 +89,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, duplicate: true })
     }
 
-    // Caminho primário: lookup por billingId (paymentExternalId = billingId desde v2 migration)
-    let purchaseCode: string | null = null
-    const purchaseByBilling = await prisma.purchase.findFirst({
-      where: { paymentExternalId: billingId },
-    })
+    // Primary: externalId = purchase.code (set by us when creating v2 checkout)
+    let purchaseCode: string | null = checkout.externalId || null
 
-    if (purchaseByBilling) {
-      purchaseCode = purchaseByBilling.code
-      console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} by billingId ${billingId}`)
+    if (purchaseCode) {
+      console.log(`[AbacatePay Webhook] Found purchase code via externalId: ${purchaseCode}`)
     } else {
-      // Fallback: purchases antigas usavam externalId do produto = purchase code
-      const legacyCode = billing.products?.[0]?.externalId || null
-      if (legacyCode && legacyCode !== 'relatorio-risco') {
-        purchaseCode = legacyCode
-        console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} via legacy product externalId`)
+      // Fallback: lookup by checkoutId stored in paymentExternalId (pre-migration purchases)
+      const purchaseByCheckout = await prisma.purchase.findFirst({
+        where: { paymentExternalId: checkoutId },
+      })
+      if (purchaseByCheckout) {
+        purchaseCode = purchaseByCheckout.code
+        console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} by checkoutId ${checkoutId} (legacy fallback)`)
       }
     }
 
     if (!purchaseCode) {
-      console.warn('[AbacatePay Webhook] No purchase found for billingId:', billingId)
+      console.warn('[AbacatePay Webhook] No purchase found for checkoutId:', checkoutId, 'externalId:', checkout.externalId)
       return NextResponse.json({ received: true })
     }
 
-    console.log('[AbacatePay Webhook] Payment confirmed:', { purchaseCode, billingId, customerEmail })
+    const customerEmail = event.data.customer?.email || null
+    const customerName = event.data.customer?.name || null
 
-    await handlePaymentSuccess(purchaseCode, billingId, customerEmail, customerName)
+    console.log('[AbacatePay Webhook] Payment confirmed:', { purchaseCode, checkoutId, customerEmail })
+
+    await handlePaymentSuccess(purchaseCode, checkoutId, customerEmail, customerName)
 
     await prisma.webhookLog.create({
-      data: { eventKey: webhookKey, event: event.event, paymentId: billingId },
+      data: { eventKey: webhookKey, event: event.event, paymentId: checkoutId },
     })
 
     return NextResponse.json({ received: true })
