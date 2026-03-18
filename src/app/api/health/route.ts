@@ -103,6 +103,7 @@ export async function GET() {
         { service: 'serper', status: 'up', latency: 30, message: 'Mockado', balance: { current: 2500, unit: 'credits', low: false } },
         { service: 'openai', status: 'up', latency: 40, message: 'Mockado' },
         { service: 'inngest', status: 'up', latency: 5, message: 'Mockado' },
+        { service: 'resend', status: 'up', latency: 20, balance: { current: 'verificado', unit: 'domínio', low: false } },
         { service: 'payment', status: 'up', latency: 30, message: `Bypass (${providerName})` },
       ],
     })
@@ -155,6 +156,21 @@ export async function GET() {
     checkService('inngest', async () => {
       if (!process.env.INNGEST_EVENT_KEY) throw new Error('INNGEST_EVENT_KEY not set')
       if (!process.env.INNGEST_SIGNING_KEY) throw new Error('INNGEST_SIGNING_KEY not set')
+    }),
+
+    // Resend check — API key validity + domain verification status
+    checkServiceWithBalance('resend', async () => {
+      if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY not set')
+      const res = await fetch('https://api.resend.com/domains', {
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+        cache: 'no-store',
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json() as { data?: { name: string; status: string }[] }
+      const domain = data.data?.find((d) => d.name === 'somoseopix.com.br')
+      if (!domain) throw new Error('Domínio somoseopix.com.br não encontrado')
+      if (domain.status !== 'verified') throw new Error(`Domínio ${domain.status}`)
+      return { current: 'verificado', unit: 'domínio', low: false }
     }),
   ]
 
