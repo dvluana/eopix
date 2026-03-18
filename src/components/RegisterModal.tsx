@@ -283,10 +283,10 @@ export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading,
                   {isLoading
                     ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span>
                     : mode === 'register'
-                      ? 'CONTINUAR PARA PAGAMENTO \u00B7 R$ 29,90'
+                      ? 'CONTINUAR PARA PAGAMENTO \u00B7 R$ 39,90'
                       : hideToggle
                         ? 'ENTRAR'
-                        : 'ENTRAR E PAGAR \u00B7 R$ 29,90'}
+                        : 'ENTRAR E PAGAR \u00B7 R$ 39,90'}
                 </button>
 
                 {/* Toggle */}

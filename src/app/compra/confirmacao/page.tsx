@@ -34,6 +34,7 @@ function ConfirmacaoContent() {
 
   const [pageState, setPageState] = React.useState<PageState>('loading');
   const [purchaseData, setPurchaseData] = React.useState<PurchaseData | null>(null);
+  const [autoLoginDone, setAutoLoginDone] = React.useState(false);
   const [autoLoginFailed, setAutoLoginFailed] = React.useState(false);
   const [confirmingSeconds, setConfirmingSeconds] = React.useState(0);
 
@@ -51,6 +52,25 @@ function ConfirmacaoContent() {
         if (data.status === 'COMPLETED' || data.hasReport) {
           setPageState('completed');
         } else if (pageState === 'confirming_payment' && (data.status === 'PAID' || data.status === 'PROCESSING')) {
+          // Payment confirmed — retry auto-login now that purchase is PAID
+          if (!autoLoginDone) {
+            try {
+              const loginRes = await fetch('/api/auth/auto-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: purchaseCode }),
+              });
+              if (loginRes.ok) {
+                const loginData = await loginRes.json();
+                if (loginData.success) {
+                  setAutoLoginDone(true);
+                  setAutoLoginFailed(false);
+                }
+              }
+            } catch {
+              // auto-login retry failed, will show login form
+            }
+          }
           setPageState('approved');
         }
       } catch {
@@ -59,7 +79,7 @@ function ConfirmacaoContent() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [pageState, purchaseCode]);
+  }, [pageState, purchaseCode, autoLoginDone]);
 
   // Timer: contar segundos em confirming_payment para mostrar timeout
   React.useEffect(() => {
@@ -93,19 +113,42 @@ function ConfirmacaoContent() {
         const data = await res.json();
         setPurchaseData(data);
 
-        // Tentar auto-login ANTES de setar estado
+        // Tentar auto-login — se purchase ainda é PENDING, não marcar como falha permanente
+        // (será retentado quando polling detectar PAID)
         try {
           const loginRes = await fetch('/api/auth/auto-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: purchaseCode }),
           });
-          if (!loginRes.ok) {
+          if (loginRes.ok) {
+            const loginData = await loginRes.json();
+            if (loginData.success) {
+              setAutoLoginDone(true);
+            } else if (loginData.reason !== 'payment_pending') {
+              // Only mark as failed if it's not a pending payment issue
+              setAutoLoginFailed(true);
+            }
+            // If payment_pending: don't mark failed, will retry after PAID
+          } else {
             setAutoLoginFailed(true);
           }
         } catch (loginError) {
           console.error('Auto-login error:', loginError);
           setAutoLoginFailed(true);
+        }
+
+        // Also check if user already has a session (registered via modal)
+        if (!autoLoginDone) {
+          try {
+            const meRes = await fetch('/api/auth/me');
+            if (meRes.ok) {
+              setAutoLoginDone(true);
+              setAutoLoginFailed(false);
+            }
+          } catch {
+            // ignore
+          }
         }
 
         // Determinar estado baseado no status
@@ -180,14 +223,29 @@ function ConfirmacaoContent() {
         );
 
       case 'confirming_payment':
+        // After 5 minutes without payment, show expired
+        if (confirmingSeconds > 300) {
+          return (
+            <>
+              <div className="conf-stamp conf-stamp--error">EXPIRADO</div>
+              <h1 className="conf-card__title">Compra expirada</h1>
+              <p className="conf-card__desc">
+                O pagamento não foi identificado dentro do prazo. Caso tenha efetuado o pagamento, entre em contato pelo email suporte@eopix.app com o código <strong>#{purchaseCode}</strong>.
+              </p>
+              <Link href="/" className="btn btn--cta conf-card__btn">
+                TENTAR NOVAMENTE
+              </Link>
+            </>
+          );
+        }
         return (
           <>
             <div className="conf-card__icon conf-card__icon--waiting">
               <EopixLoader size="sm" />
             </div>
-            <h1 className="conf-card__title">Confirmando seu pagamento...</h1>
+            <h1 className="conf-card__title">Aguardando pagamento...</h1>
             <p className="conf-card__desc">
-              Estamos verificando a confirmação do seu pagamento. Isso geralmente leva alguns segundos.
+              Realize o pagamento na outra aba. A confirmação aparecerá automaticamente aqui.
             </p>
             <div className="conf-card__code">
               <span className="conf-card__code-label">Código: </span>
@@ -196,7 +254,7 @@ function ConfirmacaoContent() {
             {confirmingSeconds > 60 && (
               <div className="conf-card__timeout">
                 <p>
-                  Está demorando mais que o esperado. Se você já pagou, entre em contato pelo email suporte@eopix.app com o código <strong>#{purchaseCode}</strong>.
+                  Já pagou? A confirmação pode levar até 2 minutos. Se persistir, entre em contato pelo email suporte@eopix.app com o código <strong>#{purchaseCode}</strong>.
                 </p>
               </div>
             )}
@@ -228,7 +286,7 @@ function ConfirmacaoContent() {
               <span className="conf-card__code-value">#{purchaseCode}</span>
             </div>
 
-            {autoLoginFailed ? (
+            {autoLoginFailed && !autoLoginDone ? (
               <div className="conf-card__auth">
                 <p className="conf-card__auth-text">
                   Para acompanhar seu relatório, faça login:

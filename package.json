@@ -6,7 +6,7 @@
     "dev": "MOCK_MODE=true node scripts/dev-banner.js && next dev --turbo",
     "dev:live": "concurrently -n next,inngest -c cyan,magenta \"node scripts/dev-banner.js && next dev --turbo\" \"npx inngest-cli@latest dev -u http://localhost:3000/api/inngest\"",
     "inngest": "npx inngest-cli@latest dev -u http://localhost:3000/api/inngest",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",

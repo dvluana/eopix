@@ -190,7 +190,7 @@ export default function NovaConsultaModal({ open, onOpenChange }: NovaConsultaMo
 
                   <div className="nc-price-row">
                     <span className="nc-price-label">Relatório completo</span>
-                    <span className="nc-price-value">R$ 29,90</span>
+                    <span className="nc-price-value">R$ 39,90</span>
                   </div>
 
                   <button
@@ -199,7 +199,7 @@ export default function NovaConsultaModal({ open, onOpenChange }: NovaConsultaMo
                     disabled={isLoading}
                     className="btn btn--cta btn--full"
                   >
-                    {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'DESBLOQUEAR RELAT\u00D3RIO \u00B7 R$ 29,90'}
+                    {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'DESBLOQUEAR RELAT\u00D3RIO \u00B7 R$ 39,90'}
                   </button>
 
                   <button

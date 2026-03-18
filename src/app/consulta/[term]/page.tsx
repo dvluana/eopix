@@ -225,10 +225,19 @@ export default function Page({ params }: PageProps) {
     }
   };
 
+  function openLoadingTab(): WindowProxy | null {
+    const tab = window.open('about:blank', '_blank');
+    if (tab) {
+      tab.document.write(`<!DOCTYPE html><html><head><title>Redirecionando...</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1a1a1a;color:#fff;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh}.c{text-align:center}.s{width:40px;height:40px;border:3px solid #333;border-top-color:#facc15;border-radius:50%;animation:r .8s linear infinite;margin:0 auto 16px}@keyframes r{to{transform:rotate(360deg)}}p{font-size:15px;color:#888}</style></head><body><div class="c"><div class="s"></div><p>Redirecionando para pagamento...</p></div></body></html>`);
+      tab.document.close();
+    }
+    return tab;
+  }
+
   const handlePurchaseLoggedIn = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsLoading(true);
-    const checkoutTab = window.open('about:blank', '_blank');
+    const checkoutTab = openLoadingTab();
     try {
       await createPurchase(undefined, checkoutTab);
     } catch (err) {
@@ -242,7 +251,7 @@ export default function Page({ params }: PageProps) {
 
   const handleModalSubmit = async (data: RegisterData) => {
     setIsLoading(true);
-    const checkoutTab = window.open('about:blank', '_blank');
+    const checkoutTab = openLoadingTab();
     try {
       const isLoginMode = !data.name;
 
@@ -443,7 +452,7 @@ export default function Page({ params }: PageProps) {
                         disabled={isMaintenance || isLoading}
                         className="btn btn--cta btn--lg btn--full btn--glow consulta-cta"
                       >
-                        {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
+                        {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 39,90'}
                       </button>
                     </form>
                   ) : (
@@ -453,7 +462,7 @@ export default function Page({ params }: PageProps) {
                       disabled={isMaintenance || isLoading}
                       className="btn btn--cta btn--lg btn--full btn--glow consulta-cta"
                     >
-                      {isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 29,90'}
+                      {isMaintenance ? 'Indisponível' : 'DESBLOQUEAR RELATÓRIO · R$ 39,90'}
                     </button>
                   )}
                 </div>
@@ -602,7 +611,7 @@ export default function Page({ params }: PageProps) {
                       <span className="c-anchor__label">EOPIX &middot; 6 fontes + IA</span>
                     </div>
                     <div className="c-anchor__price-wrap">
-                      <span className="c-anchor__price">R$ 29,90</span>
+                      <span className="c-anchor__price">R$ 39,90</span>
                       <span className="c-anchor__savings">Economia de R$ 470</span>
                     </div>
                   </div>
@@ -626,7 +635,7 @@ export default function Page({ params }: PageProps) {
                   disabled={isLoading}
                   className="btn btn--cta btn--lg btn--full consulta-cta"
                 >
-                  {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'DESBLOQUEAR AGORA POR R$ 29,90'}
+                  {isLoading ? <span className="epl-inline"><EopixLoader size="sm" />Processando...</span> : 'DESBLOQUEAR AGORA POR R$ 39,90'}
                 </button>
                 <p className="c-final__note">Pagamento 100% seguro &middot; Relatório em até 3 minutos</p>
               </section>

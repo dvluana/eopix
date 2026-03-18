@@ -22,8 +22,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: firstError }, { status: 400 })
     }
 
-    const { name, email, password, cellphone, taxId } = parsed.data
+    const { name, email, password, cellphone, taxId: rawTaxId } = parsed.data
     const normalizedEmail = email.toLowerCase().trim()
+    const taxId = rawTaxId?.replace(/\D/g, '') || undefined
 
     // Check if user already exists with a password (already registered)
     const existingUser = await prisma.user.findUnique({
@@ -35,6 +36,20 @@ export async function POST(request: NextRequest) {
         { error: 'Email ja cadastrado. Faca login.' },
         { status: 409 }
       )
+    }
+
+    // Check if taxId (CPF/CNPJ) is already used by another account
+    if (taxId) {
+      const cleanedTaxId = taxId.replace(/\D/g, '')
+      const existingTaxIdUser = await prisma.user.findFirst({
+        where: { taxId: cleanedTaxId, passwordHash: { not: null } },
+      })
+      if (existingTaxIdUser && existingTaxIdUser.email !== normalizedEmail) {
+        return NextResponse.json(
+          { error: 'CPF/CNPJ ja cadastrado em outra conta. Faca login com o email associado.' },
+          { status: 409 }
+        )
+      }
     }
 
     const passwordHash = await bcrypt.hash(password, 10)

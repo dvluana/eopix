@@ -61,7 +61,7 @@ export default function ForWhoSection({ onCtaClick }: ForWhoSectionProps) {
               </div>
             </div>
             <p className="card-footer-divider caption">
-              Agora tem. Uma IA que pesquisa por você em 5 bases públicas por R$ 29,90.
+              Agora tem. Uma IA que pesquisa por você em 5 bases públicas por R$ 39,90.
             </p>
           </div>
         </div>

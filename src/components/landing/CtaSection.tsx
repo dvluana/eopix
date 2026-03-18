@@ -20,7 +20,7 @@ export default function CtaSection(props: CtaSectionProps) {
       <div className="hero-content" style={{ position: 'relative', zIndex: 1 }}>
         <p className="cta-final__eyebrow">Última chamada</p>
         <h2 className="display-lg text-inverse mb-4">
-          Contrato reforçado custa R$ 29,90.<br/>
+          Contrato reforçado custa R$ 39,90.<br/>
           <em className="text-accent-em">Processo custa sua paz.</em>
         </h2>
 

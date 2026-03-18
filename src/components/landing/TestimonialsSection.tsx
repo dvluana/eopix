@@ -7,7 +7,7 @@ const TESTIMONIALS = [
   { emoji: '🎤', quote: 'Ele mandou áudio de 7 minutos explicando por que ia atrasar o pagamento. Eu devia ter consultado antes.', author: 'Dev backend, RJ' },
   { emoji: '🤡', quote: 'A empresa tinha 47 processos. QUARENTA E SETE. E eu aceitei cheque.', author: 'Dono de agência, MG' },
   { emoji: '🙏', quote: 'O cara me disse "confia". Agora eu confio no E o Pix.', author: 'Social media, PR' },
-  { emoji: '😴', quote: 'Minha mãe falou: pesquisa antes. Eu não ouvi. Agora pago R$ 29,90 por consulta e durmo em paz.', author: 'Arquiteta, SC' },
+  { emoji: '😴', quote: 'Minha mãe falou: pesquisa antes. Eu não ouvi. Agora pago R$ 39,90 por consulta e durmo em paz.', author: 'Arquiteta, SC' },
   { emoji: '📅', quote: 'Ele disse que pagava na sexta. Estamos em março. A sexta era de novembro.', author: 'Fotógrafo, CE' },
   { emoji: '📰', quote: 'Fui a consulta e apareceu até matéria no jornal. O Google que eu deveria ter feito.', author: 'Consultora de RH, DF' },
   { emoji: '⚖️', quote: 'Descobri que meu fornecedor tinha mais processo que cliente. Obrigada, E o Pix.', author: 'Dona de e-commerce, BA' },
