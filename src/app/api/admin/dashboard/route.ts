@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
       totalLeads,
       leadsToday,
     ] = await Promise.all([
-      // Purchase counts
-      prisma.purchase.count(),
-      prisma.purchase.count({ where: { createdAt: { gte: today } } }),
-      prisma.purchase.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
-      prisma.purchase.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      // Purchase counts — only COMPLETED (approved and processed)
+      prisma.purchase.count({ where: { status: 'COMPLETED' } }),
+      prisma.purchase.count({ where: { status: 'COMPLETED', createdAt: { gte: today } } }),
+      prisma.purchase.count({ where: { status: 'COMPLETED', createdAt: { gte: sevenDaysAgo } } }),
+      prisma.purchase.count({ where: { status: 'COMPLETED', createdAt: { gte: thirtyDaysAgo } } }),
 
       // Status counts
       prisma.purchase.count({ where: { status: 'COMPLETED' } }),
