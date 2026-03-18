@@ -27,6 +27,8 @@ import {
   sendAbandonmentEmail1,
   sendAbandonmentEmail2,
   sendAbandonmentEmail3,
+  sendPasswordResetEmail,
+  sendPasswordChangedEmail,
 } from '@/lib/email'
 
 describe('email functions', () => {
@@ -80,5 +82,22 @@ describe('email functions', () => {
   it('sendAbandonmentEmail3 — retorna id', async () => {
     const res = await sendAbandonmentEmail3('ana@test.com', 'Ana', '12345678900')
     expect(res.id).toBe('mock-id')
+  })
+
+  it('sendPasswordResetEmail — retorna id e inclui token na URL', async () => {
+    const token = 'abc123deadbeef'
+    const res = await sendPasswordResetEmail('ana@test.com', 'Ana Silva', token)
+    expect(res.id).toBe('mock-id')
+    const callArgs = mockSend.mock.calls[0][0]
+    expect(callArgs.html).toContain(token)
+    expect(callArgs.subject).toContain('Redefinir')
+  })
+
+  it('sendPasswordChangedEmail — retorna id e badge vermelho no HTML', async () => {
+    const res = await sendPasswordChangedEmail('ana@test.com', 'Ana Silva')
+    expect(res.id).toBe('mock-id')
+    const callArgs = mockSend.mock.calls[0][0]
+    expect(callArgs.html).toContain('SENHA ALTERADA')
+    expect(callArgs.html).toContain('#CC3333')
   })
 })
