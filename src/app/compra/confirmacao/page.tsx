@@ -139,16 +139,14 @@ function ConfirmacaoContent() {
         }
 
         // Also check if user already has a session (registered via modal)
-        if (!autoLoginDone) {
-          try {
-            const meRes = await fetch('/api/auth/me');
-            if (meRes.ok) {
-              setAutoLoginDone(true);
-              setAutoLoginFailed(false);
-            }
-          } catch {
-            // ignore
+        try {
+          const meRes = await fetch('/api/auth/me');
+          if (meRes.ok) {
+            setAutoLoginDone(true);
+            setAutoLoginFailed(false);
           }
+        } catch {
+          // ignore
         }
 
         // Determinar estado baseado no status
