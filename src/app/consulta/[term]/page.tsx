@@ -278,6 +278,14 @@ export default function Page({ params }: PageProps) {
     }
   };
 
+  const handleForgotPassword = async (email: string) => {
+    await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+  };
+
   return (
     <div className="consulta-page">
       {/* NAV */}
@@ -688,6 +696,7 @@ export default function Page({ params }: PageProps) {
         onOpenChange={setModalOpen}
         onSubmit={handleModalSubmit}
         isLoading={isLoading}
+        onForgotPassword={handleForgotPassword}
       />
 
       <style jsx global>{`

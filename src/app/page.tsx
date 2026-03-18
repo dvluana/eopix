@@ -169,6 +169,14 @@ export default function LandingPage() {
     }
   }
 
+  const handleForgotPassword = async (email: string) => {
+    await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+  }
+
   const searchProps = {
     searchTerm,
     placeholderText,
@@ -253,6 +261,7 @@ export default function LandingPage() {
         isLoading={isLoginLoading}
         initialMode="login"
         hideToggle
+        onForgotPassword={handleForgotPassword}
       />
     </div>
   );
