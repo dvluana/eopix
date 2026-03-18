@@ -228,9 +228,11 @@ export default function Page({ params }: PageProps) {
   const handlePurchaseLoggedIn = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsLoading(true);
+    const checkoutTab = window.open('about:blank', '_blank');
     try {
-      await createPurchase();
+      await createPurchase(undefined, checkoutTab);
     } catch (err) {
+      checkoutTab?.close();
       console.error('Purchase error:', err);
       alert(err instanceof Error ? err.message : 'Erro ao processar compra. Tente novamente.');
     } finally {
@@ -240,6 +242,7 @@ export default function Page({ params }: PageProps) {
 
   const handleModalSubmit = async (data: RegisterData) => {
     setIsLoading(true);
+    const checkoutTab = window.open('about:blank', '_blank');
     try {
       const isLoginMode = !data.name;
 
@@ -257,7 +260,7 @@ export default function Page({ params }: PageProps) {
         // Logged in — create purchase (password not needed, user already has account)
         await createPurchase({
           email: data.email,
-        });
+        }, checkoutTab);
       } else {
         // Register mode: defer account creation — pass all data to purchases route
         // Account is activated only after payment succeeds (webhook sets passwordHash)
@@ -267,9 +270,10 @@ export default function Page({ params }: PageProps) {
           cellphone: data.cellphone,
           buyerTaxId: data.taxId,
           password: data.password,
-        });
+        }, checkoutTab);
       }
     } catch (err) {
+      checkoutTab?.close();
       throw err;
     } finally {
       setIsLoading(false);
