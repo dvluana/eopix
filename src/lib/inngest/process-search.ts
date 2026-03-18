@@ -14,6 +14,7 @@ import { analyzeProcessos, analyzeMentionsAndSummary } from '../openai'
 import { calculateCpfFinancialSummary, calculateCnpjFinancialSummary } from '../financial-summary'
 import { getReportExpiresAt } from '../report-ttl'
 import { isMockMode } from '../mock-mode'
+import { sendPurchaseApprovedEmail, sendPurchaseDeniedEmail } from '../email'
 
 // Small delay in mock mode so frontend can poll and display progress
 const mockDelay = () => isMockMode ? new Promise(r => setTimeout(r, 1500)) : Promise.resolve()
@@ -97,6 +98,16 @@ export const processSearch = inngest.createFunction(
           },
         })
       })
+
+      // Enviar email "relatório pronto" (cache hit) — fire-and-forget
+      prisma.purchase.findUnique({
+        where: { id: purchaseId },
+        select: { id: true, code: true, user: { select: { email: true, name: true } } },
+      }).then(p => {
+        if (p?.user && !p.user.email.includes('@guest.eopix.app')) {
+          return sendPurchaseApprovedEmail(p.user.email, p.user.name || '', p.code, '', p.id)
+        }
+      }).catch(err => console.error('[Pipeline] Approved email (cache) failed:', err))
 
       return { success: true, cached: true, searchResultId: cacheResult.searchResultId }
     }
@@ -335,6 +346,16 @@ export const processSearch = inngest.createFunction(
         return { id: result.id }
       })
 
+      // Enviar email "relatório pronto" — fire-and-forget
+      prisma.purchase.findUnique({
+        where: { id: purchaseId },
+        select: { id: true, code: true, user: { select: { email: true, name: true } } },
+      }).then(p => {
+        if (p?.user && !p.user.email.includes('@guest.eopix.app')) {
+          return sendPurchaseApprovedEmail(p.user.email, p.user.name || '', p.code, '', p.id)
+        }
+      }).catch(err => console.error('[Pipeline] Approved email failed:', err))
+
       return { success: true, searchResultId: searchResult.id }
     } catch (error) {
       console.error('Process search error:', error)
@@ -359,6 +380,17 @@ export const processSearch = inngest.createFunction(
           }),
         },
       })
+
+      // Enviar email "problema no pedido" — fire-and-forget
+      // Não envia para PAYMENT_EXPIRED (tratado pelo funil de abandono)
+      prisma.purchase.findUnique({
+        where: { id: purchaseId },
+        select: { id: true, code: true, failureReason: true, user: { select: { email: true, name: true } } },
+      }).then(p => {
+        if (p?.user && !p.user.email.includes('@guest.eopix.app') && p.failureReason !== 'PAYMENT_EXPIRED') {
+          return sendPurchaseDeniedEmail(p.user.email, p.user.name || '', p.code, p.id)
+        }
+      }).catch(err => console.error('[Pipeline] Denied email failed:', err))
 
       throw error // Re-throw to trigger Inngest retry
     }

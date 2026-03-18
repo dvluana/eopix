@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { validateWebhookSecret, validateWebhookSignature } from '@/lib/abacatepay'
+import { sendPurchaseReceivedEmail } from '@/lib/email'
 
 // AbacatePay webhook payload — supports both v2 checkout.completed and v1 billing.paid
 // Note: As of 2026-03, AbacatePay v2 API still sends billing.paid webhooks (not checkout.completed)
@@ -231,6 +232,27 @@ async function handlePaymentSuccess(
   }
 
   console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} updated to PAID`)
+
+  // Enviar email "pedido recebido" — fire-and-forget
+  // Usar customerEmail real se disponível, senão o email do user (se não for guest)
+  const emailForNotification = (customerEmail && !customerEmail.includes('@guest.eopix.app'))
+    ? customerEmail
+    : (!purchase.user.email.includes('@guest.eopix.app') ? purchase.user.email : null)
+
+  if (emailForNotification) {
+    const nameForNotification = customerName || purchase.user.name || ''
+    const formattedTerm = purchase.term.length === 11
+      ? purchase.term.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+      : purchase.term.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+
+    sendPurchaseReceivedEmail(
+      emailForNotification,
+      nameForNotification,
+      purchase.code,
+      formattedTerm,
+      purchase.id
+    ).catch(err => console.error('[Webhook] Purchase received email failed:', err))
+  }
 
   // Trigger Inngest job — re-throw on failure so webhook returns 500
   // and AbacatePay retries delivery

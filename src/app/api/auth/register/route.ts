@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { createSession } from '@/lib/auth'
+import { sendWelcomeEmail } from '@/lib/email'
 
 const registerSchema = z.object({
   email: z.string().email('Email invalido'),
@@ -54,6 +55,8 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 10)
 
+    let userId: string
+
     if (existingUser) {
       // User exists as guest (auto-login created) — upgrade to full account
       await prisma.user.update({
@@ -65,8 +68,9 @@ export async function POST(request: NextRequest) {
           ...(taxId ? { taxId } : {}),
         },
       })
+      userId = existingUser.id
     } else {
-      await prisma.user.create({
+      const newUser = await prisma.user.create({
         data: {
           email: normalizedEmail,
           name: name || null,
@@ -75,9 +79,15 @@ export async function POST(request: NextRequest) {
           ...(taxId ? { taxId } : {}),
         },
       })
+      userId = newUser.id
     }
 
     await createSession(normalizedEmail)
+
+    // Fire-and-forget welcome email — não bloqueia o response
+    sendWelcomeEmail(normalizedEmail, name || '', userId).catch(err =>
+      console.error('[Register] Welcome email failed:', err)
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {
