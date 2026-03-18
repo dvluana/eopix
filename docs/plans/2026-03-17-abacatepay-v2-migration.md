@@ -2,405 +2,646 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Adicionar CARD como método de pagamento, corrigir deduplicação de produto (externalId fixo), e ajustar lookup do webhook para usar billingId.
+**Goal:** Migrar integração AbacatePay de v1 (`/v1/billing/create`) para v2 (`/v2/checkouts/create`) com produto pré-criado, `externalId` no checkout para rastreamento direto, e webhook `checkout.completed`.
 
-**Architecture:** 4 arquivos afetados. Webhook lookup migra de `products[0].externalId` (purchase code) para `paymentExternalId` (billingId). Reuso de billing PENDING busca URL via `GET /v1/billing/get`. Sem migration de schema.
+**Architecture:** Produto pré-criado no AbacatePay (já feito). Checkout v2 usa `items: [{ id: productId }]` + `externalId: purchase.code`. Webhook `checkout.completed` retorna `data.checkout.externalId` = purchase code → lookup direto. v2 INCLUI dados do customer (`data.customer.email`, `data.customer.name`).
 
-**Tech Stack:** Next.js 14 App Router, Prisma/Neon, AbacatePay API v2 (`/v1/billing/*`), Vitest, MOCK_MODE para testes unitários.
-
----
-
-## Contexto obrigatório antes de começar
-
-- Doc de design: `docs/plans/2026-03-17-abacatepay-v2-migration-design.md`
-- Contrato AbacatePay: `docs/external/abacatepay/api-v2-condensed.md`
-- Lib de pagamento: `src/lib/abacatepay.ts`
-- Webhook handler: `src/app/api/webhooks/abacatepay/route.ts`
-- Purchases route: `src/app/api/purchases/route.ts` (linhas 115-130 para reuso PENDING, 289-310 para criação)
-- Credenciais dev já configuradas no `.env.local` (`ABACATEPAY_API_KEY=abc_dev_*`)
+**Tech Stack:** Next.js 14 App Router, TypeScript, AbacatePay v2 REST API, Prisma/Neon, Vitest.
 
 ---
 
-### Task 1: Corrigir `abacatepay.ts` — CARD + externalId fixo
+## Pré-condições (já feito)
 
-**Files:**
-- Modify: `src/lib/abacatepay.ts:63-82`
+- Produtos criados no AbacatePay:
+  - Sandbox: `prod_CYEPYBhZBn0YcyFJHJ0DeKTw` (R$39,90, PIX+CARD)
+  - Produção: `prod_P56DhUkBx2RSdFSfNPTqrhue` (R$39,90, PIX+CARD)
+- Env vars atualizados: `ABACATEPAY_PRODUCT_ID`, `PRICE_CENTS=3990`
+- API keys v2: `abc_dev_*` (sandbox), `abc_prod_*` (produção)
 
-**Step 1: Ler o arquivo atual**
+## Payload v2 `checkout.completed` (confirmado na doc oficial)
 
-```bash
-# Confirmar linhas antes de editar
-cat -n src/lib/abacatepay.ts | sed -n '63,85p'
-```
-
-**Step 2: Aplicar as mudanças**
-
-No body da billing create (linha ~65-82), alterar dois campos:
-
-```typescript
-const body = {
-  frequency: 'ONE_TIME',
-  methods: ['PIX', 'CARD'],           // era: ['PIX']
-  products: [
-    {
-      externalId: 'relatorio-risco',   // era: params.externalRef (único por compra)
-      name: 'Relatório de Risco CPF/CNPJ',
-      quantity: 1,
-      price: priceCents,
+```json
+{
+  "event": "checkout.completed",
+  "apiVersion": 2,
+  "devMode": false,
+  "data": {
+    "checkout": {
+      "id": "bill_abc123xyz",
+      "externalId": "PURCHASE_CODE",
+      "amount": 3990,
+      "paidAmount": 3990,
+      "status": "PAID",
+      "items": [{ "id": "prod_xyz", "quantity": 1 }],
+      "methods": ["PIX"],
+      "customerId": "cust_abc123"
     },
-  ],
-  completionUrl: params.successUrl,
-  returnUrl: params.cancelUrl,
-  customer: {
-    name: params.customerName || 'Cliente EOPIX',
-    email: params.customerEmail || 'noreply@eopix.app',
-    cellphone: formatCellphoneForAbacatePay(params.customerCellphone || '00000000000'),
-    taxId: formatTaxIdForAbacatePay(params.customerTaxId || '00000000191'),
-  },
+    "customer": {
+      "id": "cust_abc123",
+      "name": "João Silva",
+      "email": "joao@exemplo.com",
+      "taxId": "123.***.***-**"
+    },
+    "payerInformation": {
+      "method": "PIX",
+      "PIX": { "name": "João Silva", "taxId": "123.***.***-**", "isSameAsCustomer": true }
+    }
+  }
 }
 ```
 
-**Step 3: Verificar tsc**
+## Webhook dashboard (manual — Luana)
+
+**Evento:** `checkout.completed`
+
+| Campo | Sandbox | Produção |
+|---|---|---|
+| Nome | EOPIX Sandbox | EOPIX Produção |
+| URL | `http://localhost:3000/api/webhooks/abacatepay?webhookSecret=09e2998d1d7ab11cf713e19061f63b9c0a7ccfbb58646aefe2fa1697c4ab7b8f` | `https://somoseopix.com.br/api/webhooks/abacatepay?webhookSecret=3f8c2d64694137b07184597f1cb7b057065a74afad4a191f637506c9f51ce095` |
+| Secret | `09e2998d1d7ab11cf713e19061f63b9c0a7ccfbb58646aefe2fa1697c4ab7b8f` | `3f8c2d64694137b07184597f1cb7b057065a74afad4a191f637506c9f51ce095` |
+| Evento | `checkout.completed` | `checkout.completed` |
+
+## Vercel Env Vars (manual — Luana)
+
+- `ABACATEPAY_PRODUCT_ID=prod_P56DhUkBx2RSdFSfNPTqrhue`
+- `PRICE_CENTS=3990`
+- `ABACATEPAY_API_KEY=abc_prod_WEqf1rGx6LaK4x1cFduJXcTq`
+
+---
+
+## Task 1: Reescrever `src/lib/abacatepay.ts` para v2
+
+**Files:**
+- Modify: `src/lib/abacatepay.ts`
+
+**O que muda:**
+- `POST /v1/billing/create` → `POST /v2/checkouts/create`
+- `products: [{ externalId, name, quantity, price }]` → `items: [{ id: productId, quantity: 1 }]`
+- Adicionar `externalId: params.externalRef` ao body do checkout (echoed no webhook)
+- Remover campos de customer inline (v2 não aceita customer inline no checkout)
+- Remover helpers `formatCellphoneForAbacatePay` e `formatTaxIdForAbacatePay`
+- Simplificar `CreateCheckoutParams` — remover campos customer
+
+**Step 1: Substituir todo o conteúdo de `src/lib/abacatepay.ts`**
+
+```typescript
+import crypto from 'node:crypto'
+import { isBypassPayment } from './mock-mode'
+
+export interface CreateCheckoutParams {
+  externalRef: string // purchase code — set as checkout externalId, echoed in webhook
+  successUrl: string
+  cancelUrl: string
+}
+
+export interface CheckoutResponse {
+  sessionId: string  // AbacatePay checkout id (bill_xxx) — stored in paymentExternalId
+  checkoutUrl: string
+}
+
+export interface RefundResponse {
+  success: boolean
+  refundId?: string
+  message?: string
+}
+
+export async function createCheckout(
+  params: CreateCheckoutParams
+): Promise<CheckoutResponse> {
+  if (isBypassPayment) {
+    console.log(`[BYPASS] AbacatePay bypass: ${params.externalRef}`)
+    const fakeId = `bill_bypass_${Date.now()}`
+    return {
+      sessionId: fakeId,
+      checkoutUrl: `${process.env.NEXT_PUBLIC_APP_URL}/compra/confirmacao?code=${params.externalRef}&bypass=true`,
+    }
+  }
+
+  const apiKey = process.env.ABACATEPAY_API_KEY
+  if (!apiKey) {
+    throw new Error('ABACATEPAY_API_KEY is not configured')
+  }
+
+  const productId = process.env.ABACATEPAY_PRODUCT_ID
+  if (!productId) {
+    throw new Error('ABACATEPAY_PRODUCT_ID is not configured')
+  }
+
+  console.log('[AbacatePay] Creating checkout v2:', {
+    externalRef: params.externalRef,
+    productId,
+    completionUrl: params.successUrl,
+    returnUrl: params.cancelUrl,
+  })
+
+  const body = {
+    items: [{ id: productId, quantity: 1 }],
+    externalId: params.externalRef,
+    methods: ['PIX', 'CARD'],
+    completionUrl: params.successUrl,
+    returnUrl: params.cancelUrl,
+  }
+
+  const res = await fetch('https://api.abacatepay.com/v2/checkouts/create', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+
+  const responseData = await res.json()
+
+  if (!res.ok || !responseData.success || !responseData.data) {
+    const errorDetail = JSON.stringify(responseData)
+    console.error(`[AbacatePay] Checkout error: status=${res.status} body=${errorDetail}`)
+    const errorMsg = responseData.error || `HTTP ${res.status}`
+    throw new Error(`AbacatePay checkout error: ${errorMsg}`)
+  }
+
+  const { data } = responseData
+
+  console.log('[AbacatePay] Checkout created:', {
+    checkoutId: data.id,
+    hasUrl: !!data.url,
+  })
+
+  return {
+    sessionId: data.id,
+    checkoutUrl: data.url,
+  }
+}
+
+export async function processRefund(_billingId: string): Promise<RefundResponse> {
+  if (isBypassPayment) {
+    console.log(`[BYPASS] AbacatePay refund: ${_billingId}`)
+    await new Promise((r) => setTimeout(r, 300))
+    return {
+      success: true,
+      refundId: `ref_bypass_${Date.now()}`,
+    }
+  }
+
+  // AbacatePay does not have a refund API endpoint — refunds must be done via dashboard
+  return {
+    success: false,
+    message: 'Reembolso deve ser feito pelo dashboard AbacatePay',
+  }
+}
+
+// HMAC-SHA256 public key from AbacatePay docs
+const ABACATEPAY_PUBLIC_KEY =
+  't9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9'
+
+export function validateWebhookSecret(url: string): boolean {
+  const parsed = new URL(url)
+  const secret = parsed.searchParams.get('webhookSecret')
+  return secret === process.env.ABACATEPAY_WEBHOOK_SECRET
+}
+
+export function validateWebhookSignature(rawBody: string, signatureHeader: string): boolean {
+  const expectedSig = crypto
+    .createHmac('sha256', ABACATEPAY_PUBLIC_KEY)
+    .update(Buffer.from(rawBody, 'utf8'))
+    .digest('base64')
+
+  const A = Buffer.from(expectedSig)
+  const B = Buffer.from(signatureHeader)
+
+  return A.length === B.length && crypto.timingSafeEqual(A, B)
+}
+```
+
+**Step 2: Verificar TypeScript**
 
 ```bash
-npx tsc --noEmit
+cd "/Users/luana/Documents/Code Projects/eopix" && npx tsc --noEmit 2>&1 | head -40
 ```
-Expected: sem erros.
 
-**Step 4: Commit**
+Esperado: sem erros em `abacatepay.ts`. Pode ter erros no webhook handler e purchases/route (resolvidos nas próximas tasks).
+
+**Step 3: Commit**
 
 ```bash
 git add src/lib/abacatepay.ts
-git commit -m "feat: add CARD to payment methods + fix product externalId deduplication"
+git commit -m "feat: migrate abacatepay to v2 — items by ID, externalId on checkout, no inline customer"
 ```
 
 ---
 
-### Task 2: Corrigir `purchases/route.ts` — salvar billingId + reuso PENDING
+## Task 2: Reescrever `src/app/api/webhooks/abacatepay/route.ts` para v2
 
 **Files:**
-- Modify: `src/app/api/purchases/route.ts:125-130` (reuso PENDING)
-- Modify: `src/app/api/purchases/route.ts:301-305` (salvar billingId)
+- Modify: `src/app/api/webhooks/abacatepay/route.ts`
 
-**Step 1: Alterar o que é salvo em `paymentExternalId`**
+**O que muda:**
+- Evento: `billing.paid` → `checkout.completed`
+- Interface: `data.billing` → `data.checkout`, `data.customer` agora disponível
+- Lookup primário: `data.checkout.externalId` = purchase.code → `findUnique({ where: { code } })`
+- Lookup fallback: `data.checkout.id` (billing id) → `findFirst({ where: { paymentExternalId } })` para purchases antigas
+- Customer disponível: `data.customer.email`, `data.customer.name` (taxId vem mascarado)
 
-Linha 304, trocar:
-```typescript
-data: { paymentExternalId: checkoutUrl },
-```
-Por:
-```typescript
-data: { paymentExternalId: sessionId },
-```
+**Step 1: Substituir todo o conteúdo de `src/app/api/webhooks/abacatepay/route.ts`**
 
-**Step 2: Alterar reuso de billing PENDING**
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { validateWebhookSecret, validateWebhookSignature } from '@/lib/abacatepay'
 
-Linhas 125-130, trocar:
-```typescript
-if (existingPending && existingPending.paymentExternalId) {
-  return NextResponse.json({
-    code: existingPending.code,
-    checkoutUrl: existingPending.paymentExternalId,
-  })
-}
-```
-Por:
-```typescript
-if (existingPending && existingPending.paymentExternalId) {
-  // Busca URL da billing existente via API (paymentExternalId agora guarda billingId)
-  const apiKey = process.env.ABACATEPAY_API_KEY
-  if (apiKey) {
-    const billingRes = await fetch(
-      `https://api.abacatepay.com/v1/billing/get?id=${existingPending.paymentExternalId}`,
-      { headers: { Authorization: `Bearer ${apiKey}`, Accept: 'application/json' } }
-    )
-    if (billingRes.ok) {
-      const billingData = await billingRes.json()
-      const checkoutUrl = billingData?.data?.url
-      if (checkoutUrl) {
-        return NextResponse.json({ code: existingPending.code, checkoutUrl })
-      }
+// v2 checkout.completed payload (from AbacatePay v2 webhook docs)
+interface AbacateWebhookEvent {
+  event: string
+  apiVersion: number
+  devMode?: boolean
+  data: {
+    checkout: {
+      id: string         // bill_*
+      externalId?: string // purchase code (set by us at checkout creation)
+      url?: string
+      amount: number
+      paidAmount?: number
+      status: string
+      methods?: string[]
+      customerId?: string
+    }
+    customer?: {
+      id: string
+      name?: string
+      email?: string
+      taxId?: string  // masked: "123.***.***-**"
+    }
+    payerInformation?: {
+      method: string
     }
   }
-  // Se não conseguir recuperar URL, cria nova billing abaixo (deixa o fluxo continuar)
+}
+
+export async function POST(request: NextRequest) {
+  console.log('[AbacatePay Webhook] Request received:', {
+    url: request.url,
+    method: request.method,
+    hasSignature: !!request.headers.get('x-webhook-signature'),
+    contentType: request.headers.get('content-type'),
+  })
+
+  try {
+    // Layer 1: Validate webhook secret from query string
+    if (!validateWebhookSecret(request.url)) {
+      console.warn('[AbacatePay Webhook] Invalid webhook secret')
+      return NextResponse.json(
+        { error: 'Invalid secret' },
+        { status: 401 }
+      )
+    }
+
+    // Read raw body for signature verification
+    const rawBody = await request.text()
+
+    // Layer 2: Validate HMAC-SHA256 signature (if present)
+    const signature = request.headers.get('x-webhook-signature')
+    if (signature && !validateWebhookSignature(rawBody, signature)) {
+      console.warn('[AbacatePay Webhook] Invalid HMAC signature')
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      )
+    }
+
+    const event = JSON.parse(rawBody) as AbacateWebhookEvent
+
+    console.log('[AbacatePay Webhook] Event:', event.event, 'Data:', JSON.stringify(event.data).slice(0, 500))
+
+    if (event.event !== 'checkout.completed') {
+      console.log(`[AbacatePay Webhook] Ignoring event: ${event.event}`)
+      return NextResponse.json({ received: true })
+    }
+
+    const checkout = event.data.checkout
+    if (!checkout) {
+      console.warn('[AbacatePay Webhook] No checkout object in payload')
+      return NextResponse.json({ received: true })
+    }
+
+    const checkoutId = checkout.id
+
+    // Idempotency check
+    const webhookKey = `abacate:${event.event}:${checkoutId}`
+    const existing = await prisma.webhookLog.findUnique({
+      where: { eventKey: webhookKey },
+    })
+
+    if (existing) {
+      console.log(`[AbacatePay Webhook] Duplicate ignored: ${webhookKey}`)
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+
+    // Primary: externalId = purchase.code (set by us when creating v2 checkout)
+    let purchaseCode: string | null = checkout.externalId || null
+
+    if (purchaseCode) {
+      console.log(`[AbacatePay Webhook] Found purchase code via externalId: ${purchaseCode}`)
+    } else {
+      // Fallback: lookup by checkoutId stored in paymentExternalId (pre-migration purchases)
+      const purchaseByCheckout = await prisma.purchase.findFirst({
+        where: { paymentExternalId: checkoutId },
+      })
+      if (purchaseByCheckout) {
+        purchaseCode = purchaseByCheckout.code
+        console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} by checkoutId ${checkoutId} (legacy fallback)`)
+      }
+    }
+
+    if (!purchaseCode) {
+      console.warn('[AbacatePay Webhook] No purchase found for checkoutId:', checkoutId, 'externalId:', checkout.externalId)
+      return NextResponse.json({ received: true })
+    }
+
+    const customerEmail = event.data.customer?.email || null
+    const customerName = event.data.customer?.name || null
+
+    console.log('[AbacatePay Webhook] Payment confirmed:', { purchaseCode, checkoutId, customerEmail })
+
+    await handlePaymentSuccess(purchaseCode, checkoutId, customerEmail, customerName)
+
+    await prisma.webhookLog.create({
+      data: { eventKey: webhookKey, event: event.event, paymentId: checkoutId },
+    })
+
+    return NextResponse.json({ received: true })
+  } catch (error) {
+    console.error('[AbacatePay Webhook] Error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+async function handlePaymentSuccess(
+  purchaseCode: string,
+  checkoutId: string,
+  customerEmail: string | null,
+  customerName: string | null
+) {
+  const purchase = await prisma.purchase.findUnique({
+    where: { code: purchaseCode },
+    include: { user: true },
+  })
+
+  if (!purchase) {
+    console.warn(`[AbacatePay Webhook] Purchase not found for code: ${purchaseCode}`)
+    return
+  }
+
+  // Skip if already past PAID (processing or done)
+  if (['PROCESSING', 'COMPLETED', 'REFUNDED'].includes(purchase.status)) {
+    console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} already processed (${purchase.status})`)
+    return
+  }
+
+  // Update to PAID (idempotent if already PAID from a previous retry)
+  if (purchase.status === 'PENDING') {
+    await prisma.purchase.update({
+      where: { id: purchase.id },
+      data: {
+        status: 'PAID',
+        paidAt: new Date(),
+        paymentProvider: 'abacatepay',
+        paymentExternalId: checkoutId,
+        buyerName: customerName || undefined,
+      },
+    })
+  }
+
+  // Capture email from checkout — update guest user with real email
+  if (customerEmail && purchase.user.email.includes('@guest.eopix.app')) {
+    const normalizedEmail = customerEmail.toLowerCase()
+    const existingUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    })
+
+    if (existingUser) {
+      await prisma.purchase.update({
+        where: { id: purchase.id },
+        data: { userId: existingUser.id },
+      })
+      console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} linked to existing user ${normalizedEmail}`)
+    } else {
+      await prisma.user.update({
+        where: { id: purchase.userId },
+        data: { email: normalizedEmail },
+      })
+      console.log(`[AbacatePay Webhook] Guest user updated with email: ${normalizedEmail}`)
+    }
+  }
+
+  // Activate user account: move pending password hash from Purchase to User
+  if (purchase.pendingPasswordHash && !purchase.user.passwordHash) {
+    await prisma.user.update({
+      where: { id: purchase.userId },
+      data: { passwordHash: purchase.pendingPasswordHash },
+    })
+    await prisma.purchase.update({
+      where: { id: purchase.id },
+      data: { pendingPasswordHash: null },
+    })
+    console.log(`[AbacatePay Webhook] User account activated for ${purchaseCode}`)
+  }
+
+  console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} updated to PAID`)
+
+  // Trigger Inngest job — re-throw on failure so webhook returns 500
+  // and AbacatePay retries delivery
+  const { inngest } = await import('@/lib/inngest')
+  await inngest.send({
+    name: 'search/process',
+    data: {
+      purchaseId: purchase.id,
+      purchaseCode: purchase.code,
+      term: purchase.term,
+      type: purchase.term.length === 11 ? 'CPF' : 'CNPJ',
+      email: purchase.user.email,
+    },
+  })
+  console.log(`[AbacatePay Webhook] Inngest job triggered for purchase ${purchaseCode}`)
 }
 ```
 
-**Nota:** O bloco de reuso está dentro de `if (provider === 'abacatepay')`. Se `isBypassPayment`, o `paymentExternalId` guarda a URL fake — o bypass continua funcionando porque bypassa esse bloco.
-
-**Step 3: Verificar tsc**
+**Step 2: Verificar TypeScript compila sem erros**
 
 ```bash
-npx tsc --noEmit
+cd "/Users/luana/Documents/Code Projects/eopix" && npx tsc --noEmit 2>&1 | head -40
 ```
-Expected: sem erros.
+
+Esperado: zero erros.
+
+**Step 3: Commit**
+
+```bash
+git add src/app/api/webhooks/abacatepay/route.ts
+git commit -m "fix: webhook handler v2 — checkout.completed event, externalId lookup, customer from data"
+```
+
+---
+
+## Task 3: Corrigir PENDING reuse e removeCustomer params em `purchases/route.ts`
+
+**Files:**
+- Modify: `src/app/api/purchases/route.ts`
+
+**Step 1: Atualizar URL do PENDING reuse**
+
+Encontrar:
+```typescript
+const billingRes = await fetch(
+  `https://api.abacatepay.com/v1/billing/get?id=${existingPending.paymentExternalId}`,
+```
+
+Substituir por:
+```typescript
+const billingRes = await fetch(
+  `https://api.abacatepay.com/v2/checkouts/get?id=${existingPending.paymentExternalId}`,
+```
+
+**Step 2: Simplificar o `createCheckout` call — remover campos customer**
+
+Encontrar o bloco:
+```typescript
+const customerName = name || user.name || undefined
+const customerEmail = email || user.email
+const customerCellphone = cellphone || user.cellphone || undefined
+const customerTaxId = buyerTaxId || user.taxId || undefined
+
+const { sessionId, checkoutUrl } = await createCheckout({
+  externalRef: code,
+  successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
+  cancelUrl: `${appUrl}/`,
+  ...(customerName ? { customerName } : {}),
+  ...(customerEmail ? { customerEmail } : {}),
+  ...(customerCellphone ? { customerCellphone } : {}),
+  ...(customerTaxId ? { customerTaxId } : {}),
+})
+```
+
+Substituir por:
+```typescript
+const { sessionId, checkoutUrl } = await createCheckout({
+  externalRef: code,
+  successUrl: `${appUrl}/compra/confirmacao?code=${code}`,
+  cancelUrl: `${appUrl}/`,
+})
+```
+
+(As variáveis `customerName`, `customerEmail`, etc. ficam unused — remover as 4 declarações também.)
+
+**Step 3: Verificar TypeScript e lint**
+
+```bash
+cd "/Users/luana/Documents/Code Projects/eopix" && npx tsc --noEmit 2>&1 | head -40 && npm run lint 2>&1 | tail -20
+```
+
+Esperado: zero erros, sem novos warnings.
 
 **Step 4: Commit**
 
 ```bash
 git add src/app/api/purchases/route.ts
-git commit -m "fix: store billingId in paymentExternalId, fetch URL on PENDING reuse"
+git commit -m "fix: v2 checkouts/get for PENDING reuse, remove customer params from createCheckout"
 ```
 
 ---
 
-### Task 3: Corrigir webhook — billingId como lookup primário
+## Task 4: Rodar testes
 
-**Files:**
-- Modify: `src/app/api/webhooks/abacatepay/route.ts:84-124`
-
-**Step 1: Entender o fluxo atual**
-
-Hoje (linhas 84-124):
-1. Extrai `purchaseCode = billing.products?.[0]?.externalId` (era o purchase code)
-2. Se `!purchaseCode`: fallback busca por `paymentExternalId = billingId`
-3. Se `purchaseCode`: chama `handlePaymentSuccess(purchaseCode, ...)`
-
-Depois da Task 1, `products[0].externalId` sempre será `'relatorio-risco'` — não é mais o purchase code.
-
-**Step 2: Inverter ordem — billingId como caminho primário**
-
-Substituir o bloco de lookup (linhas 84-132) por:
-
-```typescript
-const billingId = billing.id
-const customerMeta = billing.customer?.metadata
-const customerEmail = customerMeta?.email || null
-const customerName = customerMeta?.name || null
-
-// Idempotency check
-const webhookKey = `abacate:${event.event}:${billingId}`
-const existing = await prisma.webhookLog.findUnique({
-  where: { eventKey: webhookKey },
-})
-
-if (existing) {
-  console.log(`[AbacatePay Webhook] Duplicate ignored: ${webhookKey}`)
-  return NextResponse.json({ received: true, duplicate: true })
-}
-
-// Caminho primário: lookup por billingId (paymentExternalId = billingId desde v2 migration)
-let purchaseCode: string | null = null
-const purchaseByBilling = await prisma.purchase.findFirst({
-  where: { paymentExternalId: billingId },
-})
-
-if (purchaseByBilling) {
-  purchaseCode = purchaseByBilling.code
-  console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} by billingId ${billingId}`)
-} else {
-  // Fallback: purchases antigas usavam externalId do produto = purchase code
-  const legacyCode = billing.products?.[0]?.externalId || null
-  if (legacyCode && legacyCode !== 'relatorio-risco') {
-    purchaseCode = legacyCode
-    console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} via legacy product externalId`)
-  }
-}
-
-if (!purchaseCode) {
-  console.warn('[AbacatePay Webhook] No purchase found for billingId:', billingId)
-  return NextResponse.json({ received: true })
-}
-
-console.log('[AbacatePay Webhook] Payment confirmed:', { purchaseCode, billingId, customerEmail })
-
-await handlePaymentSuccess(purchaseCode, billingId, customerEmail, customerName)
-
-await prisma.webhookLog.create({
-  data: { eventKey: webhookKey, event: event.event, paymentId: billingId },
-})
-
-return NextResponse.json({ received: true })
-```
-
-**Step 3: Verificar tsc + lint**
+**Step 1: Suite completa**
 
 ```bash
-npx tsc --noEmit && npm run lint
+cd "/Users/luana/Documents/Code Projects/eopix" && npx vitest run 2>&1
 ```
-Expected: sem erros (1 pre-existing lint warning é OK).
 
-**Step 4: Commit**
+Esperado: mesmo count (72/72 ou atual).
+
+**Step 2: Corrigir falhas**
+
+Se falhar, procurar testes que mockam `createCheckout` com campos `customerName`, `customerEmail` etc. e remover esses campos.
+
+**Step 3: Commit de fixes se necessário**
 
 ```bash
-git add src/app/api/webhooks/abacatepay/route.ts
-git commit -m "fix: webhook lookup uses billingId (primary) with legacy externalId fallback"
+git add tests/
+git commit -m "test: update mocks for abacatepay v2 interface"
 ```
 
 ---
 
-### Task 4: Escrever testes unitários
+## Task 5: Smoke test manual com payload v2 real
 
-**Files:**
-- Create: `tests/lib/abacatepay-webhook.test.ts`
-
-**Step 1: Criar o arquivo de teste**
-
-```typescript
-// tests/lib/abacatepay-webhook.test.ts
-import { describe, it, expect } from 'vitest'
-
-// Testa apenas a lógica de lookup — não o handler completo (que depende de Prisma/Inngest)
-// A lógica de lookup foi extraída para ser testável
-
-describe('AbacatePay webhook lookup logic', () => {
-  it('prefere billingId lookup sobre products externalId', () => {
-    const billingId = 'bill_123'
-    const products = [{ externalId: 'relatorio-risco', quantity: 1 }]
-
-    // Simula: purchaseByBilling encontrado → usa esse código
-    const purchaseByBilling = { code: 'ABC123' }
-    const legacyCode = products?.[0]?.externalId
-
-    const purchaseCode = purchaseByBilling
-      ? purchaseByBilling.code
-      : legacyCode !== 'relatorio-risco' ? legacyCode : null
-
-    expect(purchaseCode).toBe('ABC123')
-  })
-
-  it('usa fallback legacy quando billingId não encontra purchase', () => {
-    const products = [{ externalId: 'XYZ789', quantity: 1 }] // purchase code antigo
-    const purchaseByBilling = null
-    const legacyCode = products?.[0]?.externalId
-
-    const purchaseCode = purchaseByBilling
-      ? (purchaseByBilling as { code: string }).code
-      : legacyCode !== 'relatorio-risco' ? legacyCode : null
-
-    expect(purchaseCode).toBe('XYZ789')
-  })
-
-  it('retorna null quando produto tem externalId fixo e sem billing match', () => {
-    const products = [{ externalId: 'relatorio-risco', quantity: 1 }]
-    const purchaseByBilling = null
-    const legacyCode = products?.[0]?.externalId
-
-    const purchaseCode = purchaseByBilling
-      ? (purchaseByBilling as { code: string }).code
-      : legacyCode !== 'relatorio-risco' ? legacyCode : null
-
-    expect(purchaseCode).toBeNull()
-  })
-})
-
-describe('AbacatePay billing body', () => {
-  it('externalId do produto deve ser fixo', () => {
-    const externalId = 'relatorio-risco'
-    expect(externalId).toBe('relatorio-risco')
-    expect(externalId).not.toMatch(/^[A-Z0-9]{6}$/) // não deve ser um purchase code
-  })
-
-  it('methods deve incluir CARD', () => {
-    const methods = ['PIX', 'CARD']
-    expect(methods).toContain('PIX')
-    expect(methods).toContain('CARD')
-  })
-})
-```
-
-**Step 2: Rodar os testes**
+**Step 1: Criar purchase PENDING via BYPASS**
 
 ```bash
-npx vitest run tests/lib/abacatepay-webhook.test.ts
-```
-Expected: 5/5 passando.
-
-**Step 3: Rodar suite completa para garantir nada quebrou**
-
-```bash
-npx vitest run
-```
-Expected: todos passando (baseline atual).
-
-**Step 4: Commit**
-
-```bash
-git add tests/lib/abacatepay-webhook.test.ts
-git commit -m "test: add webhook lookup logic tests for v2 migration"
+# Garantir que BYPASS_PAYMENT=true e dev server rodando
+curl -s -X POST http://localhost:3000/api/purchases \
+  -H "Content-Type: application/json" \
+  -d '{"term":"52998224725","termsAccepted":true}' | jq .
 ```
 
----
+Pegar o `code` retornado.
 
-### Task 5: Atualizar documentação
-
-**Files:**
-- Overwrite: `docs/external/abacatepay/api-v2-condensed.md`
-
-**Step 1: Substituir o arquivo**
-
-Criar novo `docs/external/abacatepay/api-v2-condensed.md` com o conteúdo do guia v2 fornecido pela Luana (o doc "Guia de Integração para Modelos de Linguagem — Atualizado e Sincronizado").
-
-Pontos importantes para incluir no cabeçalho:
-- Base URL: `https://api.abacatepay.com`
-- Auth: Bearer token
-- Endpoints usados pelo EOPIX: `POST /v1/billing/create`, `GET /v1/billing/get`, `POST /v1/customer/create`
-- Webhook eventos: `billing.paid`, `pix.paid`, `pix.expired`, `withdraw.paid`
-- Produto deduplicado por `externalId` — usar `'relatorio-risco'` fixo
-- `paymentExternalId` no Prisma guarda `billingId` (não checkout URL)
-
-**Step 2: Commit**
+**Step 2: Resetar purchase para PENDING para testar webhook**
 
 ```bash
-git add docs/external/abacatepay/api-v2-condensed.md
-git commit -m "docs: update AbacatePay contract to v2 (billing/create with CARD + deduplication)"
-```
-
----
-
-### Task 6: Teste manual com credenciais dev
-
-**Step 1: Subir servidor em modo dev com credenciais de teste**
-
-```bash
-npm run dev
-# MOCK_MODE=true por padrão — mas para este teste precisamos de MOCK_MODE=false
-# e ABACATEPAY_API_KEY=abc_dev_* (já configurado no .env.local)
-```
-
-Ou usar `npm run dev:live` se configurado com credenciais dev.
-
-**Step 2: Criar uma compra via admin ou UI**
-
-1. Acessar `/consulta/[cpf-valido-de-teste]`
-2. Preencher dados e clicar em comprar
-3. Verificar no log do servidor: `[AbacatePay] Billing created: { billingId: 'bill_XXX', hasUrl: true }`
-
-**Step 3: Verificar no banco que `paymentExternalId` é um billingId**
-
-```bash
-# Via Prisma Studio
 npx prisma studio
-# Ou via query direta
 ```
 
-Expected: campo `paymentExternalId` da purchase = `bill_XXXXX` (não uma URL).
+Mudar o status da purchase de PAID para PENDING para poder testar o webhook.
 
-**Step 4: Verificar no dashboard AbacatePay (dev mode)**
-
-Acessar dashboard AbacatePay em dev mode e confirmar:
-- Cobrança criada com métodos PIX + CARD
-- Produto `relatorio-risco` criado/reutilizado (não cria duplicado a cada compra)
-
-**Step 5: Simular webhook (billing.paid)**
+**Step 3: Simular webhook v2 `checkout.completed`**
 
 ```bash
-# Gerar HMAC para teste (substituir WEBHOOK_SECRET e BODY)
-SECRET="seu_webhook_secret_dev"
-BODY='{"event":"billing.paid","data":{"billing":{"id":"bill_XXX","status":"PAID","products":[{"externalId":"relatorio-risco","quantity":1}],"customer":{"id":"cust_YYY","metadata":{"email":"test@test.com"}}}}}'
+SECRET=$(grep ABACATEPAY_WEBHOOK_SECRET .env.local | cut -d= -f2)
+PURCHASE_CODE="TROCAR_PELO_CODE"
+
+BODY="{\"event\":\"checkout.completed\",\"apiVersion\":2,\"devMode\":true,\"data\":{\"checkout\":{\"id\":\"bill_test456\",\"externalId\":\"${PURCHASE_CODE}\",\"amount\":3990,\"paidAmount\":3990,\"status\":\"PAID\",\"methods\":[\"PIX\"]},\"customer\":{\"id\":\"cust_test\",\"name\":\"Test User\",\"email\":\"test@test.com\",\"taxId\":\"123.***.***-**\"},\"payerInformation\":{\"method\":\"PIX\",\"PIX\":{\"name\":\"Test User\",\"taxId\":\"123.***.***-**\",\"isSameAsCustomer\":true}}}}"
+
 SIG=$(echo -n "$BODY" | openssl dgst -sha256 -hmac "$SECRET" -binary | base64)
 
-curl -X POST http://localhost:3000/api/webhooks/abacatepay?webhookSecret=$SECRET \
+curl -X POST "http://localhost:3000/api/webhooks/abacatepay?webhookSecret=$SECRET" \
   -H "Content-Type: application/json" \
   -H "x-webhook-signature: $SIG" \
   -d "$BODY"
 ```
 
-Expected: `{"received":true}` e purchase atualizada para PAID no banco.
+Esperado: `{"received":true}`.
 
-**Step 6: Verificar E2E mock**
+**Step 4: Verificar no Prisma Studio**
+
+Purchase deve estar PAID, Inngest job disparado.
+
+---
+
+## Task 6: Atualizar docs
+
+**Files:**
+- Modify: `docs/wiki/credenciais-abacatepay.md`
+- Modify: `docs/status.md`
+
+**Step 1: Atualizar `credenciais-abacatepay.md`**
+
+1. Adicionar `ABACATEPAY_PRODUCT_ID` na tabela de env vars
+2. Atualizar "Evento a registrar": `billing.paid` → `checkout.completed`
+3. Atualizar "Simular Webhook em Dev" com payload v2 correto
+4. Atualizar tabela de ambientes
+
+**Step 2: Adicionar entrada em `docs/status.md`**
+
+```
+- **AbacatePay v2 migration** (2026-03-17): (1) `abacatepay.ts` reescrito — `/v1/billing/create` → `/v2/checkouts/create` com produto por ID (`items: [{ id }]`), `externalId: purchase.code`, sem customer inline. (2) Webhook: evento `billing.paid` → `checkout.completed`, estrutura `data.billing` → `data.checkout`, customer disponível via `data.customer`. Lookup primário por `externalId` (purchase code), fallback por `paymentExternalId`. (3) PENDING reuse: `GET /v2/checkouts/get`. (4) Produtos criados: sandbox `prod_CYEPYBhZBn0YcyFJHJ0DeKTw`, produção `prod_P56DhUkBx2RSdFSfNPTqrhue`, ambos a R$39,90 (PRICE_CENTS=3990).
+```
+
+**Step 3: Commit**
 
 ```bash
-npm run test:e2e:mock
+git add docs/wiki/credenciais-abacatepay.md docs/status.md
+git commit -m "docs: abacatepay v2 — checkout.completed event, product ID, webhook payload v2"
 ```
-Expected: 26/26 passando.
