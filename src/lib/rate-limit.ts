@@ -10,6 +10,7 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   purchase: { maxRequests: 10, windowMs: 60 * 60 * 1000 }, // 10/hora
   'magic-link': { maxRequests: 20, windowMs: 60 * 60 * 1000 }, // 20/hora por IP
   'admin_login': { maxRequests: 5, windowMs: 15 * 60 * 1000 }, // 5 tentativas a cada 15 min
+  'password-reset': { maxRequests: 3, windowMs: 15 * 60 * 1000 }, // 3 por 15 min por email
 }
 
 export interface RateLimitResult {
