@@ -8,6 +8,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: ['/', '/termos', '/privacidade', '/blog/'],
         disallow: [
           '/admin/',
+          '/studio/',
           '/api/',
           '/relatorio/',
           '/consulta/',

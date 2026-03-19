@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  transpilePackages: ['next-sanity'],
+
   // Configuração para reduzir race conditions no dev mode
   // Mantém mais páginas compiladas em memória, evitando o erro middleware-manifest.json
   onDemandEntries: {
@@ -13,7 +15,7 @@ const nextConfig = {
 
   // Configurações de imagens
   images: {
-    domains: [],
+    domains: ['cdn.sanity.io'],
     formats: ['image/avif', 'image/webp'],
   },
 
