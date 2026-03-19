@@ -235,17 +235,20 @@ function mapCpfProcessosResponse(raw: any): ProcessosCpfResponse {
   }
 }
 
-// ========== CPF FINANCEIRO (srs-premium) ==========
+// ========== CPF FINANCEIRO (serasa-premium) ==========
+// IMPORTANTE: Endpoint correto é serasa-premium, NÃO srs-premium.
+// srs-premium foi descontinuado (retorna "Sem saldo disponível!" desde ~17/03/2026).
+// serasa-premium retorna formato CREDCADASTRAL (UPPERCASE keys).
 
 export async function consultCpfFinancial(cpf: string): Promise<SrsPremiumCpfResponse> {
   if (isMockMode) {
-    console.log(`[MOCK] APIFull consultCpfFinancial (srs-premium): ${cpf}`)
+    console.log(`[MOCK] APIFull consultCpfFinancial (serasa-premium): ${cpf}`)
     await new Promise((r) => setTimeout(r, 500))
     return isChuvaScenario(cpf) ? MOCK_APIFULL_CPF_FINANCIAL_CHUVA : MOCK_APIFULL_CPF_FINANCIAL_SOL
   }
 
-  // === CHAMADA REAL - srs-premium ===
-  const res = await fetchWithTimeout('https://api.apifull.com.br/api/srs-premium', {
+  // === CHAMADA REAL - serasa-premium ===
+  const res = await fetchWithTimeout('https://api.apifull.com.br/api/serasa-premium', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -254,7 +257,7 @@ export async function consultCpfFinancial(cpf: string): Promise<SrsPremiumCpfRes
     },
     body: JSON.stringify({
       document: cpf.replace(/\D/g, ''),
-      link: 'srs-premium',
+      link: 'serasa-premium',
     }),
   })
 
@@ -270,58 +273,64 @@ export async function consultCpfFinancial(cpf: string): Promise<SrsPremiumCpfRes
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapCpfFinancialResponse(raw: any): SrsPremiumCpfResponse {
-  // Response path: dados.data.serasaPremium.consultaCredito
-  const serasaPremium = raw.dados?.data?.serasaPremium || {}
-  const consultaCredito = serasaPremium.consultaCredito || {}
-  const dadosCadastrais = consultaCredito.dadosCadastrais || {}
+  // Response path: dados.CREDCADASTRAL (UPPERCASE format from serasa-premium)
+  const credCadastral = raw.dados?.CREDCADASTRAL || {}
+  const dadosRF = credCadastral.DADOS_RECEITA_FEDERAL || {}
 
-  // Protestos
-  const protestosRaw = consultaCredito.protestos || []
+  // Protestos — path: CREDCADASTRAL.PROTESTOS
+  const protestosSection = credCadastral.PROTESTOS || {}
+  const protestosRaw = protestosSection.OCORRENCIAS || []
   const protestos = (Array.isArray(protestosRaw) ? protestosRaw : []).map((p: {
-    data?: string
-    valor?: number
-    cartorio?: string
-    cidade?: string
-    uf?: string
+    DATA?: string
+    VALOR?: string
+    CARTORIO?: string
+    CIDADE?: string
+    UF?: string
   }) => ({
-    data: p.data || '',
-    valor: p.valor || 0,
-    cartorio: p.cartorio || '',
-    cidade: p.cidade,
-    uf: p.uf,
+    data: p.DATA || '',
+    valor: parseFloat((p.VALOR || '0').replace(',', '.')) || 0,
+    cartorio: p.CARTORIO || '',
+    cidade: p.CIDADE,
+    uf: p.UF,
   }))
 
-  // Pendencias financeiras — doc: tipoPendencia, informante, data (fallback nomes antigos)
-  const pendenciasRaw = consultaCredito.pendenciasFinanceiras || []
+  // Pendencias financeiras — path: CREDCADASTRAL.RESTRICOES_FINANCEIRAS.OCORRENCIAS[]
+  const restricoesSection = credCadastral.RESTRICOES_FINANCEIRAS || {}
+  const pendenciasRaw = restricoesSection.OCORRENCIAS || []
   const pendenciasFinanceiras = (Array.isArray(pendenciasRaw) ? pendenciasRaw : []).map((p: {
-    tipoPendencia?: string
-    tipo?: string
-    valor?: number
-    informante?: string
-    origem?: string
-    data?: string
-    dataOcorrencia?: string
+    MODALIDADE?: string
+    VALOR?: string
+    CREDOR?: string
+    ORIGEM?: string
+    DATA_INCLUSAO?: string
+    DATA_VENCIMENTO?: string
   }) => ({
-    tipo: p.tipoPendencia || p.tipo || '',
-    valor: p.valor || 0,
-    origem: p.informante || p.origem || '',
-    dataOcorrencia: p.data || p.dataOcorrencia,
+    tipo: p.MODALIDADE || '',
+    valor: parseFloat((p.VALOR || '0').replace(',', '.')) || 0,
+    origem: p.CREDOR || p.ORIGEM || '',
+    dataOcorrencia: p.DATA_INCLUSAO || p.DATA_VENCIMENTO,
   }))
 
-  // Totais
-  const totalProtestos = protestos.length
-  const valorTotalProtestos = protestos.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
-  const totalPendencias = pendenciasFinanceiras.length
-  const valorTotalPendencias = pendenciasFinanceiras.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
+  // Totais — use summary fields with fallback to calculated
+  const totalProtestos = parseInt(protestosSection.QUANTIDADE_OCORRENCIA || '0') || protestos.length
+  const valorTotalProtestos = parseFloat((protestosSection.VALOR_TOTAL || '0').replace(',', '.')) || protestos.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
+  const totalPendencias = parseInt(restricoesSection.QUANTIDADE_OCORRENCIA || '0') || pendenciasFinanceiras.length
+  const valorTotalPendencias = parseFloat((restricoesSection.VALOR_TOTAL || '0').replace(',', '.')) || pendenciasFinanceiras.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
 
-  // Score - buscado mas NAO exibido
-  const score = consultaCredito.score ?? serasaPremium.score ?? null
+  // Cheques sem fundo — path: CREDCADASTRAL.CH_SEM_FUNDOS_BACEN
+  const chSection = credCadastral.CH_SEM_FUNDOS_BACEN || {}
+  const chequesSemFundo = parseInt(chSection.QUANTIDADE_OCORRENCIA || '0') || 0
+
+  // Score — path: CREDCADASTRAL.SCORES.OCORRENCIAS[0].SCORE
+  const scoresSection = credCadastral.SCORES || {}
+  const scoresOcorrencias = scoresSection.OCORRENCIAS || []
+  const score = scoresOcorrencias.length > 0 ? parseInt(scoresOcorrencias[0].SCORE || '0') || null : null
 
   return {
-    nome: dadosCadastrais.nome || '',
+    nome: dadosRF.NOME || '',
     protestos: protestos,
     pendenciasFinanceiras: pendenciasFinanceiras,
-    chequesSemFundo: consultaCredito.chequesSemFundo || 0,
+    chequesSemFundo: chequesSemFundo,
     totalProtestos: totalProtestos,
     valorTotalProtestos: valorTotalProtestos,
     totalPendencias: totalPendencias,
@@ -479,17 +488,18 @@ function mapDossieOcorrencia(o: any) {
   }
 }
 
-// ========== CNPJ FINANCEIRO (srs-premium) ==========
+// ========== CNPJ FINANCEIRO (serasa-premium) ==========
+// Mesmo endpoint que CPF — serasa-premium aceita CPF e CNPJ via param "document".
 
 export async function consultCnpjFinancial(cnpj: string): Promise<SrsPremiumCnpjResponse> {
   if (isMockMode) {
-    console.log(`[MOCK] APIFull consultCnpjFinancial (srs-premium): ${cnpj}`)
+    console.log(`[MOCK] APIFull consultCnpjFinancial (serasa-premium): ${cnpj}`)
     await new Promise((r) => setTimeout(r, 500))
     return isChuvaScenario(cnpj) ? MOCK_APIFULL_CNPJ_FINANCIAL_CHUVA : MOCK_APIFULL_CNPJ_FINANCIAL_SOL
   }
 
-  // === CHAMADA REAL - srs-premium ===
-  const res = await fetchWithTimeout('https://api.apifull.com.br/api/srs-premium', {
+  // === CHAMADA REAL - serasa-premium ===
+  const res = await fetchWithTimeout('https://api.apifull.com.br/api/serasa-premium', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
@@ -498,7 +508,7 @@ export async function consultCnpjFinancial(cnpj: string): Promise<SrsPremiumCnpj
     },
     body: JSON.stringify({
       document: cnpj.replace(/\D/g, ''),
-      link: 'srs-premium',
+      link: 'serasa-premium',
     }),
   })
 
@@ -514,58 +524,61 @@ export async function consultCnpjFinancial(cnpj: string): Promise<SrsPremiumCnpj
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapCnpjFinancialResponse(raw: any, cnpj: string): SrsPremiumCnpjResponse {
-  // Response path: dados.data.defineRisco.consultaCredito
-  const defineRisco = raw.dados?.data?.defineRisco || {}
-  const consultaCredito = defineRisco.consultaCredito || {}
-  const dadosCadastrais = consultaCredito.dadosCadastrais || {}
-  const resumoConsulta = consultaCredito.resumoConsulta || {}
+  // Response path: dados.CREDCADASTRAL (UPPERCASE format from serasa-premium)
+  const credCadastral = raw.dados?.CREDCADASTRAL || {}
+  const dadosRF = credCadastral.DADOS_RECEITA_FEDERAL || {}
 
-  // Protestos
-  const protestosRaw = consultaCredito.protestos || resumoConsulta.protestos?.detalhes || []
+  // Protestos — path: CREDCADASTRAL.PROTESTOS
+  const protestosSection = credCadastral.PROTESTOS || {}
+  const protestosRaw = protestosSection.OCORRENCIAS || []
   const protestos = (Array.isArray(protestosRaw) ? protestosRaw : []).map((p: {
-    data?: string
-    valor?: number
-    cartorio?: string
-    cidade?: string
-    uf?: string
+    DATA?: string
+    VALOR?: string
+    CARTORIO?: string
+    CIDADE?: string
+    UF?: string
   }) => ({
-    data: p.data || '',
-    valor: p.valor || 0,
-    cartorio: p.cartorio || '',
-    cidade: p.cidade,
-    uf: p.uf,
+    data: p.DATA || '',
+    valor: parseFloat((p.VALOR || '0').replace(',', '.')) || 0,
+    cartorio: p.CARTORIO || '',
+    cidade: p.CIDADE,
+    uf: p.UF,
   }))
 
-  // Pendencias financeiras — doc: tipoPendencia, informante, data (fallback nomes antigos)
-  const pendenciasRaw = consultaCredito.pendenciasFinanceiras || resumoConsulta.pendenciasFinanceiras?.detalhes || []
+  // Pendencias financeiras — path: CREDCADASTRAL.RESTRICOES_FINANCEIRAS.OCORRENCIAS[]
+  const restricoesSection = credCadastral.RESTRICOES_FINANCEIRAS || {}
+  const pendenciasRaw = restricoesSection.OCORRENCIAS || []
   const pendenciasFinanceiras = (Array.isArray(pendenciasRaw) ? pendenciasRaw : []).map((p: {
-    tipoPendencia?: string
-    tipo?: string
-    valor?: number
-    informante?: string
-    origem?: string
-    data?: string
-    dataOcorrencia?: string
+    MODALIDADE?: string
+    VALOR?: string
+    CREDOR?: string
+    ORIGEM?: string
+    DATA_INCLUSAO?: string
+    DATA_VENCIMENTO?: string
   }) => ({
-    tipo: p.tipoPendencia || p.tipo || '',
-    valor: p.valor || 0,
-    origem: p.informante || p.origem || '',
-    dataOcorrencia: p.data || p.dataOcorrencia,
+    tipo: p.MODALIDADE || '',
+    valor: parseFloat((p.VALOR || '0').replace(',', '.')) || 0,
+    origem: p.CREDOR || p.ORIGEM || '',
+    dataOcorrencia: p.DATA_INCLUSAO || p.DATA_VENCIMENTO,
   }))
 
-  // Totais from resumoConsulta or calculated — doc: quantidadeTotal (fallback quantidade)
-  const totalProtestos = resumoConsulta.protestos?.quantidadeTotal || resumoConsulta.protestos?.quantidade || protestos.length
-  const valorTotalProtestos = resumoConsulta.protestos?.valorTotal || protestos.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
-  const totalPendencias = resumoConsulta.pendenciasFinanceiras?.quantidadeTotal || resumoConsulta.pendenciasFinanceiras?.quantidade || pendenciasFinanceiras.length
-  const valorTotalPendencias = resumoConsulta.pendenciasFinanceiras?.valorTotal || pendenciasFinanceiras.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
-  const chequesSemFundo = resumoConsulta.chequesSemFundo?.quantidadeTotal || resumoConsulta.chequesSemFundo?.quantidade || consultaCredito.chequesSemFundo || 0
+  // Totais
+  const totalProtestos = parseInt(protestosSection.QUANTIDADE_OCORRENCIA || '0') || protestos.length
+  const valorTotalProtestos = parseFloat((protestosSection.VALOR_TOTAL || '0').replace(',', '.')) || protestos.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
+  const totalPendencias = parseInt(restricoesSection.QUANTIDADE_OCORRENCIA || '0') || pendenciasFinanceiras.length
+  const valorTotalPendencias = parseFloat((restricoesSection.VALOR_TOTAL || '0').replace(',', '.')) || pendenciasFinanceiras.reduce((sum: number, p: { valor: number }) => sum + p.valor, 0)
 
-  // Score - buscado mas NAO exibido
-  const scoreRating = raw.dados?.data?.scoreRating || {}
-  const score = scoreRating.score ?? consultaCredito.score ?? null
+  // Cheques sem fundo
+  const chSection = credCadastral.CH_SEM_FUNDOS_BACEN || {}
+  const chequesSemFundo = parseInt(chSection.QUANTIDADE_OCORRENCIA || '0') || 0
+
+  // Score
+  const scoresSection = credCadastral.SCORES || {}
+  const scoresOcorrencias = scoresSection.OCORRENCIAS || []
+  const score = scoresOcorrencias.length > 0 ? parseInt(scoresOcorrencias[0].SCORE || '0') || null : null
 
   return {
-    razaoSocial: dadosCadastrais.razaoSocial || dadosCadastrais.nome || '',
+    razaoSocial: dadosRF.RAZAO_SOCIAL || dadosRF.NOME || '',
     cnpj: cnpj,
     protestos: protestos,
     pendenciasFinanceiras: pendenciasFinanceiras,

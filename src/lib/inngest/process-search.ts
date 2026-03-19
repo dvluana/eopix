@@ -151,10 +151,7 @@ export const processSearch = inngest.createFunction(
           await mockDelay()
 
           const [cpfFinancialResult, processosResult] = await Promise.all([
-            consultCpfFinancial(term).catch((err) => {
-              console.error('CPF Financial (srs-premium) error:', err)
-              return null
-            }),
+            consultCpfFinancial(term),
             consultCpfProcessos(term).catch((err) => {
               console.error('CPF Processos error:', err)
               return { processos: [], totalProcessos: 0 } as ProcessosCpfResponse
@@ -185,10 +182,7 @@ export const processSearch = inngest.createFunction(
             data: { processingStep: 2 },
           })
 
-          const cnpjFinancialResult = await consultCnpjFinancial(term).catch((err) => {
-            console.error('CNPJ Financial (srs-premium) error:', err)
-            return null
-          })
+          const cnpjFinancialResult = await consultCnpjFinancial(term)
 
           await prisma.purchase.update({
             where: { id: purchaseId },

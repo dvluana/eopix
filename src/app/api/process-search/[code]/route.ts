@@ -95,10 +95,7 @@ export async function POST(
 
       console.log(`🧪 [BYPASS] Consultando APIFull CPF (financeiro + processos em paralelo)...`)
       const [financialData, processosResult] = await Promise.all([
-        consultCpfFinancial(term).catch((err) => {
-          console.error('🧪 [BYPASS] CPF Financial error:', err)
-          return null
-        }),
+        consultCpfFinancial(term),
         consultCpfProcessos(term).catch((err) => {
           console.error('🧪 [BYPASS] CPF Processos error:', err)
           return { processos: [], totalProcessos: 0 } as ProcessosCpfResponse
@@ -125,10 +122,7 @@ export async function POST(
       console.log(`🧪 [BYPASS] CNPJ Dossiê: razaoSocial=${name}, situação=${dossieData.situacao}`)
 
       console.log(`🧪 [BYPASS] Consultando APIFull CNPJ (financeiro)...`)
-      cnpjFinancialData = await consultCnpjFinancial(term).catch((err) => {
-        console.error('🧪 [BYPASS] CNPJ Financial error:', err)
-        return null
-      })
+      cnpjFinancialData = await consultCnpjFinancial(term)
 
       if (cnpjFinancialData) {
         console.log(`🧪 [BYPASS] CNPJ Financial: ${cnpjFinancialData.totalProtestos} protestos, ${cnpjFinancialData.totalPendencias} pendências`)
