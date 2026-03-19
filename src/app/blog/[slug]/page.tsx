@@ -13,11 +13,13 @@ export const revalidate = 60
 type Props = { params: { slug: string } }
 
 export async function generateStaticParams() {
+  if (!client) return []
   const slugs: { slug: string }[] = await client.fetch(allSlugsQuery)
   return slugs.map((s) => ({ slug: s.slug }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  if (!client) return {}
   const post: BlogPost | null = await client.fetch(postBySlugQuery, { slug: params.slug })
   if (!post) return {}
 
@@ -50,6 +52,7 @@ function formatDate(iso: string) {
 }
 
 export default async function BlogPostPage({ params }: Props) {
+  if (!client) notFound()
   const post: BlogPost | null = await client.fetch(postBySlugQuery, { slug: params.slug })
   if (!post) notFound()
 

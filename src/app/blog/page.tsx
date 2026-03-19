@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
-  const posts: BlogPostPreview[] = await client.fetch(allPostsQuery)
+  const posts: BlogPostPreview[] = client ? await client.fetch(allPostsQuery).catch(() => []) : []
 
   return (
     <main className="blog-page">

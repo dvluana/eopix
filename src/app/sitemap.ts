@@ -7,7 +7,7 @@ const BASE_URL = 'https://somoseopix.com.br'
 export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const slugs: { slug: string }[] = await client.fetch(allSlugsQuery).catch(() => [])
+  const slugs: { slug: string }[] = client ? await client.fetch(allSlugsQuery).catch(() => []) : []
 
   const blogUrls: MetadataRoute.Sitemap = slugs.map(({ slug }) => ({
     url: `${BASE_URL}/blog/${slug}`,

@@ -6,7 +6,7 @@ import LandingPageClient from '@/components/landing/LandingPageClient'
 export const revalidate = 60
 
 export default async function LandingPage() {
-  const blogPosts: BlogPostPreview[] = await client.fetch(recentPostsQuery).catch(() => [])
+  const blogPosts: BlogPostPreview[] = client ? await client.fetch(recentPostsQuery).catch(() => []) : []
 
   return <LandingPageClient blogPosts={blogPosts} />
 }
