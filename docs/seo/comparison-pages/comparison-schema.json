@@ -1,0 +1,227 @@
+{
+  "_comment": "Schema markup para página: Melhores Ferramentas de Consulta CPF e CNPJ em 2026",
+  "_url": "https://eopix.com.br/blog/melhores-ferramentas-consulta-cpf-cnpj",
+  "_instrucoes": "Adicionar dentro de <script type='application/ld+json'> no <head> da página",
+
+  "schemas": [
+
+    {
+      "_type": "ItemList — Lista das 7 ferramentas",
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Melhores Ferramentas de Consulta CPF e CNPJ em 2026",
+      "description": "Comparação das principais ferramentas para consultar CPF e CNPJ no Brasil: Serasa, SPC Brasil, Boa Vista, EOPIX, Alude, BigDataCorp e Receita Federal.",
+      "url": "https://eopix.com.br/blog/melhores-ferramentas-consulta-cpf-cnpj",
+      "datePublished": "2026-03-01",
+      "dateModified": "2026-03-18",
+      "inLanguage": "pt-BR",
+      "itemListOrder": "https://schema.org/ItemListOrderDescending",
+      "numberOfItems": 7,
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "EOPIX — Melhor para consulta avulsa completa",
+          "url": "https://eopix.com.br",
+          "description": "Relatório de risco consolidado com dados cadastrais, processos judiciais, histórico financeiro e menções públicas na web, interpretados por IA. Sem assinatura mensal — R$39,90 por consulta."
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Receita Federal — Melhor opção gratuita oficial",
+          "url": "https://servicos.receita.fazenda.gov.br",
+          "description": "Verificação gratuita e oficial de CPF e CNPJ diretamente no portal do governo brasileiro."
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Serasa Experian — Melhor para score de crédito recorrente",
+          "url": "https://www.serasa.com.br",
+          "description": "Líder em score de crédito e histórico de inadimplência no Brasil. Planos mensais para empresas."
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "SPC Brasil — Melhor para cobertura de processos judiciais",
+          "url": "https://www.spcbrasil.org.br",
+          "description": "Maior cobertura de dados judiciais (115+ foros) e cartoriais (2.000+ cartórios) do Brasil."
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "name": "Boa Vista (SCPC) — Alternativa ao Serasa para B2B",
+          "url": "https://www.boavistaservicos.com.br",
+          "description": "Bureau de crédito para análise de risco empresarial, parte do grupo Equifax."
+        },
+        {
+          "@type": "ListItem",
+          "position": 6,
+          "name": "Alude — Melhor para background check moderno",
+          "url": "https://www.alude.com.br",
+          "description": "Plataforma moderna de background check com resultados instantâneos e cobertura judicial abrangente."
+        },
+        {
+          "@type": "ListItem",
+          "position": 7,
+          "name": "BigDataCorp — Melhor para desenvolvedores e empresas tech",
+          "url": "https://bigdatacorp.com.br",
+          "description": "API de dados públicos estruturados em escala para integração em sistemas corporativos."
+        }
+      ]
+    },
+
+    {
+      "_type": "SoftwareApplication — EOPIX produto",
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "EOPIX",
+      "url": "https://eopix.com.br",
+      "description": "Plataforma SaaS brasileira para geração de relatórios de risco fiscal e legal para CPF e CNPJ. Consolida dados cadastrais, processos judiciais, histórico financeiro e menções públicas em um único relatório interpretado por inteligência artificial.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "pt-BR",
+      "availableLanguage": "pt-BR",
+      "countryOfOrigin": "BR",
+      "offers": {
+        "@type": "Offer",
+        "name": "Consulta avulsa CPF ou CNPJ",
+        "price": "39.90",
+        "priceCurrency": "BRL",
+        "priceSpecification": {
+          "@type": "UnitPriceSpecification",
+          "price": "39.90",
+          "priceCurrency": "BRL",
+          "unitText": "por consulta",
+          "description": "Relatório válido por 7 dias. Sem assinatura mensal."
+        },
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "Organization",
+          "name": "EOPIX",
+          "url": "https://eopix.com.br"
+        }
+      },
+      "featureList": [
+        "Dados cadastrais completos (CPF e CNPJ)",
+        "Processos judiciais e ações legais",
+        "Histórico financeiro e score de crédito",
+        "Menções públicas na web e redes sociais",
+        "Análise de risco consolidada por IA (GPT-4o mini)",
+        "Pagamento único via PIX",
+        "Relatório disponível por 7 dias",
+        "Conformidade com LGPD"
+      ]
+    },
+
+    {
+      "_type": "FAQPage — Perguntas frequentes",
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "É legal consultar o CPF de outra pessoa?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim, com ressalvas. A consulta de dados públicos — situação cadastral, processos judiciais, histórico de inadimplência — é permitida para fins legítimos como análise de crédito, due diligence comercial ou triagem de fornecedores. A Lei Geral de Proteção de Dados (LGPD) regulamenta o uso dessas informações, e ferramentas como o EOPIX operam em conformidade com a LGPD, com base legal de legítimo interesse comercial."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Qual a diferença entre score de crédito e relatório de risco?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "O score de crédito (como o da Serasa ou SPC) mede exclusivamente o histórico de pagamentos e inadimplência de uma pessoa. Um relatório de risco é mais amplo: inclui dados cadastrais, processos judiciais, histórico financeiro e reputação pública — entregando uma visão completa de quem você está negociando, não apenas se ela deve dinheiro."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "CPF com restrição é a mesma coisa que CPF negativado?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Não exatamente. CPF com restrição pode indicar dívidas em aberto (negativação em bureaus como Serasa ou SPC), mas também pode se referir a irregularidades cadastrais junto à Receita Federal. A consulta completa via EOPIX mostra ambos os aspectos."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Consultar CNPJ é diferente de consultar CPF?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim. Para CNPJ, os dados incluem situação na Receita Federal, quadro de sócios, atividade econômica, processos judiciais da empresa e histórico fiscal. Para CPF, o foco é dados pessoais, histórico de crédito e processos vinculados à pessoa física. O EOPIX suporta ambos os tipos de consulta."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Qual a melhor ferramenta de consulta CPF CNPJ sem mensalidade?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Para verificação gratuita e oficial, a Receita Federal oferece dados cadastrais básicos sem custo. Para um relatório completo sem assinatura mensal — incluindo processos judiciais, histórico financeiro e análise de risco —, o EOPIX cobra R$39,90 por consulta avulsa, com relatório válido por 7 dias."
+          }
+        }
+      ]
+    },
+
+    {
+      "_type": "BreadcrumbList — Navegação",
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Início",
+          "item": "https://eopix.com.br"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://eopix.com.br/blog"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Melhores Ferramentas de Consulta CPF e CNPJ em 2026",
+          "item": "https://eopix.com.br/blog/melhores-ferramentas-consulta-cpf-cnpj"
+        }
+      ]
+    },
+
+    {
+      "_type": "Article — Metadados do artigo",
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "7 Melhores Ferramentas de Consulta CPF e CNPJ em 2026 (Grátis e Pagas)",
+      "description": "Compare as melhores ferramentas para consultar CPF e CNPJ no Brasil: Serasa, SPC Brasil, Boa Vista, EOPIX, Alude e BigDataCorp. Preços, funcionalidades e qual escolher para cada situação.",
+      "url": "https://eopix.com.br/blog/melhores-ferramentas-consulta-cpf-cnpj",
+      "datePublished": "2026-03-01",
+      "dateModified": "2026-03-18",
+      "inLanguage": "pt-BR",
+      "image": {
+        "@type": "ImageObject",
+        "url": "https://eopix.com.br/og/melhores-ferramentas-cpf-cnpj.png",
+        "width": 1200,
+        "height": 630
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "EOPIX",
+        "url": "https://eopix.com.br"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "EOPIX",
+        "url": "https://eopix.com.br",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://eopix.com.br/logo.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://eopix.com.br/blog/melhores-ferramentas-consulta-cpf-cnpj"
+      }
+    }
+
+  ]
+}
