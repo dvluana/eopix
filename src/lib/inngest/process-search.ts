@@ -142,7 +142,10 @@ export const processSearch = inngest.createFunction(
         await mockDelay()
 
         if (type === 'CPF') {
-          const cadastralData = await consultCpfCadastral(term)
+          const cadastralData = await consultCpfCadastral(term).catch((err) => {
+            console.error('CPF Cadastral error (non-fatal, continuing):', err)
+            return null
+          })
 
           await prisma.purchase.update({
             where: { id: purchaseId },
@@ -166,9 +169,9 @@ export const processSearch = inngest.createFunction(
 
           return {
             type: 'CPF' as const,
-            name: cadastralData.nome,
-            region: cadastralData.enderecos?.[0]?.uf || '',
-            cadastralData: cadastralData as CpfCadastralResponse,
+            name: cadastralData?.nome || `CPF ${term}`,
+            region: cadastralData?.enderecos?.[0]?.uf || '',
+            cadastralData: cadastralData as CpfCadastralResponse | null,
             cpfFinancialData: cpfFinancialResult as SrsPremiumCpfResponse | null,
             processosData: processosResult as ProcessosCpfResponse,
             dossieData: null as DossieResponse | null,
