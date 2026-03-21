@@ -2,7 +2,7 @@
 title: "Status"
 ---
 
-**Atualizado em:** 2026-03-18
+**Atualizado em:** 2026-03-19
 **Branch atual:** develop (merged to main for production)
 **Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
@@ -69,6 +69,8 @@ title: "Status"
 - ~~Configurar GitHub Secrets~~ ✓ — `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY` todos configurados
 
 ## Últimas mudanças
+
+- **Fix financeiro: srs-premium → serasa-premium** (2026-03-19): (1) `srs-premium` estava retornando "Sem saldo disponível!" desde ~17/03, causando `financial: null` em todos os relatórios — exibiam "sem pendências" para pessoas com dívidas reais. (2) Migrado para `serasa-premium` (endpoint oficial da Postman collection APIFull). Formato diferente: `dados.CREDCADASTRAL` (UPPERCASE) com valores como strings BR ("868,91"). (3) Mappers CPF e CNPJ reescritos em `apifull.ts` para novo formato: PROTESTOS.OCORRENCIAS, RESTRICOES_FINANCEIRAS.OCORRENCIAS, CH_SEM_FUNDOS_BACEN, SCORES. (4) `.catch(() => null)` removido das chamadas financeiras em `process-search.ts` e `process-search/[code]/route.ts` — erros agora propagam e pipeline falha visivelmente (Inngest retries, admin vê FAILED). (5) Fix Vercel build: Sanity client condicional (`null` quando `NEXT_PUBLIC_SANITY_PROJECT_ID` ausente), null guards em sitemap.ts, page.tsx, blog/page.tsx, blog/[slug]/page.tsx. (6) Relatório da Carolina (Q8HFHZ) reprocessado com sucesso: 5 dívidas, R$2.598,91 total.
 
 - **Recuperação de senha** (2026-03-18): (1) `MagicCode` model removido do schema (era legado, sem uso ativo) — migration `remove_magic_code` aplicada. (2) `PasswordResetToken` model adicionado — migration `add_password_reset_token` aplicada. (3) `POST /api/auth/forgot-password`: cria token 64-char (`crypto.randomBytes`), invalida tokens anteriores, envia email de reset fire-and-forget, sempre retorna 200 (previne user enumeration), rate limit 3/15min. (4) `POST /api/auth/reset-password`: valida token (existe, não usado, não expirado), atualiza `passwordHash` via `$transaction` atômico, marca `usedAt`, envia email de confirmação. (5) `sendPasswordResetEmail` + `sendPasswordChangedEmail` em `email.ts`. (6) `RegisterModal` com modo `'forgot'` — link "Esqueci minha senha" no login, form simples, estado de sucesso. (7) Página `/redefinir-senha` com card brutalist. (8) `onForgotPassword` prop wired em `consulta/[term]/page.tsx` e `app/page.tsx`. (9) Cron `cleanupPasswordResetTokens` (diário 03:45). tsc clean, lint clean, vitest 108/108.
 

@@ -157,9 +157,9 @@
 
 | Endpoint | URL | Link | Param |
 |---|---|---|---|
-| CPF Cadastral | `/api/r-cpf-completo` | `r-cpf-completo` | `cpf` |
+| CPF Cadastral | `/api/ic-cpf-completo` | `ic-cpf-completo` | `cpf` |
 | CPF Processos | `/api/r-acoes-e-processos-judiciais` | `r-acoes-e-processos-judiciais` | `cpf` |
-| CPF/CNPJ Financeiro | `/api/srs-premium` | `srs-premium` | `document` |
+| CPF/CNPJ Financeiro | `/api/serasa-premium` | `serasa-premium` | `document` |
 | CNPJ Dossiê | `/api/ic-dossie-juridico` | `ic-dossie-juridico` | `document` |
 
 Padrão: URL = `https://api.apifull.com.br/api/{link}`, User-Agent obrigatório.
@@ -167,7 +167,7 @@ Padrão: URL = `https://api.apifull.com.br/api/{link}`, User-Agent obrigatório.
 ## Decisões importantes
 
 - APIFull exige `User-Agent` header (403 sem ele)
-- `srs-premium` retorna formato `dados.data.serasaPremium` (usado pelos mappers). `serasa-premium` retorna formato diferente (`dados.HEADER`) — NÃO usar.
+- `serasa-premium` retorna formato `dados.CREDCADASTRAL` (UPPERCASE). Valores financeiros como strings BR ("868,91"). ~~`srs-premium` deprecated desde 17/03/2026~~.
 - TEST_MODE sem Inngest: usar fluxo de 2 passos (mark-paid + process-search)
 - Neon MCP cria branch do main por default — rodar `prisma migrate deploy` após criar
 - Admin endpoints em `/api/admin/*` (login em `/api/admin/login`)

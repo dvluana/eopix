@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
-    // Only proceed if user exists and has a password
+    // Only proceed if user exists (users without password can set one via reset)
     const user = await prisma.user.findUnique({ where: { email } })
-    if (!user || !user.passwordHash) {
+    if (!user) {
       return NextResponse.json({ success: true })
     }
 
