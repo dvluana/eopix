@@ -2,7 +2,7 @@
 title: "Status"
 ---
 
-**Atualizado em:** 2026-03-19
+**Atualizado em:** 2026-03-25
 **Branch atual:** develop (merged to main for production)
 **Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
@@ -69,6 +69,8 @@ title: "Status"
 - ~~Configurar GitHub Secrets~~ ✓ — `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY` todos configurados
 
 ## Últimas mudanças
+
+- **Production Hardening v2 — fase 1** (2026-03-25): Investigação do caso Kevin (cliente pagou, ficou sem acesso). Root cause: DB wipe deixou JWT cookie válido apontando pra user deletado → `getSession()` só valida JWT, não verifica user no DB → purchase route criou user fantasma sem senha/nome. Fixes aplicados: (1) `purchases/route.ts`: 401 sem sessão em live mode. (2) `pendingPasswordHash` removido de purchases, webhook, schema (dead code — frontend nunca passava). (3) `forgot-password`: aceita users sem senha (guests podem definir senha via reset). Design doc em `docs/plans/2026-03-25-production-hardening-v2-design.md`. Pendente: pipeline resilience (`.catch()` em financial/dossie, fallback `pf-dadosbasicos`, `NonRetriableError`), auth hardening (`getSessionWithUser()` com DB check), UX fix (RegisterModal forgot-password).
 
 - **Fix financeiro: srs-premium → serasa-premium** (2026-03-19): (1) `srs-premium` estava retornando "Sem saldo disponível!" desde ~17/03, causando `financial: null` em todos os relatórios — exibiam "sem pendências" para pessoas com dívidas reais. (2) Migrado para `serasa-premium` (endpoint oficial da Postman collection APIFull). Formato diferente: `dados.CREDCADASTRAL` (UPPERCASE) com valores como strings BR ("868,91"). (3) Mappers CPF e CNPJ reescritos em `apifull.ts` para novo formato: PROTESTOS.OCORRENCIAS, RESTRICOES_FINANCEIRAS.OCORRENCIAS, CH_SEM_FUNDOS_BACEN, SCORES. (4) `.catch(() => null)` removido das chamadas financeiras em `process-search.ts` e `process-search/[code]/route.ts` — erros agora propagam e pipeline falha visivelmente (Inngest retries, admin vê FAILED). (5) Fix Vercel build: Sanity client condicional (`null` quando `NEXT_PUBLIC_SANITY_PROJECT_ID` ausente), null guards em sitemap.ts, page.tsx, blog/page.tsx, blog/[slug]/page.tsx. (6) Relatório da Carolina (Q8HFHZ) reprocessado com sucesso: 5 dívidas, R$2.598,91 total.
 

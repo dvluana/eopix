@@ -43,8 +43,41 @@
 - [x] Substituir Google OAuth por Email+Senha (bcrypt)
 - [x] Fix flash do form de login em minhas-consultas (tri-state null/false/true)
 - [x] Botão "Painel Admin" na topbar para admins (verifica AdminUser table)
-- [ ] Implementar reset de senha (iteração futura)
+- [x] Implementar reset de senha
 - [ ] Remover `GOOGLE_CLIENT_ID` e `NEXT_PUBLIC_GOOGLE_CLIENT_ID` do Vercel (se configurados)
+
+---
+
+## Production Hardening v2 (2026-03-25)
+
+Design: `docs/plans/2026-03-25-production-hardening-v2-design.md`
+
+### Já aplicado (wip commits, falta deploy)
+- [x] `purchases/route.ts`: 401 sem sessão em live mode
+- [x] `purchases/route.ts`: removido `pendingPasswordHash` (dead code)
+- [x] `webhook/route.ts`: removida ativação de `pendingPasswordHash`
+- [x] `forgot-password/route.ts`: aceita users sem senha (reset funciona pra guests)
+- [x] `prisma/schema.prisma`: removido campo `pendingPasswordHash`
+
+### Pipeline resilience (CRITICO)
+- [ ] `.catch(() => null)` em `consultCpfFinancial`, `consultCnpjDossie`, `consultCnpjFinancial`
+- [ ] Fallback `pf-dadosbasicos` quando `ic-cpf-completo` falha
+- [ ] `NonRetriableError` para HTTP 400 no Inngest (parar de retentar erros permanentes)
+- [ ] Mesmos catches no sync fallback (`process-search/[code]/route.ts`)
+
+### Auth hardening (defensivo)
+- [ ] `getSessionWithUser()` — verifica user no DB, destrói cookie se não existe
+- [ ] `/api/auth/me` — retornar 401 se user não existe no banco
+- [ ] `purchases/route.ts` — usar `getSessionWithUser()`
+
+### UX fix
+- [ ] RegisterModal: checar `res.ok` antes de mostrar "Email enviado!" no forgot-password
+
+### Cleanup
+- [ ] Criar migration `remove_pending_password_hash`
+- [ ] Aplicar migration no Neon develop e main
+- [ ] Substituir wip commits por commits atômicos
+- [ ] `npx tsc && npm run lint && npx vitest run`
 
 ---
 
