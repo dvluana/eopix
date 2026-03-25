@@ -66,19 +66,19 @@
 
 ## Traceability
 
-| REQ-ID | Phase | Status |
-|--------|-------|--------|
-| OBS-01 | TBD   | Pending |
-| OBS-02 | TBD   | Pending |
-| OBS-03 | TBD   | Pending |
-| OBS-04 | TBD   | Pending (manual) |
-| PIX-01 | TBD   | Pending |
-| PIX-02 | TBD   | Pending |
-| PIX-03 | TBD   | Pending |
-| PIX-04 | TBD   | Pending |
-| CODE-01 | TBD  | Pending |
-| CODE-02 | TBD  | Pending |
-| CODE-03 | TBD  | Pending |
-| DOCS-01 | TBD  | Pending |
-| DOCS-02 | TBD  | Pending |
-| DOCS-03 | TBD  | Pending |
+| REQ-ID  | Phase                        | Status           |
+|---------|------------------------------|------------------|
+| OBS-01  | Phase 1 - Admin Purchase Timeline | Pending     |
+| OBS-02  | Phase 2 - Sentry com Contexto    | Pending      |
+| OBS-04  | Phase 2 - Sentry com Contexto    | Pending (manual) |
+| OBS-03  | Phase 3 - Alertas de Falha       | Pending      |
+| PIX-04  | Phase 4 - PIX Backend            | Pending      |
+| PIX-01  | Phase 4 - PIX Backend            | Pending      |
+| PIX-02  | Phase 5 - PIX Frontend           | Pending      |
+| PIX-03  | Phase 5 - PIX Frontend           | Pending      |
+| CODE-03 | Phase 6 - Consolidação de Tipos  | Pending      |
+| CODE-01 | Phase 7 - Camada de Serviços     | Pending      |
+| CODE-02 | Phase 7 - Camada de Serviços     | Pending      |
+| DOCS-01 | Phase 8 - Documentação Atualizada | Pending     |
+| DOCS-02 | Phase 8 - Documentação Atualizada | Pending     |
+| DOCS-03 | Phase 8 - Documentação Atualizada | Pending     |
