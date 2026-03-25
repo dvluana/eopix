@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -72,9 +73,11 @@ const columns: Column[] = [
 
 export default function ComprasPage() {
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const initialSearch = searchParams.get('search') ?? ''
   const [data, setData] = React.useState<PurchasesData | null>(null)
   const [loading, setLoading] = React.useState(true)
-  const [searchQuery, setSearchQuery] = React.useState('')
+  const [searchQuery, setSearchQuery] = React.useState(initialSearch)
   const [statusFilter, setStatusFilter] = React.useState('all')
   const [page, setPage] = React.useState(1)
 
@@ -92,6 +95,21 @@ export default function ComprasPage() {
   const [blockReason, setBlockReason] = React.useState<string>('')
   const [blockLoading, setBlockLoading] = React.useState(false)
   const [batchProcessing, setBatchProcessing] = React.useState(false)
+
+  // Auto-open dialog from URL search param
+  const autoOpenDone = React.useRef(false)
+
+  React.useEffect(() => {
+    if (autoOpenDone.current) return
+    if (!initialSearch || !data?.purchases) return
+    if (data.purchases.length === 1) {
+      setDetailsPurchase(data.purchases[0])
+      autoOpenDone.current = true
+    } else if (data.purchases.length > 1) {
+      // Multiple results — don't auto-open, user picks from list
+      autoOpenDone.current = true
+    }
+  }, [data, initialSearch])
 
   // Action menu
   const [openMenuId, setOpenMenuId] = React.useState<string | null>(null)
