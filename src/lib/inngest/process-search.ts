@@ -154,7 +154,10 @@ export const processSearch = inngest.createFunction(
           await mockDelay()
 
           const [cpfFinancialResult, processosResult] = await Promise.all([
-            consultCpfFinancial(term),
+            consultCpfFinancial(term).catch((err) => {
+              console.error('CPF Financial error:', err)
+              return null
+            }),
             consultCpfProcessos(term).catch((err) => {
               console.error('CPF Processos error:', err)
               return { processos: [], totalProcessos: 0 } as ProcessosCpfResponse
@@ -178,14 +181,20 @@ export const processSearch = inngest.createFunction(
             cnpjFinancialData: null as SrsPremiumCnpjResponse | null,
           }
         } else {
-          const dossieData = await consultCnpjDossie(term)
+          const dossieData = await consultCnpjDossie(term).catch((err) => {
+            console.error('CNPJ Dossie error:', err)
+            return null
+          })
 
           await prisma.purchase.update({
             where: { id: purchaseId },
             data: { processingStep: 2 },
           })
 
-          const cnpjFinancialResult = await consultCnpjFinancial(term)
+          const cnpjFinancialResult = await consultCnpjFinancial(term).catch((err) => {
+            console.error('CNPJ Financial error:', err)
+            return null
+          })
 
           await prisma.purchase.update({
             where: { id: purchaseId },
@@ -195,12 +204,12 @@ export const processSearch = inngest.createFunction(
 
           return {
             type: 'CNPJ' as const,
-            name: dossieData.razaoSocial,
-            region: dossieData.endereco?.uf || '',
+            name: dossieData?.razaoSocial || `CNPJ ${term}`,
+            region: dossieData?.endereco?.uf || '',
             cadastralData: null as CpfCadastralResponse | null,
             cpfFinancialData: null as SrsPremiumCpfResponse | null,
             processosData: null as ProcessosCpfResponse | null,
-            dossieData: dossieData as DossieResponse,
+            dossieData: dossieData as DossieResponse | null,
             cnpjFinancialData: cnpjFinancialResult as SrsPremiumCnpjResponse | null,
           }
         }

@@ -88,14 +88,20 @@ export async function POST(
     // ========== CPF: 3 chamadas APIFull ==========
     if (type === 'CPF') {
       console.log(`🧪 [BYPASS] Consultando APIFull CPF (cadastral)...`)
-      cadastralData = await consultCpfCadastral(term)
-      name = cadastralData.nome
-      region = cadastralData.enderecos?.[0]?.uf || ''
+      cadastralData = await consultCpfCadastral(term).catch((err) => {
+        console.error('🧪 [BYPASS] CPF Cadastral error:', err)
+        return null
+      })
+      name = cadastralData?.nome || `CPF ${term}`
+      region = cadastralData?.enderecos?.[0]?.uf || ''
       console.log(`🧪 [BYPASS] CPF Cadastral: nome=${name}, região=${region}`)
 
       console.log(`🧪 [BYPASS] Consultando APIFull CPF (financeiro + processos em paralelo)...`)
       const [financialData, processosResult] = await Promise.all([
-        consultCpfFinancial(term),
+        consultCpfFinancial(term).catch((err) => {
+          console.error('🧪 [BYPASS] CPF Financial error:', err)
+          return null
+        }),
         consultCpfProcessos(term).catch((err) => {
           console.error('🧪 [BYPASS] CPF Processos error:', err)
           return { processos: [], totalProcessos: 0 } as ProcessosCpfResponse
@@ -116,13 +122,19 @@ export async function POST(
     // ========== CNPJ: 2 chamadas APIFull ==========
     else {
       console.log(`🧪 [BYPASS] Consultando APIFull CNPJ (dossiê)...`)
-      dossieData = await consultCnpjDossie(term)
-      name = dossieData.razaoSocial
-      region = dossieData.endereco?.uf || ''
-      console.log(`🧪 [BYPASS] CNPJ Dossiê: razaoSocial=${name}, situação=${dossieData.situacao}`)
+      dossieData = await consultCnpjDossie(term).catch((err) => {
+        console.error('🧪 [BYPASS] CNPJ Dossie error:', err)
+        return null
+      })
+      name = dossieData?.razaoSocial || `CNPJ ${term}`
+      region = dossieData?.endereco?.uf || ''
+      console.log(`🧪 [BYPASS] CNPJ Dossiê: razaoSocial=${name}, situação=${dossieData?.situacao}`)
 
       console.log(`🧪 [BYPASS] Consultando APIFull CNPJ (financeiro)...`)
-      cnpjFinancialData = await consultCnpjFinancial(term)
+      cnpjFinancialData = await consultCnpjFinancial(term).catch((err) => {
+        console.error('🧪 [BYPASS] CNPJ Financial error:', err)
+        return null
+      })
 
       if (cnpjFinancialData) {
         console.log(`🧪 [BYPASS] CNPJ Financial: ${cnpjFinancialData.totalProtestos} protestos, ${cnpjFinancialData.totalPendencias} pendências`)

@@ -43,35 +43,88 @@ function isChuvaScenario(document: string): boolean {
 // ic-cpf-completo usa o saldo geral da conta e retorna dados em formato CREDCADASTRAL.
 // Resposta: dados.CREDCADASTRAL.IDENTIFICACAO_PESSOA_FISICA (não dados.data.cadastralPF)
 
-export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResponse> {
+export async function consultCpfCadastral(cpf: string): Promise<CpfCadastralResponse & { _source?: 'completo' | 'basico' }> {
   if (isMockMode) {
     console.log(`[MOCK] APIFull consultCpfCadastral: ${cpf}`)
     await new Promise((r) => setTimeout(r, 500))
     return isChuvaScenario(cpf) ? MOCK_APIFULL_CPF_CADASTRAL_CHUVA : MOCK_APIFULL_CPF_CADASTRAL_SOL
   }
 
-  // === CHAMADA REAL - ic-cpf-completo ===
-  const res = await fetchWithTimeout('https://api.apifull.com.br/api/ic-cpf-completo', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
-      'Content-Type': 'application/json',
-      'User-Agent': 'EOPIX/1.0',
-    },
-    body: JSON.stringify({
-      cpf: cpf.replace(/\D/g, ''),
-      link: 'ic-cpf-completo',
-    }),
-  })
+  const cleanCpf = cpf.replace(/\D/g, '')
 
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => '')
-    console.error(`APIFull CPF Cadastral error: ${res.status}`, errorText)
-    throw new Error(`APIFull CPF Cadastral error: ${res.status} - ${errorText.slice(0, 200)}`)
+  // === Tentativa 1: ic-cpf-completo (dados completos) ===
+  try {
+    const res = await fetchWithTimeout('https://api.apifull.com.br/api/ic-cpf-completo', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'EOPIX/1.0',
+      },
+      body: JSON.stringify({ cpf: cleanCpf, link: 'ic-cpf-completo' }),
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => '')
+      console.error(`APIFull ic-cpf-completo error: ${res.status}`, errorText)
+      // Fall through to basico
+    } else {
+      const rawData = await res.json()
+      const result = mapCpfCadastralResponse(rawData, cpf)
+      return { ...result, _source: 'completo' as const }
+    }
+  } catch (err) {
+    console.error('APIFull ic-cpf-completo failed, trying pf-dadosbasicos:', err)
   }
 
-  const rawData = await res.json()
-  return mapCpfCadastralResponse(rawData, cpf)
+  // === Tentativa 2: pf-dadosbasicos (fallback — dados mínimos) ===
+  try {
+    const res = await fetchWithTimeout('https://api.apifull.com.br/api/pf-dadosbasicos', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.APIFULL_API_KEY}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'EOPIX/1.0',
+      },
+      body: JSON.stringify({ cpf: cleanCpf, link: 'pf-dadosbasicos' }),
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => '')
+      console.error(`APIFull pf-dadosbasicos error: ${res.status}`, errorText)
+      throw new Error(`APIFull pf-dadosbasicos error: ${res.status} - ${errorText.slice(0, 200)}`)
+    }
+
+    const rawData = await res.json()
+    const result = mapCpfBasicoResponse(rawData, cpf)
+    console.warn(`[APIFull] CPF ${cleanCpf}: using pf-dadosbasicos fallback (completo failed)`)
+    return { ...result, _source: 'basico' as const }
+  } catch (err) {
+    console.error('APIFull pf-dadosbasicos also failed:', err)
+    throw err
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function mapCpfBasicoResponse(raw: any, cpf: string): CpfCadastralResponse {
+  // pf-dadosbasicos retorna formato mais simples
+  const dados = raw.dados?.data || raw.dados || {}
+  const pessoa = dados.pessoaFisica || dados.pessoa || dados || {}
+
+  return {
+    nome: pessoa.nome || pessoa.NOME || '',
+    cpf: cpf,
+    dataNascimento: pessoa.dataNascimento || pessoa.DATA_NASCIMENTO || null,
+    idade: null,
+    nomeMae: pessoa.nomeMae || pessoa.MAE || null,
+    sexo: pessoa.sexo || pessoa.SEXO || null,
+    signo: null,
+    situacaoRF: pessoa.situacao || pessoa.SITUACAO || null,
+    enderecos: [],
+    telefones: [],
+    emails: [],
+    empresasVinculadas: [],
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

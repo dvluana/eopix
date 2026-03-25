@@ -69,9 +69,9 @@ export default function RegisterModal({ open, onOpenChange, onSubmit, isLoading,
         await onForgotPassword(forgotEmail.trim().toLowerCase())
       }
       setForgotSuccess(true)
-    } catch {
-      // Always show success to prevent user enumeration
-      setForgotSuccess(true)
+    } catch (err) {
+      console.error('Forgot password error:', err)
+      setError('Erro ao enviar email. Tente novamente.')
     } finally {
       setForgotLoading(false)
     }

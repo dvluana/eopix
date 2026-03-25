@@ -180,6 +180,32 @@ export async function requireAdmin(request: NextRequest): Promise<NextResponse |
 }
 
 /**
+ * Gets session AND verifies user exists in DB. Clears cookie if user was deleted.
+ * Use this in routes that create/modify data based on session identity.
+ */
+export async function getSessionWithUser(request?: NextRequest): Promise<(SessionPayload & { userId: string }) | null> {
+  const session = await getSession(request)
+  if (!session) return null
+
+  try {
+    const { prisma } = await import('./prisma')
+    const user = await prisma.user.findUnique({
+      where: { email: session.email },
+      select: { id: true },
+    })
+    if (!user) {
+      // Ghost session — user was deleted but JWT is still valid
+      console.warn(`[Auth] Ghost session detected for ${session.email} — clearing cookie`)
+      await destroySession()
+      return null
+    }
+    return { ...session, userId: user.id }
+  } catch {
+    return null
+  }
+}
+
+/**
  * Clears the session cookie
  */
 export async function destroySession(): Promise<void> {

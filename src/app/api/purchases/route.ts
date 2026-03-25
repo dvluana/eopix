@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/prisma'
 import { createCheckout, getPaymentProvider } from '@/lib/payment'
 import { createOrGetCustomer } from '@/lib/abacatepay'
-import { getSession, isAdminEmail } from '@/lib/auth'
+import { getSession, getSessionWithUser, isAdminEmail } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { isValidCPF, isValidCNPJ, isValidEmail, cleanDocument, formatDocument } from '@/lib/validators'
 import { isBypassMode, isBypassPayment, isMockMode } from '@/lib/mock-mode'
@@ -84,7 +84,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Require authentication in live mode (bypass allowed in MOCK/TEST/dev)
-    const session = await getSession()
+    // getSessionWithUser verifies user exists in DB (prevents ghost sessions after DB wipe)
+    const session = (isBypassMode || isDev) ? await getSession() : await getSessionWithUser()
     if (!session && !isBypassMode && !isDev) {
       return NextResponse.json(
         { error: 'Autenticacao necessaria. Faca login ou crie uma conta.' },
@@ -94,9 +95,9 @@ export async function POST(request: NextRequest) {
 
     // Check for existing active report or pending purchase for same document (logged-in users only)
     if (session) {
-      const sessionUser = await prisma.user.findUnique({
-        where: { email: session.email },
-      })
+      const sessionUser: { id: string } | null = 'userId' in session
+        ? { id: (session as { userId: string }).userId }
+        : await prisma.user.findUnique({ where: { email: session.email }, select: { id: true } })
       if (sessionUser) {
         // Block if user already has a completed report that hasn't expired
         const existingCompleted = await prisma.purchase.findFirst({
