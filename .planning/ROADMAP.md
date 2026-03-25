@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md — Unified timeline dialog + URL auto-open
+- [x] 01-01-PLAN.md — Unified timeline dialog + URL auto-open
 
 ### Phase 2: Sentry com Contexto
 **Goal**: Cada erro capturado pelo Sentry inclui contexto suficiente para identificar a compra afetada sem abrir outro sistema
