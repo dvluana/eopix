@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, Clock, RotateCcw } from 'lucide-react'
+import { AlertTriangle, CheckCircle, Clock, FileText, Loader2, RotateCcw, XCircle } from 'lucide-react'
 import EopixLoader from '@/components/EopixLoader'
 import { StatusBadge } from './StatusBadge'
 import { formatCurrency, formatDate } from './admin-utils'
@@ -19,14 +19,19 @@ interface Purchase {
   term: string
   type: string
   status: string
+  processingStep?: number
   amount: number
   email: string
+  buyerName?: string | null
+  hasReport?: boolean
+  reportId?: string | null
   failureReason: string | null
   failureDetails: string | null
   refundReason: string | null
   refundDetails: string | null
   createdAt: string
   paidAt: string | null
+  updatedAt?: string
 }
 
 interface ProcessingLog {
@@ -36,7 +41,7 @@ interface ProcessingLog {
 }
 
 interface PurchaseDetails {
-  purchase: Purchase & { processingStep?: number; updatedAt?: string }
+  purchase: Purchase
   processingLogs: ProcessingLog[]
 }
 
@@ -83,6 +88,119 @@ function ElapsedTimer({ since }: { since: string }) {
       {text}
     </span>
   )
+}
+
+interface TimelineEvent {
+  key: string
+  label: string
+  timestamp: string | null
+  status: 'done' | 'active' | 'pending' | 'error'
+  detail?: string
+  detailExpanded?: string
+}
+
+function buildTimeline(purchase: Purchase, processingLogs: ProcessingLog[]): TimelineEvent[] {
+  const events: TimelineEvent[] = []
+
+  // 1. Compra criada (always)
+  events.push({
+    key: 'pending',
+    label: 'Compra criada',
+    timestamp: purchase.createdAt,
+    status: 'done',
+  })
+
+  // 2. Pagamento confirmado
+  if (purchase.paidAt) {
+    events.push({
+      key: 'paid',
+      label: 'Pagamento confirmado',
+      timestamp: purchase.paidAt,
+      status: 'done',
+    })
+  }
+
+  // 3. Pipeline steps (if relevant status)
+  const pipelineStatuses = ['PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED']
+  if (pipelineStatuses.includes(purchase.status) && processingLogs.length > 0) {
+    for (const log of processingLogs) {
+      let stepStatus: TimelineEvent['status']
+
+      if (purchase.status === 'COMPLETED') {
+        stepStatus = 'done'
+      } else if (purchase.status === 'FAILED' && log.step === purchase.processingStep && log.status !== 'completed') {
+        stepStatus = 'error'
+      } else if (log.status === 'completed') {
+        stepStatus = 'done'
+      } else if (log.status === 'in_progress') {
+        stepStatus = 'active'
+      } else {
+        stepStatus = 'pending'
+      }
+
+      events.push({
+        key: `step-${log.step}`,
+        label: log.label,
+        timestamp: null,
+        status: stepStatus,
+      })
+    }
+  }
+
+  // 4. Terminal events
+  if (purchase.status === 'COMPLETED') {
+    events.push({
+      key: 'completed',
+      label: 'Relatorio gerado',
+      timestamp: purchase.updatedAt ?? null,
+      status: 'done',
+    })
+  } else if (purchase.status === 'FAILED') {
+    events.push({
+      key: 'failed',
+      label: getFailureMessage(purchase.failureReason),
+      timestamp: purchase.updatedAt ?? null,
+      status: 'error',
+      detail: purchase.failureReason !== purchase.failureDetails ? (purchase.failureDetails ?? undefined) : undefined,
+      detailExpanded: purchase.failureDetails ?? undefined,
+    })
+  } else if (purchase.status === 'REFUNDED') {
+    events.push({
+      key: 'refunded',
+      label: 'Reembolso processado',
+      timestamp: purchase.updatedAt ?? null,
+      status: 'done',
+      detail: getRefundMessage(purchase.refundReason),
+    })
+  }
+
+  return events
+}
+
+// Timeline circle styles
+const circleBase: React.CSSProperties = {
+  width: 24,
+  height: 24,
+  borderRadius: '50%',
+  flexShrink: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+const circleStyles: Record<TimelineEvent['status'], React.CSSProperties> = {
+  done: { ...circleBase, background: 'var(--primitive-green-500, #22c55e)', color: 'white' },
+  active: { ...circleBase, background: 'var(--primitive-yellow-400, #facc15)', color: 'black' },
+  pending: { ...circleBase, background: 'var(--primitive-gray-200, #e5e7eb)', color: '#6b7280' },
+  error: { ...circleBase, background: 'var(--primitive-red-500, #ef4444)', color: 'white' },
+}
+
+function TimelineCircle({ status }: { status: TimelineEvent['status'] }) {
+  const style = circleStyles[status]
+  if (status === 'done') return <div style={style} className="adm-tl__circle adm-tl__circle--done"><CheckCircle size={14} /></div>
+  if (status === 'active') return <div style={style} className="adm-tl__circle adm-tl__circle--active"><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (status === 'error') return <div style={style} className="adm-tl__circle adm-tl__circle--error"><XCircle size={14} /></div>
+  return <div style={style} className="adm-tl__circle adm-tl__circle--pending"><span style={{ fontSize: 10, fontWeight: 600 }}>•</span></div>
 }
 
 interface PurchaseDetailsDialogProps {
@@ -157,6 +275,9 @@ export function PurchaseDetailsDialog({ purchase, onClose, onListRefresh }: Purc
     }
   }
 
+  const timeline = data ? buildTimeline(data.purchase, data.processingLogs) : []
+  const isProcessingOrFailed = data && ['PROCESSING', 'FAILED'].includes(data.purchase.status)
+
   return (
     <Dialog open={!!purchase} onOpenChange={() => onClose()}>
       <DialogContent style={{ maxWidth: '560px' }}>
@@ -168,6 +289,51 @@ export function PurchaseDetailsDialog({ purchase, onClose, onListRefresh }: Purc
           <div className="adm-loading"><EopixLoader size="md" /></div>
         ) : data && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Info Header */}
+            <div className="adm-detail-grid">
+              <div>
+                <p className="adm-detail-label">Documento</p>
+                <p className="adm-detail-value">{data.purchase.term} ({data.purchase.type})</p>
+              </div>
+              <div>
+                <p className="adm-detail-label">Status</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <StatusBadge status={data.purchase.status} />
+                  {data.purchase.status === 'PROCESSING' && data.purchase.paidAt && (
+                    <ElapsedTimer since={data.purchase.paidAt} />
+                  )}
+                </div>
+              </div>
+              {data.purchase.buyerName && (
+                <div>
+                  <p className="adm-detail-label">Comprador</p>
+                  <p className="adm-detail-value">{data.purchase.buyerName}</p>
+                </div>
+              )}
+              <div>
+                <p className="adm-detail-label">Email</p>
+                <p className="adm-detail-value">{data.purchase.email}</p>
+              </div>
+              <div>
+                <p className="adm-detail-label">Valor</p>
+                <p className="adm-detail-value">{formatCurrency(data.purchase.amount)}</p>
+              </div>
+              {data.purchase.hasReport && data.purchase.reportId && (
+                <div>
+                  <p className="adm-detail-label">Relatorio</p>
+                  <a
+                    href={`/relatorio/${data.purchase.reportId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--primitive-blue-600, #2563eb)', textDecoration: 'underline' }}
+                  >
+                    <FileText size={13} />
+                    Ver relatorio
+                  </a>
+                </div>
+              )}
+            </div>
+
             {/* Stuck Warning */}
             {isStuck && (
               <div className="adm-stuck-banner">
@@ -192,140 +358,71 @@ export function PurchaseDetailsDialog({ purchase, onClose, onListRefresh }: Purc
               </div>
             )}
 
-            {retryMessage && (
+            {/* Unified Timeline */}
+            <div className="adm-tl" style={{ display: 'flex', flexDirection: 'column', gap: 0, position: 'relative' }}>
+              {timeline.map((event, idx) => (
+                <div key={event.key} className="adm-tl__event" style={{ display: 'flex', gap: '12px', paddingTop: '8px', paddingBottom: '8px', position: 'relative' }}>
+                  {/* Vertical connector line */}
+                  {idx < timeline.length - 1 && (
+                    <div style={{
+                      position: 'absolute',
+                      left: 11,
+                      top: 32,
+                      bottom: 0,
+                      width: 2,
+                      background: 'var(--primitive-gray-200, #e5e7eb)',
+                    }} />
+                  )}
+                  <TimelineCircle status={event.status} />
+                  <div className="adm-tl__content" style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                    <span className="adm-tl__label" style={{ fontWeight: 500, fontSize: '14px' }}>
+                      {event.label}
+                      {event.key === 'paid' && data.purchase.status === 'PROCESSING' && data.purchase.paidAt && (
+                        <span style={{ marginLeft: '8px' }}><ElapsedTimer since={data.purchase.paidAt} /></span>
+                      )}
+                    </span>
+                    {event.timestamp && (
+                      <span className="adm-tl__time" style={{ fontSize: '12px', color: '#6b7280' }}>
+                        {formatDate(event.timestamp)}
+                      </span>
+                    )}
+                    {event.detail && (
+                      <span className="adm-tl__detail" style={{ fontSize: '13px', marginTop: '4px', color: event.status === 'error' ? 'var(--primitive-red-600, #dc2626)' : '#374151' }}>
+                        {event.detail}
+                      </span>
+                    )}
+                    {event.detailExpanded && (
+                      <details style={{ marginTop: '4px' }}>
+                        <summary style={{ fontSize: '12px', cursor: 'pointer', color: '#6b7280' }}>Ver detalhes tecnicos</summary>
+                        <pre style={{ fontSize: '11px', background: '#1f2937', color: '#f9fafb', padding: '8px', borderRadius: '4px', overflow: 'auto', marginTop: '4px' }}>
+                          {(() => { try { return JSON.stringify(JSON.parse(event.detailExpanded), null, 2) } catch { return event.detailExpanded } })()}
+                        </pre>
+                      </details>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Retry button for FAILED or stuck PROCESSING (not in stuck banner) */}
+            {isProcessingOrFailed && !isStuck && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                <Button
+                  size="sm"
+                  variant={data.purchase.status === 'FAILED' ? 'outline' : 'ghost'}
+                  onClick={handleRetry}
+                  disabled={retrying}
+                >
+                  <RotateCcw size={14} style={{ marginRight: '4px' }} />
+                  {retrying ? 'Reenviando...' : data.purchase.status === 'FAILED' ? 'Tentar reprocessar' : 'Forcar reprocessamento'}
+                </Button>
+                {retryMessage && <span className="adm-retry-message">{retryMessage}</span>}
+              </div>
+            )}
+
+            {retryMessage && (isStuck || !isProcessingOrFailed) && (
               <p className="adm-retry-message">{retryMessage}</p>
             )}
-
-            {/* Info Grid */}
-            <div className="adm-detail-grid">
-              <div>
-                <p className="adm-detail-label">Documento</p>
-                <p className="adm-detail-value">{data.purchase.term} ({data.purchase.type})</p>
-              </div>
-              <div>
-                <p className="adm-detail-label">Status</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <StatusBadge status={data.purchase.status} />
-                  {data.purchase.status === 'PROCESSING' && data.purchase.paidAt && (
-                    <ElapsedTimer since={data.purchase.paidAt} />
-                  )}
-                </div>
-              </div>
-              <div>
-                <p className="adm-detail-label">Email</p>
-                <p className="adm-detail-value">{data.purchase.email}</p>
-              </div>
-              <div>
-                <p className="adm-detail-label">Valor</p>
-                <p className="adm-detail-value">{formatCurrency(data.purchase.amount)}</p>
-              </div>
-            </div>
-
-            {/* Processing Progress */}
-            {['PROCESSING', 'PAID'].includes(data.purchase.status) && (
-              <div>
-                <div className="adm-progress__header">
-                  <p className="adm-progress__title">Progresso do Processamento</p>
-                  {data.purchase.status === 'PROCESSING' && data.purchase.paidAt && (
-                    <ElapsedTimer since={data.purchase.paidAt} />
-                  )}
-                </div>
-                <div className="adm-progress">
-                  {data.processingLogs.map((log) => (
-                    <div key={log.step} className="adm-progress-step">
-                      <div className={`adm-progress-circle adm-progress-circle--${log.status}`}>
-                        {log.status === 'completed' ? '\u2713' : log.status === 'in_progress' ? '...' : log.step}
-                      </div>
-                      <span className={`adm-progress-step__label${log.status === 'pending' ? ' adm-progress-step__label--pending' : ''}`}>
-                        {log.label}
-                      </span>
-                      {log.status === 'in_progress' && (
-                        <span style={{ marginLeft: 'auto' }}><EopixLoader size="sm" /></span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Retry button when PROCESSING (not in stuck banner) */}
-                {data.purchase.status === 'PROCESSING' && !isStuck && (
-                  <div style={{ marginTop: '12px', textAlign: 'right' }}>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleRetry}
-                      disabled={retrying}
-                    >
-                      <RotateCcw size={14} style={{ marginRight: '4px' }} />
-                      {retrying ? 'Reenviando...' : 'Forcar reprocessamento'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Failure/Refund Reason */}
-            {['FAILED', 'REFUNDED', 'REFUND_FAILED'].includes(data.purchase.status) && (
-              <div className="adm-alert-box">
-                <p className="adm-alert-box__title">
-                  {data.purchase.status === 'FAILED' && 'Motivo da Falha'}
-                  {data.purchase.status === 'REFUNDED' && 'Motivo do Reembolso'}
-                  {data.purchase.status === 'REFUND_FAILED' && 'Falha no Reembolso'}
-                </p>
-
-                {data.purchase.failureReason && (
-                  <p className="adm-alert-box__text">{getFailureMessage(data.purchase.failureReason)}</p>
-                )}
-
-                {data.purchase.refundReason && (
-                  <p className="adm-alert-box__text">{getRefundMessage(data.purchase.refundReason)}</p>
-                )}
-
-                {data.purchase.failureDetails && (
-                  <details className="adm-alert-box__details">
-                    <summary>Ver detalhes tecnicos</summary>
-                    <pre>
-                      {(() => { try { return JSON.stringify(JSON.parse(data.purchase.failureDetails), null, 2) } catch { return data.purchase.failureDetails } })()}
-                    </pre>
-                  </details>
-                )}
-
-                {data.purchase.refundDetails && (
-                  <details className="adm-alert-box__details">
-                    <summary>Ver detalhes do reembolso</summary>
-                    <pre>
-                      {(() => { try { return JSON.stringify(JSON.parse(data.purchase.refundDetails), null, 2) } catch { return data.purchase.refundDetails } })()}
-                    </pre>
-                  </details>
-                )}
-
-                {/* Retry button for FAILED purchases */}
-                {data.purchase.status === 'FAILED' && (
-                  <div style={{ marginTop: '12px' }}>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleRetry}
-                      disabled={retrying}
-                    >
-                      <RotateCcw size={14} style={{ marginRight: '4px' }} />
-                      {retrying ? 'Reenviando...' : 'Tentar reprocessar'}
-                    </Button>
-                    {retryMessage && <span className="adm-retry-message" style={{ marginLeft: '8px' }}>{retryMessage}</span>}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Timeline */}
-            <div className="adm-timeline">
-              <p className="adm-timeline__title">Timeline</p>
-              <div className="adm-timeline__items">
-                <p>Criado: {formatDate(data.purchase.createdAt)}</p>
-                {data.purchase.paidAt && <p>Pago: {formatDate(data.purchase.paidAt)}</p>}
-                {data.purchase.status === 'COMPLETED' && <p>Concluido: Relatorio gerado</p>}
-                {data.purchase.status === 'FAILED' && <p style={{ color: 'var(--primitive-red-500)' }}>Falhou</p>}
-              </div>
-            </div>
           </div>
         )}
       </DialogContent>
