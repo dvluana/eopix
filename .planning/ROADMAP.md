@@ -32,7 +32,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Página de detalhe mostra timeline com cada transição de status, timestamp e step do pipeline
   3. Erros aparecem inline na timeline com mensagem legível (não apenas "FAILED")
   4. Toda a investigação acontece em uma única tela sem precisar cruzar Inngest/Vercel/Neon
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md — Unified timeline dialog + URL auto-open
 
 ### Phase 2: Sentry com Contexto
 **Goal**: Cada erro capturado pelo Sentry inclui contexto suficiente para identificar a compra afetada sem abrir outro sistema
@@ -116,7 +119,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Admin Purchase Timeline | 0/TBD | Not started | - |
+| 1. Admin Purchase Timeline | 0/1 | Planning complete | - |
 | 2. Sentry com Contexto | 0/TBD | Not started | - |
 | 3. Alertas de Falha | 0/TBD | Not started | - |
 | 4. PIX Backend | 0/TBD | Not started | - |
