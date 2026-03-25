@@ -218,19 +218,6 @@ async function handlePaymentSuccess(
     }
   }
 
-  // Activate user account: move pending password hash from Purchase to User
-  if (purchase.pendingPasswordHash && !purchase.user.passwordHash) {
-    await prisma.user.update({
-      where: { id: purchase.userId },
-      data: { passwordHash: purchase.pendingPasswordHash },
-    })
-    await prisma.purchase.update({
-      where: { id: purchase.id },
-      data: { pendingPasswordHash: null },
-    })
-    console.log(`[AbacatePay Webhook] User account activated for ${purchaseCode}`)
-  }
-
   console.log(`[AbacatePay Webhook] Purchase ${purchaseCode} updated to PAID`)
 
   // Enviar email "pedido recebido" — fire-and-forget

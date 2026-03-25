@@ -15,7 +15,6 @@ interface CreatePurchaseRequest {
   name?: string
   cellphone?: string
   buyerTaxId?: string
-  password?: string
   termsAccepted: boolean
 }
 
@@ -31,7 +30,7 @@ function generateCode(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as CreatePurchaseRequest
-    const { term, email, name, cellphone, buyerTaxId, password, termsAccepted } = body
+    const { term, email, name, cellphone, buyerTaxId, termsAccepted } = body
 
     // Validate inputs
     if (!term || !termsAccepted) {
@@ -84,8 +83,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for existing active report or pending purchase for same document (logged-in users only)
+    // Require authentication in live mode (bypass allowed in MOCK/TEST/dev)
     const session = await getSession()
+    if (!session && !isBypassMode && !isDev) {
+      return NextResponse.json(
+        { error: 'Autenticacao necessaria. Faca login ou crie uma conta.' },
+        { status: 401 }
+      )
+    }
+
+    // Check for existing active report or pending purchase for same document (logged-in users only)
     if (session) {
       const sessionUser = await prisma.user.findUnique({
         where: { email: session.email },
@@ -184,13 +191,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Hash password for deferred account activation (set on User after payment)
-    let pendingPasswordHash: string | undefined
-    if (password && !user.passwordHash) {
-      const bcrypt = await import('bcryptjs')
-      pendingPasswordHash = await bcrypt.hash(password, 10)
-    }
-
     // Get price from env
     const priceCents = parseInt(process.env.PRICE_CENTS || '3990', 10)
 
@@ -203,14 +203,6 @@ export async function POST(request: NextRequest) {
     // Bypass payment: cria purchase, marca PAID e dispara processamento
     if (effectiveBypass) {
       console.log(`🧪 [BYPASS] Payment bypass - criando purchase para: ${cleanedTerm}`)
-
-      // In bypass mode, activate password immediately (payment is instant)
-      if (pendingPasswordHash) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { passwordHash: pendingPasswordHash },
-        })
-      }
 
       const purchase = await prisma.purchase.create({
         data: {
@@ -274,7 +266,6 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
         paymentProvider: provider,
         termsAcceptedAt: new Date(),
-        ...(pendingPasswordHash ? { pendingPasswordHash } : {}),
       },
     })
 

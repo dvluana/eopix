@@ -55,7 +55,6 @@ model Purchase {
   refundAttempts        Int           @default(0)
   failureReason         String?
   failureDetails        String?
-  pendingPasswordHash   String?
   refundReason          String?
   refundDetails         String?
   searchResult          SearchResult? @relation(fields: [searchResultId], references: [id])
