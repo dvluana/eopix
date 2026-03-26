@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { validateWebhookSecret, validateWebhookSignature } from '@/lib/abacatepay'
@@ -62,6 +63,9 @@ export async function POST(request: NextRequest) {
     contentType: request.headers.get('content-type'),
   })
 
+  // Declared before try so purchaseCode is available in catch for Sentry context
+  let purchaseCode: string | null = null
+
   try {
     // Layer 1: Validate webhook secret from query string
     if (!validateWebhookSecret(request.url)) {
@@ -118,7 +122,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Primary: externalId from v2 checkout or lookup by checkoutId
-    let purchaseCode: string | null = checkout?.externalId || null
+    purchaseCode = checkout?.externalId || null
 
     if (!purchaseCode) {
       // Fallback: lookup by checkoutId stored in paymentExternalId
@@ -153,6 +157,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true })
   } catch (error) {
     console.error('[AbacatePay Webhook] Error:', error)
+    // Capture to Sentry with purchase_code context when available (LGPD: never pass term/CPF/CNPJ)
+    Sentry.withScope((scope) => {
+      scope.setTag('error_category', 'pipeline')
+      scope.setTag('purchase_code', purchaseCode ?? 'unknown')
+      Sentry.captureException(error instanceof Error ? error : new Error(String(error)))
+    })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

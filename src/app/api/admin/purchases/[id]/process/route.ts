@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
@@ -84,6 +85,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             status: 'PAID',
             processingStep: 0,
           },
+        })
+        // Capture infra error to Sentry with purchase_code for admin lookup
+        Sentry.withScope((scope) => {
+          scope.setTag('error_category', 'infra')
+          scope.setTag('infra_type', 'inngest_unreachable')
+          scope.setTag('purchase_code', purchase.code)
+          scope.setExtra('detail', err instanceof Error ? err.message : String(err))
+          Sentry.captureException(err instanceof Error ? err : new Error(String(err)))
         })
         return NextResponse.json(
           { error: 'Falha ao iniciar processamento. Tente novamente.' },

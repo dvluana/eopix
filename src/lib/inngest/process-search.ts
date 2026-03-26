@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { Prisma } from '@prisma/client'
 import { inngest } from './client'
 import { prisma } from '../prisma'
@@ -48,7 +49,7 @@ export const processSearch = inngest.createFunction(
   },
   { event: 'search/process' },
   async ({ event, step }) => {
-    const { purchaseId, term, type } = event.data
+    const { purchaseId, purchaseCode, term, type } = event.data
 
     // ========== Step 1: check-cache ==========
     // Verifica se existe relatório válido (não expirado) para o mesmo documento.
@@ -366,10 +367,10 @@ export const processSearch = inngest.createFunction(
     } catch (error) {
       console.error('Process search error:', error)
 
-      // Get current purchase state to capture processingStep
+      // Get current purchase state to capture processingStep, code, and userId for Sentry
       const failedPurchase = await prisma.purchase.findUnique({
         where: { id: purchaseId },
-        select: { processingStep: true },
+        select: { processingStep: true, code: true, userId: true },
       })
 
       // Update purchase to FAILED with error details
@@ -397,6 +398,29 @@ export const processSearch = inngest.createFunction(
           return sendPurchaseDeniedEmail(p.user.email, p.user.name || '', p.code, p.id)
         }
       }).catch(err => console.error('[Pipeline] Denied email failed:', err))
+
+      // Capture to Sentry with structured context (LGPD: never pass term/CPF/CNPJ)
+      if (error instanceof Error && error.message?.includes('INSUFFICIENT_API_BALANCE')) {
+        // Systemic infra error — low APIFull balance
+        Sentry.withScope((scope) => {
+          scope.setTag('error_category', 'infra')
+          scope.setTag('infra_type', 'apifull_balance')
+          scope.setExtra('detail', error instanceof Error ? error.message : String(error))
+          Sentry.captureException(error)
+        })
+      } else {
+        // Per-purchase pipeline error
+        Sentry.withScope((scope) => {
+          scope.setUser({ id: failedPurchase?.userId ?? 'unknown' })
+          scope.setTag('error_category', 'pipeline')
+          scope.setTag('purchase_code', failedPurchase?.code ?? purchaseCode ?? 'unknown')
+          scope.setTag('pipeline_step', String(failedPurchase?.processingStep ?? 'unknown'))
+          scope.setTag('document_type', type)
+          scope.setExtra('purchase_id', purchaseId)
+          scope.setExtra('processing_step_number', failedPurchase?.processingStep ?? null)
+          Sentry.captureException(error)
+        })
+      }
 
       throw error // Re-throw to trigger Inngest retry
     }

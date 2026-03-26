@@ -303,15 +303,12 @@ describe('Point 4: purchases/route.ts — outer catch block', () => {
 
   it('infers CNPJ document_type from 14-char cleanedTerm', () => {
     const purchasesError = new Error('some error')
-    const session: null = null
-    const purchase: null = null
+    // session and purchase are null — no userId or code to tag
     const cleanedTerm = '12345678000195' // 14 chars = CNPJ
 
     Sentry.withScope((scope) => {
-      if (session?.userId) scope.setUser({ id: session.userId })
       scope.setTag('error_category', 'pipeline')
-      if (purchase?.code) scope.setTag('purchase_code', purchase.code)
-      scope.setTag('document_type', cleanedTerm?.length === 11 ? 'CPF' : cleanedTerm?.length === 14 ? 'CNPJ' : 'unknown')
+      scope.setTag('document_type', cleanedTerm.length === 11 ? 'CPF' : cleanedTerm.length === 14 ? 'CNPJ' : 'unknown')
       Sentry.captureException(purchasesError instanceof Error ? purchasesError : new Error(String(purchasesError)))
     })
 

@@ -28,6 +28,11 @@ function generateCode(): string {
 }
 
 export async function POST(request: NextRequest) {
+  // Hoisted for Sentry context in catch block (LGPD: cleanedTerm never passed to Sentry)
+  let session: ({ email: string; iat: number; exp: number; userId?: string }) | null = null
+  let purchase: { code: string; id: string } | null = null
+  let cleanedTerm: string | undefined
+
   try {
     const body = await request.json() as CreatePurchaseRequest
     const { term, email, name, cellphone, buyerTaxId, termsAccepted } = body
@@ -47,7 +52,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const cleanedTerm = cleanDocument(term)
+    cleanedTerm = cleanDocument(term)
     const isCpf = cleanedTerm.length === 11 && isValidCPF(cleanedTerm)
     const isCnpj = cleanedTerm.length === 14 && isValidCNPJ(cleanedTerm)
 
@@ -85,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     // Require authentication in live mode (bypass allowed in MOCK/TEST/dev)
     // getSessionWithUser verifies user exists in DB (prevents ghost sessions after DB wipe)
-    const session = (isBypassMode || isDev) ? await getSession() : await getSessionWithUser()
+    session = (isBypassMode || isDev) ? await getSession() : await getSessionWithUser()
     if (!session && !isBypassMode && !isDev) {
       return NextResponse.json(
         { error: 'Autenticacao necessaria. Faca login ou crie uma conta.' },
@@ -205,7 +210,7 @@ export async function POST(request: NextRequest) {
     if (effectiveBypass) {
       console.log(`🧪 [BYPASS] Payment bypass - criando purchase para: ${cleanedTerm}`)
 
-      const purchase = await prisma.purchase.create({
+      purchase = await prisma.purchase.create({
         data: {
           userId: user.id,
           code,
@@ -258,7 +263,7 @@ export async function POST(request: NextRequest) {
 
     // Fluxo normal: cria purchase PENDING e checkout via provider
     const provider = getPaymentProvider()
-    const purchase = await prisma.purchase.create({
+    purchase = await prisma.purchase.create({
       data: {
         userId: user.id,
         code,
@@ -352,6 +357,14 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Create purchase error:', error)
+    // Capture to Sentry with available context (LGPD: never pass cleanedTerm/CPF/CNPJ)
+    Sentry.withScope((scope) => {
+      if (session && 'userId' in session && session.userId) scope.setUser({ id: session.userId })
+      scope.setTag('error_category', 'pipeline')
+      if (purchase?.code) scope.setTag('purchase_code', purchase.code)
+      scope.setTag('document_type', cleanedTerm?.length === 11 ? 'CPF' : cleanedTerm?.length === 14 ? 'CNPJ' : 'unknown')
+      Sentry.captureException(error instanceof Error ? error : new Error(String(error)))
+    })
     return NextResponse.json(
       { error: 'Erro ao criar compra' },
       { status: 500 }
