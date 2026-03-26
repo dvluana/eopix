@@ -16,6 +16,7 @@ import { calculateCpfFinancialSummary, calculateCnpjFinancialSummary } from '../
 import { getReportExpiresAt } from '../report-ttl'
 import { isMockMode } from '../mock-mode'
 import { sendPurchaseApprovedEmail, sendPurchaseDeniedEmail } from '../email'
+import { sendFailureAlert, sendCompletedAlert } from '../callmebot'
 
 // Small delay in mock mode so frontend can poll and display progress
 const mockDelay = () => isMockMode ? new Promise(r => setTimeout(r, 1500)) : Promise.resolve()
@@ -100,15 +101,28 @@ export const processSearch = inngest.createFunction(
         })
       })
 
-      // Enviar email "relatório pronto" (cache hit) — fire-and-forget
+      // Enviar email "relatório pronto" + alerta WhatsApp COMPLETED (cache hit) — fire-and-forget
       prisma.purchase.findUnique({
         where: { id: purchaseId },
-        select: { id: true, code: true, user: { select: { email: true, name: true } } },
+        select: { id: true, code: true, createdAt: true, paymentProvider: true, user: { select: { email: true, name: true } } },
       }).then(p => {
         if (p?.user && !p.user.email.includes('@guest.eopix.app')) {
-          return sendPurchaseApprovedEmail(p.user.email, p.user.name || '', p.code, '', p.id)
+          sendPurchaseApprovedEmail(p.user.email, p.user.name || '', p.code, '', p.id)
+            .catch(err => console.error('[Pipeline] Approved email (cache) failed:', err))
         }
-      }).catch(err => console.error('[Pipeline] Approved email (cache) failed:', err))
+        if (p) {
+          sendCompletedAlert({
+            code: p.code,
+            createdAt: p.createdAt,
+            userName: p.user?.name ?? null,
+            userEmail: p.user?.email ?? 'desconhecido',
+            paymentProvider: p.paymentProvider ?? null,
+          }).catch(err => {
+            console.error('[Callmebot] Completed alert (cache) failed:', err)
+            Sentry.captureException(err)
+          })
+        }
+      }).catch(err => console.error('[Pipeline] Post-completion hooks (cache) failed:', err))
 
       return { success: true, cached: true, searchResultId: cacheResult.searchResultId }
     }
@@ -353,15 +367,28 @@ export const processSearch = inngest.createFunction(
         return { id: result.id }
       })
 
-      // Enviar email "relatório pronto" — fire-and-forget
+      // Enviar email "relatório pronto" + alerta WhatsApp COMPLETED — fire-and-forget
       prisma.purchase.findUnique({
         where: { id: purchaseId },
-        select: { id: true, code: true, user: { select: { email: true, name: true } } },
+        select: { id: true, code: true, createdAt: true, paymentProvider: true, user: { select: { email: true, name: true } } },
       }).then(p => {
         if (p?.user && !p.user.email.includes('@guest.eopix.app')) {
-          return sendPurchaseApprovedEmail(p.user.email, p.user.name || '', p.code, '', p.id)
+          sendPurchaseApprovedEmail(p.user.email, p.user.name || '', p.code, '', p.id)
+            .catch(err => console.error('[Pipeline] Approved email failed:', err))
         }
-      }).catch(err => console.error('[Pipeline] Approved email failed:', err))
+        if (p) {
+          sendCompletedAlert({
+            code: p.code,
+            createdAt: p.createdAt,
+            userName: p.user?.name ?? null,
+            userEmail: p.user?.email ?? 'desconhecido',
+            paymentProvider: p.paymentProvider ?? null,
+          }).catch(err => {
+            console.error('[Callmebot] Completed alert failed:', err)
+            Sentry.captureException(err)
+          })
+        }
+      }).catch(err => console.error('[Pipeline] Post-completion hooks failed:', err))
 
       return { success: true, searchResultId: searchResult.id }
     } catch (error) {
@@ -370,8 +397,19 @@ export const processSearch = inngest.createFunction(
       // Get current purchase state to capture processingStep, code, and userId for Sentry
       const failedPurchase = await prisma.purchase.findUnique({
         where: { id: purchaseId },
-        select: { processingStep: true, code: true, userId: true },
+        select: {
+          status: true,
+          processingStep: true,
+          code: true,
+          userId: true,
+          createdAt: true,
+          paymentProvider: true,
+          failureReason: true,
+          user: { select: { name: true, email: true } },
+        },
       })
+
+      const wasAlreadyFailed = failedPurchase?.status === 'FAILED'
 
       // Update purchase to FAILED with error details
       await prisma.purchase.update({
@@ -387,6 +425,22 @@ export const processSearch = inngest.createFunction(
           }),
         },
       })
+
+      // Enviar alerta WhatsApp FAILED — fire-and-forget (primeira transição apenas)
+      if (!wasAlreadyFailed && failedPurchase?.failureReason !== 'PAYMENT_EXPIRED') {
+        sendFailureAlert({
+          code: failedPurchase?.code ?? purchaseCode ?? 'UNKNOWN',
+          createdAt: failedPurchase?.createdAt ?? new Date(),
+          userName: failedPurchase?.user?.name ?? null,
+          userEmail: failedPurchase?.user?.email ?? 'desconhecido',
+          paymentProvider: failedPurchase?.paymentProvider ?? null,
+          processingStep: failedPurchase?.processingStep ?? 0,
+          errorMessage: error instanceof Error ? error.message : String(error),
+        }).catch(err => {
+          console.error('[Callmebot] Failure alert failed:', err)
+          Sentry.captureException(err)
+        })
+      }
 
       // Enviar email "problema no pedido" — fire-and-forget
       // Não envia para PAYMENT_EXPIRED (tratado pelo funil de abandono)

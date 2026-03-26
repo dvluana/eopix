@@ -2,12 +2,13 @@
 title: "Status"
 ---
 
-**Atualizado em:** 2026-03-25
+**Atualizado em:** 2026-03-26
 **Branch atual:** develop (merged to main for production)
 **Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
 ## O que está funcionando ✓
 
+- **Alertas WhatsApp (Callmebot)** — FAILED (primeira transição, exclui PAYMENT_EXPIRED) e COMPLETED disparam alerta WhatsApp via Callmebot para 3 destinatários (Luana, Kevin, Carolina). Fire-and-forget, falha do alerta não bloqueia pipeline. Deduplicação via `wasAlreadyFailed`. 3 destinatários via env vars (CALLMEBOT_PHONE/API_KEY, _2, _3). `src/lib/callmebot.ts` com `sendFailureAlert` e `sendCompletedAlert`. Vitest 124/124.
 - **Recuperação de senha** — fluxo completo: "Esqueci minha senha" no RegisterModal (modo login) → email com link token seguro (1h) via Resend → página `/redefinir-senha?token=xxx` → reset atômico (bcrypt + `$transaction`) + email de confirmação disparado. Rate limit 3/15min por email. Token invalidado após uso (`usedAt`). Cron diário (03:45) limpa tokens expirados/usados. MagicCode model removido (era legado).
 - **Sistema de email completo (Resend)** — 9 funções: welcome, purchase-received, purchase-approved, purchase-denied, purchase-refunded, purchase-expired + abandonment funnel R1/R2/R3. Idempotency keys em todas. HTML brutalist com Zilla Slab + IBM Plex Mono. Wired em: register route, webhook, process-search Inngest, cleanupPendingPurchases cron, refund route. Funil de abandono via Inngest `step.sleep` (R1 30min, R2 24h, R3 72h). Vitest 110/110.
 - AbacatePay v2 checkout + webhook (`checkout.completed`)
@@ -69,6 +70,8 @@ title: "Status"
 - ~~Configurar GitHub Secrets~~ ✓ — `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY` todos configurados
 
 ## Últimas mudanças
+
+- **Alertas WhatsApp via Callmebot** (2026-03-26): `src/lib/callmebot.ts` com `sendFailureAlert` e `sendCompletedAlert`. 3 destinatários via env vars (CALLMEBOT_PHONE/API_KEY, _2, _3). Integrado em `process-search.ts`: FAILED (primeira transição, exclui PAYMENT_EXPIRED via `wasAlreadyFailed`) e COMPLETED (cache hit e novo processamento). Fire-and-forget com Sentry.captureException. Rule file `.claude/rules/callmebot.md`. 8 unit tests. vitest 124/124, tsc clean.
 
 - **Production Hardening v2 — fase 1** (2026-03-25): Investigação do caso Kevin (cliente pagou, ficou sem acesso). Root cause: DB wipe deixou JWT cookie válido apontando pra user deletado → `getSession()` só valida JWT, não verifica user no DB → purchase route criou user fantasma sem senha/nome. Fixes aplicados: (1) `purchases/route.ts`: 401 sem sessão em live mode. (2) `pendingPasswordHash` removido de purchases, webhook, schema (dead code — frontend nunca passava). (3) `forgot-password`: aceita users sem senha (guests podem definir senha via reset). Design doc em `docs/plans/2026-03-25-production-hardening-v2-design.md`. Pendente: pipeline resilience (`.catch()` em financial/dossie, fallback `pf-dadosbasicos`, `NonRetriableError`), auth hardening (`getSessionWithUser()` com DB check), UX fix (RegisterModal forgot-password).
 
