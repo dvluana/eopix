@@ -60,7 +60,10 @@ Plans:
   1. Mensagem WhatsApp chega em menos de 30 segundos após transição para FAILED
   2. Mensagem contém código da compra, CPF/CNPJ e descrição do erro
   3. Sistema não envia duplicatas (Inngest retries não disparam múltiplos alertas para a mesma falha)
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 03-01-PLAN.md — Callmebot module + process-search integration (FAILED + COMPLETED alerts)
 
 ### Phase 4: PIX Backend
 **Goal**: Backend suporta criação de PIX transparent checkout, processamento do webhook e polling de status
@@ -124,7 +127,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Admin Purchase Timeline | 0/1 | Planning complete | - |
 | 2. Sentry com Contexto | 1/1 | Complete   | 2026-03-26 |
-| 3. Alertas de Falha | 0/TBD | Not started | - |
+| 3. Alertas de Falha | 0/1 | Planning complete | - |
 | 4. PIX Backend | 0/TBD | Not started | - |
 | 5. PIX Frontend | 0/TBD | Not started | - |
 | 6. Consolidação de Tipos | 0/TBD | Not started | - |
