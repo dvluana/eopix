@@ -52,6 +52,37 @@ PENDING → PAID → PROCESSING → COMPLETED
 - Confirmação: `src/app/confirmacao/page.tsx`
 - Minhas consultas: `src/app/minhas-consultas/page.tsx`
 
+## PIX Transparent Checkout
+
+Caminho alternativo ao redirect para AbacatePay — usuário paga diretamente na página EOPIX via QR Code PIX.
+
+### Fluxo PIX (Paralelo ao checkout redirect)
+
+1. User submete CPF/CNPJ → Purchase(PENDING) criada normalmente via `POST /api/purchases`
+2. Frontend chama `POST /api/purchases/pix` com `{ purchaseId }` para criar a cobrança PIX
+3. Backend chama `createPixCharge()` → AbacatePay `/v1/pixQrCode/create`
+4. `brCode` (copia-e-cola) e `brCodeBase64` (QR code PNG) armazenados em `Purchase.pixBrCode` / `pixBrCodeBase64`
+5. Frontend exibe QR code inline e inicia polling a cada 3s via `GET /api/purchases/pix/status?purchaseId=...`
+6. AbacatePay entrega webhook `transparent.completed` quando pagamento confirmado
+7. Webhook → `handlePaymentSuccess()` → Purchase PAID → Inngest `search/process` disparado
+8. Pipeline idêntico ao fluxo de checkout redirect: PROCESSING → COMPLETED
+
+### Reutilização de Cobrança (Anti-dupla-criação)
+
+Se user atualiza a página, `POST /api/purchases/pix` verifica se `paymentExternalId` já começa com `pix_` e `pixBrCode` existe. Nesse caso, retorna os dados existentes sem chamar AbacatePay novamente.
+
+### Idempotência do Webhook
+
+O webhook `transparent.completed` usa chave `abacate:transparent:<pixId>` no `WebhookLog` — namespace separado de `abacate:payment:<checkoutId>` para evitar colisão de chaves.
+
+### Arquivos PIX
+
+- Criação de cobrança: `src/app/api/purchases/pix/route.ts`
+- Status polling: `src/app/api/purchases/pix/status/route.ts`
+- Lib functions: `src/lib/abacatepay.ts` (`createPixCharge`, `checkPixStatus`, `simulatePixPayment`)
+- Webhook: `src/app/api/webhooks/abacatepay/route.ts` (branch `transparent.completed`)
+- Contrato API: `docs/api-contracts/pix-transparent.md`
+
 ## Docs Relacionados
 
 <CardGroup cols={2}>

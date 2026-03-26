@@ -38,6 +38,15 @@ interface AbacateWebhookEvent {
       }
       products?: Array<{ publicId: string; externalId?: string; quantity: number }>
     }
+    // PIX transparent checkout format (transparent.completed)
+    transparent?: {
+      id: string
+      amount?: number
+      paidAmount?: number
+      status?: string
+      methods?: string[]
+      metadata?: { externalId?: string }
+    }
     customer?: {
       id: string
       name?: string
@@ -93,25 +102,31 @@ export async function POST(request: NextRequest) {
 
     console.log('[AbacatePay Webhook] Event:', event.event, 'Data:', JSON.stringify(event.data).slice(0, 500))
 
-    // Accept both checkout.completed (v2) and billing.paid (v1 — still sent by v2 API)
-    const isPaymentEvent = event.event === 'checkout.completed' || event.event === 'billing.paid'
+    // Accept checkout.completed (v2), billing.paid (v1), and transparent.completed (PIX QR Code)
+    const isPaymentEvent =
+      event.event === 'checkout.completed' ||
+      event.event === 'billing.paid' ||
+      event.event === 'transparent.completed'
     if (!isPaymentEvent) {
       console.log(`[AbacatePay Webhook] Ignoring event: ${event.event}`)
       return NextResponse.json({ received: true })
     }
 
-    // Extract checkoutId from either v2 (data.checkout) or v1 (data.billing) format
+    // Extract checkoutId from v2 (data.checkout), v1 (data.billing), or PIX (data.transparent)
     const checkout = event.data.checkout
     const billing = event.data.billing
-    const checkoutId = checkout?.id || billing?.id
+    const transparent = event.data.transparent
+    const checkoutId = checkout?.id || billing?.id || transparent?.id
 
     if (!checkoutId) {
-      console.warn('[AbacatePay Webhook] No checkout/billing id in payload')
+      console.warn('[AbacatePay Webhook] No checkout/billing/transparent id in payload')
       return NextResponse.json({ received: true })
     }
 
-    // Idempotency check — normalize key to avoid duplicates across event name changes
-    const webhookKey = `abacate:payment:${checkoutId}`
+    // Idempotency key — use transparent namespace to avoid collision with checkout for same purchase
+    const webhookKey = event.event === 'transparent.completed'
+      ? `abacate:transparent:${checkoutId}`
+      : `abacate:payment:${checkoutId}`
     const existing = await prisma.webhookLog.findUnique({
       where: { eventKey: webhookKey },
     })
@@ -124,8 +139,25 @@ export async function POST(request: NextRequest) {
     // Primary: externalId from v2 checkout or lookup by checkoutId
     purchaseCode = checkout?.externalId || null
 
+    if (!purchaseCode && event.event === 'transparent.completed' && transparent) {
+      // PIX transparent: purchase code is in metadata.externalId (not top-level externalId)
+      purchaseCode = transparent.metadata?.externalId ?? null
+      if (!purchaseCode && checkoutId) {
+        // Fallback: lookup by pixId stored in paymentExternalId at charge creation
+        const byPixId = await prisma.purchase.findFirst({
+          where: { paymentExternalId: checkoutId },
+        })
+        purchaseCode = byPixId?.code ?? null
+        if (purchaseCode) {
+          console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} by pixId ${checkoutId}`)
+        }
+      } else if (purchaseCode) {
+        console.log(`[AbacatePay Webhook] Found purchase code via transparent metadata: ${purchaseCode}`)
+      }
+    }
+
     if (!purchaseCode) {
-      // Fallback: lookup by checkoutId stored in paymentExternalId
+      // Fallback: lookup by checkoutId stored in paymentExternalId (checkout/billing flows)
       const purchaseByCheckout = await prisma.purchase.findFirst({
         where: { paymentExternalId: checkoutId },
       })
@@ -133,7 +165,7 @@ export async function POST(request: NextRequest) {
         purchaseCode = purchaseByCheckout.code
         console.log(`[AbacatePay Webhook] Found purchase ${purchaseCode} by checkoutId ${checkoutId}`)
       }
-    } else {
+    } else if (event.event !== 'transparent.completed') {
       console.log(`[AbacatePay Webhook] Found purchase code via externalId: ${purchaseCode}`)
     }
 
