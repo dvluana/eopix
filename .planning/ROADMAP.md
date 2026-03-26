@@ -127,7 +127,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Admin Purchase Timeline | 0/1 | Planning complete | - |
 | 2. Sentry com Contexto | 1/1 | Complete   | 2026-03-26 |
-| 3. Alertas de Falha | 1/1 | Complete   | 2026-03-26 |
+| 3. Alertas de Falha | 1/1 | Complete    | 2026-03-26 |
 | 4. PIX Backend | 0/TBD | Not started | - |
 | 5. PIX Frontend | 0/TBD | Not started | - |
 | 6. Consolidação de Tipos | 0/TBD | Not started | - |
