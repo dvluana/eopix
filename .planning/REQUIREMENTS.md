@@ -8,10 +8,10 @@
 
 ### OBS — Observabilidade
 
-- [ ] **OBS-01**: Operador consegue buscar uma compra por código ou CPF/CNPJ no admin e ver timeline completa (status, cada step do pipeline, erros, timestamps) em uma única tela
-- [ ] **OBS-02**: Sentry configurado com contexto completo (purchase code, user ID, CPF/CNPJ, pipeline step, status) em todos os erros do pipeline Inngest e API routes
+- [x] **OBS-01**: Operador consegue buscar uma compra por código ou CPF/CNPJ no admin e ver timeline completa (status, cada step do pipeline, erros, timestamps) em uma única tela
+- [x] **OBS-02**: Sentry configurado com contexto completo (purchase code, user ID, CPF/CNPJ, pipeline step, status) em todos os erros do pipeline Inngest e API routes
 - [ ] **OBS-03**: Quando uma compra falha no pipeline (FAILED), operador recebe notificação WhatsApp via Callmebot com: código da compra, erro, CPF/CNPJ
-- [ ] **OBS-04**: Sentry com DSN real configurado no Vercel (pré-requisito manual: criar conta sentry.io)
+- [x] **OBS-04**: Sentry com DSN real configurado no Vercel (pré-requisito manual: criar conta sentry.io)
 
 > **Pré-requisitos manuais OBS:**
 > - Criar conta em sentry.io (gratuito), pegar DSN → configurar `NEXT_PUBLIC_SENTRY_DSN` no Vercel
@@ -68,8 +68,8 @@
 
 | REQ-ID  | Phase                        | Status           |
 |---------|------------------------------|------------------|
-| OBS-01  | Phase 1 - Admin Purchase Timeline | Pending     |
-| OBS-02  | Phase 2 - Sentry com Contexto    | Pending      |
+| OBS-01  | Phase 1 - Admin Purchase Timeline | Complete |
+| OBS-02  | Phase 2 - Sentry com Contexto    | Complete |
 | OBS-04  | Phase 2 - Sentry com Contexto    | Pending (manual) |
 | OBS-03  | Phase 3 - Alertas de Falha       | Pending      |
 | PIX-04  | Phase 4 - PIX Backend            | Pending      |

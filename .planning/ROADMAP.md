@@ -13,7 +13,7 @@ Este milestone transforma o EOPIX de um produto funcional em um produto operáve
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Admin Purchase Timeline** - Operador consegue investigar qualquer compra com timeline completa em uma única tela
-- [ ] **Phase 2: Sentry com Contexto** - Todos os erros do pipeline capturam purchase code, user ID e step para investigação no Sentry
+- [x] **Phase 2: Sentry com Contexto** - Todos os erros do pipeline capturam purchase code, user ID e step para investigação no Sentry (completed 2026-03-26)
 - [ ] **Phase 3: Alertas de Falha** - Operador recebe notificação WhatsApp imediata quando uma compra falha no pipeline
 - [ ] **Phase 4: PIX Backend** - Backend suporta transparent checkout PIX com criação, webhook e polling de status
 - [ ] **Phase 5: PIX Frontend** - Usuário vê QR Code PIX diretamente no site e é redirecionado automaticamente após pagamento
@@ -46,10 +46,10 @@ Plans:
   2. Todo erro nas API routes inclui user ID e purchase code quando disponíveis
   3. DSN real configurado no Vercel (não placeholder) — erros chegam ao Sentry em produção
   4. Operador consegue ir de um alerta Sentry direto para a compra afetada no admin
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 02-01-PLAN.md — Sentry withScope instrumentation (5 points) + unit tests
+- [x] 02-01-PLAN.md — Sentry withScope instrumentation (5 points) + unit tests
 **UI hint**: no
 
 ### Phase 3: Alertas de Falha
@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Admin Purchase Timeline | 0/1 | Planning complete | - |
-| 2. Sentry com Contexto | 0/1 | Planning complete | - |
+| 2. Sentry com Contexto | 1/1 | Complete   | 2026-03-26 |
 | 3. Alertas de Falha | 0/TBD | Not started | - |
 | 4. PIX Backend | 0/TBD | Not started | - |
 | 5. PIX Frontend | 0/TBD | Not started | - |

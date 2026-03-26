@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-26T01:15:37.910Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-26T01:38:01.081Z"
 progress:
   total_phases: 8
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Quando um cliente paga, o relatório é gerado e entregue. Sem exceção. E quando dá errado, o operador sabe na hora, sabe o motivo, e resolve em minutos.
-**Current focus:** Phase 01 — admin-purchase-timeline
+**Current focus:** Phase 02 — sentry-com-contexto
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 02 (sentry-com-contexto) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: Not started
 
 *Updated after each plan completion*
 | Phase 01-admin-purchase-timeline P01 | 20 | 2 tasks | 2 files |
+| Phase 02 P01 | 5 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,7 @@ Recent decisions affecting current work:
 - Admin panel como central de investigação (melhorar `/admin`, não criar nova ferramenta)
 - Separar business logic das routes em `src/lib/services/`
 - [Phase 01-admin-purchase-timeline]: buildTimeline() function composing status+pipeline steps into unified TimelineEvent array
+- [Phase 02]: Sentry.withScope for per-error scope isolation, pipeline vs infra bifurcation via INSUFFICIENT_API_BALANCE message
 
 ### Pending Todos
 
@@ -72,6 +74,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T01:15:37.907Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-sentry-com-contexto/02-CONTEXT.md
+Last session: 2026-03-26T01:38:01.079Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
