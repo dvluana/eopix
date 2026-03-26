@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Admin Purchase Timeline** - Operador consegue investigar qualquer compra com timeline completa em uma única tela
 - [x] **Phase 2: Sentry com Contexto** - Todos os erros do pipeline capturam purchase code, user ID e step para investigação no Sentry (completed 2026-03-26)
 - [x] **Phase 3: Alertas de Falha** - Operador recebe notificação WhatsApp imediata quando uma compra falha no pipeline (completed 2026-03-26)
-- [ ] **Phase 4: PIX Backend** - Backend suporta transparent checkout PIX com criação, webhook e polling de status
+- [x] **Phase 4: PIX Backend** - Backend suporta transparent checkout PIX com criação, webhook e polling de status (completed 2026-03-26)
 - [ ] **Phase 5: PIX Frontend** - Usuário vê QR Code PIX diretamente no site e é redirecionado automaticamente após pagamento
 - [ ] **Phase 6: Consolidação de Tipos** - Entidades como Purchase e User têm um único source of truth de tipos no codebase
 - [ ] **Phase 7: Camada de Serviços** - Business logic extraída de API routes para `src/lib/services/` com responsabilidade única
@@ -74,10 +74,10 @@ Plans:
   2. Webhook `transparent.completed` processa PIX e avança purchase para PAID → dispara Inngest
   3. `GET /api/purchases/pix/status?purchaseId=...` retorna status atual (`PENDING`, `PAID`, `EXPIRED`) consultando AbacatePay
   4. Dev mode suporta simulação de pagamento via `/v1/pixQrCode/simulate-payment`
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 04-01-PLAN.md — PIX lib functions, API routes, webhook extension, unit tests
+- [x] 04-01-PLAN.md — PIX lib functions, API routes, webhook extension, unit tests
 
 ### Phase 5: PIX Frontend
 **Goal**: Usuário completa pagamento PIX sem sair do site EOPIX
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Admin Purchase Timeline | 0/1 | Planning complete | - |
 | 2. Sentry com Contexto | 1/1 | Complete   | 2026-03-26 |
 | 3. Alertas de Falha | 1/1 | Complete    | 2026-03-26 |
-| 4. PIX Backend | 0/1 | Planning complete | - |
+| 4. PIX Backend | 1/1 | Complete   | 2026-03-26 |
 | 5. PIX Frontend | 0/TBD | Not started | - |
 | 6. Consolidação de Tipos | 0/TBD | Not started | - |
 | 7. Camada de Serviços | 0/TBD | Not started | - |

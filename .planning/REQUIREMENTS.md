@@ -19,10 +19,10 @@
 
 ### PIX — Checkout Inline
 
-- [ ] **PIX-01**: Usuário que escolhe PIX vê QR Code diretamente na página do EOPIX (sem redirect para site do AbacatePay)
+- [x] **PIX-01**: Usuário que escolhe PIX vê QR Code diretamente na página do EOPIX (sem redirect para site do AbacatePay)
 - [ ] **PIX-02**: Página de pagamento PIX faz polling automático a cada 3 segundos e redireciona para `/minhas-consultas` quando pagamento confirmado
 - [ ] **PIX-03**: PIX expirado mostra mensagem clara com opção de gerar novo QR Code
-- [ ] **PIX-04**: Webhook `payment.completed` do AbacatePay processa PIX (separado do `checkout.completed` atual)
+- [x] **PIX-04**: Webhook `payment.completed` do AbacatePay processa PIX (separado do `checkout.completed` atual)
 
 > **Notas técnicas PIX:**
 > - Endpoint: `POST /v2/transparents/create` com `method: "PIX"`, `data.amount`, `data.customer`
@@ -72,8 +72,8 @@
 | OBS-02  | Phase 2 - Sentry com Contexto    | Complete |
 | OBS-04  | Phase 2 - Sentry com Contexto    | Pending (manual) |
 | OBS-03  | Phase 3 - Alertas de Falha       | Complete |
-| PIX-04  | Phase 4 - PIX Backend            | Pending      |
-| PIX-01  | Phase 4 - PIX Backend            | Pending      |
+| PIX-04  | Phase 4 - PIX Backend            | Complete |
+| PIX-01  | Phase 4 - PIX Backend            | Complete |
 | PIX-02  | Phase 5 - PIX Frontend           | Pending      |
 | PIX-03  | Phase 5 - PIX Frontend           | Pending      |
 | CODE-03 | Phase 6 - Consolidação de Tipos  | Pending      |
