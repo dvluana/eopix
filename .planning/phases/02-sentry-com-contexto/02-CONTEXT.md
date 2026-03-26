@@ -6,9 +6,9 @@
 <domain>
 ## Phase Boundary
 
-Adicionar contexto estruturado de compra (purchase_code, pipeline_step, document_type, userId) aos erros capturados pelo Sentry nos pontos críticos do sistema: pipeline Inngest, webhook AbacatePay, e rota de criação de purchase. O objetivo é que cada erro no Sentry seja suficiente para identificar a compra afetada sem abrir outro sistema.
+Adicionar contexto estruturado de compra (purchase_code, pipeline_step, document_type, userId) aos erros capturados pelo Sentry nos pontos críticos do sistema. O objetivo é que cada erro no Sentry seja suficiente para identificar a compra afetada sem abrir outro sistema — e que falhas sistêmicas (saldo insuficiente, Inngest unreachable) apareçam no radar antes de acumular compras travadas.
 
-Fora de escopo: configurar alertas Sentry (Phase 3 cobre alertas via Callmebot), instrumentar chamadas individuais de APIFull que já têm fallback gracioso.
+Fora de escopo: configurar alertas Sentry (Phase 3 cobre alertas via Callmebot), instrumentar chamadas individuais de APIFull que já têm fallback gracioso, rotas admin (operador vê erro direto na UI).
 
 </domain>
 
@@ -16,26 +16,46 @@ Fora de escopo: configurar alertas Sentry (Phase 3 cobre alertas via Callmebot),
 ## Implementation Decisions
 
 ### Pontos de Instrumentação
-- **D-01:** Instrumentar 3 pontos críticos com `captureException` + `Sentry.withScope()`:
-  1. `src/lib/inngest/process-search.ts` — catch block final (linha ~370) que marca purchase como FAILED
-  2. `src/app/api/webhooks/abacatepay/route.ts` — catch block da rota POST
-  3. `src/app/api/purchases/route.ts` — catch block externo da rota (já tem um interno para checkout, falta o wrapper geral)
-- **D-02:** NÃO instrumentar erros operacionais esperados:
-  - `INSUFFICIENT_API_BALANCE` — erro de infra monitorado pelo health check do admin
-  - `.catch(() => null)` nas chamadas individuais de APIFull (fallback gracioso por design)
-  - Falhas de email (fire-and-forget)
+- **D-01:** Instrumentar 5 pontos com `captureException` + `Sentry.withScope()`, separados em duas categorias:
+
+  **Erros por-compra** (impacta 1 cliente, tag `error_category: "pipeline"`):
+  1. `src/lib/inngest/process-search.ts` — catch block final (~linha 370) que marca purchase como FAILED
+  2. `src/app/api/webhooks/abacatepay/route.ts` — catch block da rota POST (webhook falhou = compra fica PAID para sempre)
+  3. `src/app/api/purchases/route.ts` — catch block externo (já tem um interno para checkout, falta o wrapper geral)
+
+  **Erros sistêmicos** (impacta todas as compras, tag `error_category: "infra"`):
+  4. `src/lib/inngest/process-search.ts` — `INSUFFICIENT_API_BALANCE` no step `check-balance`: sistema inteiro não processa até saldo ser recarregado
+  5. `src/app/api/admin/purchases/[id]/process/route.ts` — falha de `inngest.send()` em produção (não-bypass): compra fica PAID presa, operador não sabe que o Inngest está unreachable
+
+- **D-02:** NÃO instrumentar:
+  - `.catch(() => null)` nas chamadas individuais de APIFull (fallback gracioso por design — 1 API falha, pipeline continua)
+  - Falhas de email (fire-and-forget, não afeta entrega do relatório)
+  - Rotas admin em geral (operador vê o erro HTTP diretamente na UI)
+  - `PAYMENT_EXPIRED` (erro de negócio esperado, não é bug)
 
 ### Estrutura do Contexto Sentry
-- **D-03:** Usar `Sentry.withScope()` em cada capture para não poluir escopo global:
+- **D-03:** Usar `Sentry.withScope()` em cada capture para não poluir escopo global. Tags variam por categoria:
+
+  **Erros por-compra:**
   ```
   Sentry.withScope(scope => {
     scope.setUser({ id: purchase.userId })
+    scope.setTag('error_category', 'pipeline')
     scope.setTag('purchase_code', purchase.code)
-    scope.setTag('pipeline_step', stepName)
-    scope.setTag('document_type', type)  // CPF ou CNPJ
+    scope.setTag('pipeline_step', stepName)       // ex: 'fetch-data', 'analyze-summary'
+    scope.setTag('document_type', type)           // 'CPF' ou 'CNPJ'
     scope.setExtra('purchase_id', purchase.id)
-    scope.setExtra('error_message', error.message)
     scope.setExtra('processing_step_number', processingStep)
+    Sentry.captureException(error)
+  })
+  ```
+
+  **Erros sistêmicos:**
+  ```
+  Sentry.withScope(scope => {
+    scope.setTag('error_category', 'infra')
+    scope.setTag('infra_type', 'apifull_balance' | 'inngest_unreachable')
+    scope.setExtra('detail', error.message)       // ex: 'R$2.50 remaining'
     Sentry.captureException(error)
   })
   ```
@@ -66,9 +86,10 @@ Fora de escopo: configurar alertas Sentry (Phase 3 cobre alertas via Callmebot),
 - `src/app/global-error.tsx` — captura erros genéricos de UI (não modificar)
 
 ### Pontos de Instrumentação (ler o código antes de editar)
-- `src/lib/inngest/process-search.ts` — pipeline principal; catch block em ~linha 370 é onde FAILED é marcado e onde `captureException` deve ser adicionado
-- `src/app/api/webhooks/abacatepay/route.ts` — webhook handler; catch block da rota POST
-- `src/app/api/purchases/route.ts` — rota de criação de purchase; já tem 1 captureException interno (linha ~341) para checkout error; falta wrapper no outer catch
+- `src/lib/inngest/process-search.ts` — pipeline principal; (1) catch block final ~linha 370 para erros por-compra; (2) step `check-balance` ~linha 127 para `INSUFFICIENT_API_BALANCE` sistêmico
+- `src/app/api/webhooks/abacatepay/route.ts` — webhook handler; catch block da rota POST; `purchaseCode` já está disponível quando o erro ocorre na maioria dos casos
+- `src/app/api/purchases/route.ts` — rota de criação; já tem 1 captureException interno (~linha 341) para checkout error; falta wrapper no outer catch
+- `src/app/api/admin/purchases/[id]/process/route.ts` — falha de `inngest.send()` em prod (~linha 70); bloco `else` faz rollback mas não captura no Sentry
 
 ### Requirements
 - `.planning/REQUIREMENTS.md` §OBS-02 — spec do que deve ser capturado
