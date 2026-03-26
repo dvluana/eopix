@@ -46,7 +46,10 @@ Plans:
   2. Todo erro nas API routes inclui user ID e purchase code quando disponíveis
   3. DSN real configurado no Vercel (não placeholder) — erros chegam ao Sentry em produção
   4. Operador consegue ir de um alerta Sentry direto para a compra afetada no admin
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Sentry withScope instrumentation (5 points) + unit tests
 **UI hint**: no
 
 ### Phase 3: Alertas de Falha
@@ -120,7 +123,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Admin Purchase Timeline | 0/1 | Planning complete | - |
-| 2. Sentry com Contexto | 0/TBD | Not started | - |
+| 2. Sentry com Contexto | 0/1 | Planning complete | - |
 | 3. Alertas de Falha | 0/TBD | Not started | - |
 | 4. PIX Backend | 0/TBD | Not started | - |
 | 5. PIX Frontend | 0/TBD | Not started | - |
