@@ -70,11 +70,14 @@ Plans:
 **Depends on**: Phase 3
 **Requirements**: PIX-04, PIX-01
 **Success Criteria** (what must be TRUE):
-  1. `POST /api/purchases/pix` cria transparent checkout via AbacatePay `/v2/transparents/create` e retorna `brCode` e `brCodeBase64`
-  2. Webhook `payment.completed` processa PIX e avança purchase para PAID → dispara Inngest
-  3. `GET /api/purchases/pix/status?id=...` retorna status atual (`PENDING`, `PAID`, `EXPIRED`) consultando AbacatePay
-  4. Dev mode suporta simulação de pagamento via `/v2/transparents/simulate-payment`
-**Plans**: TBD
+  1. `POST /api/purchases/pix` cria transparent checkout via AbacatePay `/v1/pixQrCode/create` e retorna `brCode` e `brCodeBase64`
+  2. Webhook `transparent.completed` processa PIX e avança purchase para PAID → dispara Inngest
+  3. `GET /api/purchases/pix/status?purchaseId=...` retorna status atual (`PENDING`, `PAID`, `EXPIRED`) consultando AbacatePay
+  4. Dev mode suporta simulação de pagamento via `/v1/pixQrCode/simulate-payment`
+**Plans:** 1 plan
+
+Plans:
+- [ ] 04-01-PLAN.md — PIX lib functions, API routes, webhook extension, unit tests
 
 ### Phase 5: PIX Frontend
 **Goal**: Usuário completa pagamento PIX sem sair do site EOPIX
@@ -128,7 +131,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Admin Purchase Timeline | 0/1 | Planning complete | - |
 | 2. Sentry com Contexto | 1/1 | Complete   | 2026-03-26 |
 | 3. Alertas de Falha | 1/1 | Complete    | 2026-03-26 |
-| 4. PIX Backend | 0/TBD | Not started | - |
+| 4. PIX Backend | 0/1 | Planning complete | - |
 | 5. PIX Frontend | 0/TBD | Not started | - |
 | 6. Consolidação de Tipos | 0/TBD | Not started | - |
 | 7. Camada de Serviços | 0/TBD | Not started | - |
