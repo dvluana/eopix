@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Admin Purchase Timeline** - Operador consegue investigar qualquer compra com timeline completa em uma única tela
 - [x] **Phase 2: Sentry com Contexto** - Todos os erros do pipeline capturam purchase code, user ID e step para investigação no Sentry (completed 2026-03-26)
-- [ ] **Phase 3: Alertas de Falha** - Operador recebe notificação WhatsApp imediata quando uma compra falha no pipeline
+- [x] **Phase 3: Alertas de Falha** - Operador recebe notificação WhatsApp imediata quando uma compra falha no pipeline (completed 2026-03-26)
 - [ ] **Phase 4: PIX Backend** - Backend suporta transparent checkout PIX com criação, webhook e polling de status
 - [ ] **Phase 5: PIX Frontend** - Usuário vê QR Code PIX diretamente no site e é redirecionado automaticamente após pagamento
 - [ ] **Phase 6: Consolidação de Tipos** - Entidades como Purchase e User têm um único source of truth de tipos no codebase
@@ -60,10 +60,10 @@ Plans:
   1. Mensagem WhatsApp chega em menos de 30 segundos após transição para FAILED
   2. Mensagem contém código da compra, CPF/CNPJ e descrição do erro
   3. Sistema não envia duplicatas (Inngest retries não disparam múltiplos alertas para a mesma falha)
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 03-01-PLAN.md — Callmebot module + process-search integration (FAILED + COMPLETED alerts)
+- [x] 03-01-PLAN.md — Callmebot module + process-search integration (FAILED + COMPLETED alerts)
 
 ### Phase 4: PIX Backend
 **Goal**: Backend suporta criação de PIX transparent checkout, processamento do webhook e polling de status
@@ -127,7 +127,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Admin Purchase Timeline | 0/1 | Planning complete | - |
 | 2. Sentry com Contexto | 1/1 | Complete   | 2026-03-26 |
-| 3. Alertas de Falha | 0/1 | Planning complete | - |
+| 3. Alertas de Falha | 1/1 | Complete   | 2026-03-26 |
 | 4. PIX Backend | 0/TBD | Not started | - |
 | 5. PIX Frontend | 0/TBD | Not started | - |
 | 6. Consolidação de Tipos | 0/TBD | Not started | - |
