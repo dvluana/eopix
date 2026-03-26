@@ -83,9 +83,17 @@ None — plan executed exactly as written. The test structure (testing contract/
 
 None — all 5 instrumentation points are fully wired. Sentry SDK calls are no-op when DSN is absent (per D-07).
 
-## Pending Manual Action (OBS-04)
+## Post-Plan Additions (outside original plan scope)
 
-User must configure `NEXT_PUBLIC_SENTRY_DSN` on Vercel (from sentry.io project settings) and trigger a test error to confirm errors appear in Sentry dashboard with correct tags. This is documented as a blocker in STATE.md.
+**OBS-04 — VERIFIED COMPLETE:**
+- `NEXT_PUBLIC_SENTRY_DSN` confirmed on Vercel (already configured)
+- Test event confirmed received in Sentry dashboard with tags: `purchase_code`, `error_category`, `pipeline_step`, `document_type`
+
+**Sourcemaps + Release Tracking (commit 14c61cb):**
+- `next.config.mjs` wrapped with `withSentryConfig` — sourcemaps upload automatically on Vercel build via `SENTRY_AUTH_TOKEN`
+- Release name = `VERCEL_GIT_COMMIT_SHA` — every deploy creates a named release in Sentry
+- `hideSourceMaps: true`, `tunnelRoute: '/monitoring'`
+- `SENTRY_ORG=uxnaut`, `SENTRY_PROJECT=eopix` set on Vercel
 
 ## Self-Check: PASSED
 
