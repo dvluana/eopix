@@ -71,9 +71,13 @@ Fora de escopo: alertas para outros pontos de falha (webhook AbacatePay, routes 
 - **D-08:** O erro do Callmebot NÃO deve ser relançado — `.catch(err => console.error('[Callmebot]', err))` + Sentry.captureException silencioso.
 
 ### Arquitetura do módulo
-- **D-09:** Criar `src/lib/callmebot.ts` — módulo isolado seguindo o mesmo padrão de `src/lib/email.ts` (função exportada, tipagem TypeScript, env vars `CALLMEBOT_API_KEY` e `CALLMEBOT_PHONE`).
+- **D-09:** Criar `src/lib/callmebot.ts` — módulo isolado seguindo o mesmo padrão de `src/lib/email.ts` (função exportada, tipagem TypeScript).
 - **D-10:** Ponto de chamada: catch block em `src/lib/inngest/process-search.ts` — imediatamente após o `prisma.purchase.update` que marca FAILED, antes do envio do email de denied.
-- **D-11:** Variáveis de ambiente necessárias: `CALLMEBOT_API_KEY` e `CALLMEBOT_PHONE`. Se ausentes, logar warning e pular o envio (não lançar erro) — mesmo guard pattern do Sentry.
+- **D-11:** São **3 destinatários** — enviar para todos em paralelo (`Promise.all`):
+  - Luana: `CALLMEBOT_PHONE` + `CALLMEBOT_API_KEY`
+  - Kevin: `CALLMEBOT_PHONE_2` + `CALLMEBOT_API_KEY_2`
+  - Carolina: `CALLMEBOT_PHONE_3` + `CALLMEBOT_API_KEY_3`
+  Se uma variável de par (phone+key) estiver ausente, pular aquele destinatário silenciosamente — não falhar os outros.
 
 ### O que NÃO fazer
 - **D-11:** NÃO alertar para `PAYMENT_EXPIRED` — é erro de negócio esperado, não bug.
