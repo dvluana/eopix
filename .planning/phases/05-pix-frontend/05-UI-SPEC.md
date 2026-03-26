@@ -55,17 +55,19 @@ Exceptions:
 
 All roles use existing token system. Two font families: Zilla Slab (headings), IBM Plex Mono (body/UI).
 
+Four sizes total (maximum allowed):
+
 | Role | Size | Weight | Line Height | Font | CSS Token |
 |------|------|--------|-------------|------|-----------|
 | Body | 14px (0.875rem) | 400 | 1.7 | IBM Plex Mono | `--font-body` |
-| Label | 9px (0.5625rem) | 700 | 1.0 | IBM Plex Mono | `--font-label` |
+| Label | 11px (0.6875rem) | 700 | 1.0 | IBM Plex Mono | `--font-label` |
 | Heading (page title) | 28px (1.75rem) | 700 | 1.1 | Zilla Slab | `--font-h2` |
 | Display (countdown timer) | 20px (1.25rem) | 700 | 1.0 | IBM Plex Mono | `--primitive-size-xl` + bold |
 
 Typography rules for this phase:
 - Countdown MM:SS display: IBM Plex Mono, 20px, weight 700, monospace tabular numbers — use `font-variant-numeric: tabular-nums` to prevent layout shift
-- Pix code (brCode text): IBM Plex Mono, 12px, weight 400, word-break: break-all — the Pix EMV code is 80+ characters
-- All badge/status text: uppercase, letter-spacing 0.125em (per `--primitive-tracking-wider`)
+- Pix code (brCode text): IBM Plex Mono, 11px, weight 400, word-break: break-all — the Pix EMV code is 80+ characters
+- All badge/status text: 11px, uppercase, letter-spacing 0.125em (per `--primitive-tracking-wider`)
 - Body copy (instruction text): IBM Plex Mono 14px, weight 400, line-height 1.7
 
 Source: `tailwind.config.ts` fontSize scale, `tokens.css` `--font-*` semantic tokens
@@ -121,13 +123,15 @@ No new Radix primitives. No new npm packages.
 
 Page: `/compra/pix`
 
+Primary focal point: `.pix-qr-card` — largest element, centered, black border + offset shadow draws eye before copy CTA.
+
 ```
 [TopBar — 64px fixed]
 [Page content — centered column, max-width 480px, padding 48px top]
   [Status badge — "AGUARDANDO PAGAMENTO" or "PIX EXPIRADO"]
   [Page heading — "Pague com PIX"]
   [Body copy — "Escaneie o QR Code ou copie o codigo abaixo"]
-  [QR Code card — white card, 2px black border, centered]
+  [QR Code card — white card, 2px black border, centered]  ← PRIMARY FOCAL POINT
     [<img> 200x200px QR]
     [Countdown timer — "Expira em MM:SS"]
   [Pix code block — monospace, breakable, dark bg]
@@ -208,7 +212,7 @@ error   → loading    (user clicks "Tentar novamente")
 When `brCodeBase64.startsWith('data:image/png;base64,BYPASS')`:
 - Do not render `<img>` tag (broken image)
 - Render a grey placeholder box: 200x200px, `background: --primitive-gray-100`, dashed border `2px dashed --primitive-gray-300`
-- Overlay text in center: "QR Code (Mock)" in 12px IBM Plex Mono, `--color-text-muted`
+- Overlay text in center: "QR Code (Mock)" in 11px IBM Plex Mono, `--color-text-muted`
 - Copy button still works with the mock `brCode` value
 
 ### Entry Point Update
