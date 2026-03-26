@@ -8,6 +8,10 @@
 
 Quando uma compra transiciona para FAILED no pipeline Inngest pela **primeira vez**, o operador recebe uma mensagem WhatsApp via Callmebot com: código da compra, CPF/CNPJ mascarado, tipo de erro e link para o admin. Sem duplicatas mesmo com múltiplos retries do Inngest.
 
+Dois tipos de alerta:
+1. **FAILED** — falha no pipeline (primeira transição)
+2. **COMPLETED** — relatório entregue com sucesso
+
 Fora de escopo: alertas para outros pontos de falha (webhook AbacatePay, routes admin), configurar alert rules no Sentry (já coberto pela observabilidade da Fase 2).
 
 </domain>
@@ -25,17 +29,42 @@ Fora de escopo: alertas para outros pontos de falha (webhook AbacatePay, routes 
   ```
 - **D-03:** NÃO usar `onFailure` do Inngest (dispararia somente após os 10 retries — muito tarde). NÃO usar campo `alertSent` no banco (evita migration desnecessária).
 
-### Conteúdo da mensagem
-- **D-04:** Formato da mensagem (texto, ~160 chars):
+### Conteúdo da mensagem — FAILED
+- **D-04:** Formato da mensagem de falha:
   ```
-  ⚠️ EOPIX FALHA
-  Compra: {code}
-  Doc: {CPF/CNPJ mascarado ex: ***.***.456-78 ou **.***.***/0001-**}
-  Erro: {failureReason em português}
-  Ver: eopix.com.br/admin/compras?search={code}
+  ⚠️ EOPIX — FALHA NO PIPELINE
+
+  📦 Compra: {code}
+  📅 Data: {createdAt formatado DD/MM/YYYY às HHhMM}
+  👤 {user.name}
+  📧 {user.email}
+  💳 {paymentProvider legível} (AbacatePay)
+  🔢 Step: {processingStep}/6 — {stepLabel}
+
+  ❌ Erro:
+  {error.message truncado em 100 chars}
+
+  🔗 eopix.com.br/admin/compras?search={code}
   ```
-- **D-05:** CPF/CNPJ **mascarado** — WhatsApp fica no histórico do celular, dado sensível. O `code` + link já permitem investigar no admin em 1 clique.
-- **D-06:** `failureReason` em português legível — mapear os valores do enum (`PROCESSING_ERROR` → "Erro no pipeline", `PAYMENT_EXPIRED` → não alerta, etc.)
+- **D-05:** CPF/CNPJ **não aparece na mensagem de FAILED** — o step + erro já identificam o problema; o link pro admin resolve o lookup.
+- **D-06:** `failureReason` / `error.message` em texto legível — truncar em 100 chars para não poluir.
+- **D-07:** `paymentProvider` mapeado: `abacatepay` → `"PIX (AbacatePay)"`.
+
+### Conteúdo da mensagem — COMPLETED
+- **D-08:** Disparar alerta também quando o relatório é entregue (purchase → COMPLETED + SearchResult criado). Formato:
+  ```
+  ✅ EOPIX — RELATÓRIO ENTREGUE
+
+  📦 Compra: {code}
+  📅 Data: {createdAt formatado DD/MM/YYYY às HHhMM}
+  👤 {user.name}
+  📧 {user.email}
+  💳 {paymentProvider legível}
+
+  🔗 eopix.com.br/admin/compras?search={code}
+  ```
+- **D-09:** Ponto de disparo COMPLETED: `process-search.ts`, imediatamente após `prisma.purchase.update({ status: 'COMPLETED' })`. Fire-and-forget, mesmo padrão do alerta de falha.
+- **D-10:** NÃO deduplicar COMPLETED — só transiciona para COMPLETED uma vez (pipeline não retenta após sucesso).
 
 ### Tratamento de falha do Callmebot
 - **D-07:** Fire-and-forget — se o Callmebot falhar (fora do ar, rate limit), logar erro no console e capturar no Sentry, mas **não** deixar isso afetar o status da compra ou o flow do pipeline.
@@ -47,9 +76,9 @@ Fora de escopo: alertas para outros pontos de falha (webhook AbacatePay, routes 
 - **D-11:** Variáveis de ambiente necessárias: `CALLMEBOT_API_KEY` e `CALLMEBOT_PHONE`. Se ausentes, logar warning e pular o envio (não lançar erro) — mesmo guard pattern do Sentry.
 
 ### O que NÃO fazer
-- **D-12:** NÃO alertar para `PAYMENT_EXPIRED` — é erro de negócio esperado, não bug.
-- **D-13:** NÃO incluir CPF/CNPJ completo na mensagem.
-- **D-14:** NÃO cobrir outros pontos de falha nesta fase (webhook AbacatePay fica para backlog).
+- **D-11:** NÃO alertar para `PAYMENT_EXPIRED` — é erro de negócio esperado, não bug.
+- **D-12:** NÃO incluir CPF/CNPJ nas mensagens.
+- **D-13:** NÃO cobrir outros pontos de falha nesta fase (webhook AbacatePay fica para backlog).
 
 ### Claude's Discretion
 - URL exata da API Callmebot (formato do request, encoding da mensagem)
@@ -104,7 +133,8 @@ Fora de escopo: alertas para outros pontos de falha (webhook AbacatePay, routes 
 
 ### Integration Points
 - `process-search.ts` catch block já tem: `purchaseCode` (do event.data), `failedPurchase` (findUnique com `code`, `processingStep`, `userId`), tipo do documento (`type` do event.data)
-- O `failedPurchase.status` precisa ser adicionado ao `select` do findUnique existente para viabilizar o status check de deduplicação
+- O `findUnique` existente no catch block precisa expandir o `select` para incluir: `status` (deduplicação), `createdAt`, `paymentProvider`, `user { name, email }`, `processingStep`
+- Para o alerta COMPLETED: buscar os mesmos campos da purchase logo antes ou após o update de status
 
 </code_context>
 
