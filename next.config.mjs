@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -40,4 +42,27 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: 'uxnaut',
+  project: 'eopix',
+
+  // Upload sourcemaps automaticamente no build (requer SENTRY_AUTH_TOKEN)
+  silent: !process.env.CI,
+
+  // Release tracking automático via VERCEL_GIT_COMMIT_SHA
+  release: {
+    name: process.env.VERCEL_GIT_COMMIT_SHA || process.env.SENTRY_RELEASE,
+    deploy: {
+      env: process.env.VERCEL_ENV || process.env.NODE_ENV,
+    },
+  },
+
+  // Esconde sourcemaps do bundle público (só Sentry acessa)
+  hideSourceMaps: true,
+
+  // Tree-shake logs de debug do Sentry no bundle
+  webpack: { treeshake: { removeDebugLogging: true } },
+
+  // Tunneling para evitar ad-blockers
+  tunnelRoute: '/monitoring',
+});
