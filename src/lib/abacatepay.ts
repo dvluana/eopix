@@ -154,6 +154,103 @@ export async function processRefund(_billingId: string): Promise<RefundResponse>
 const ABACATEPAY_PUBLIC_KEY =
   't9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9'
 
+// ─── PIX Transparent Checkout ────────────────────────────────────────────────
+
+export interface CreatePixChargeParams {
+  purchaseCode: string   // stored in metadata.externalId for webhook correlation
+  amount: number         // centavos
+  customer?: {
+    name: string
+    email: string
+    taxId: string
+    cellphone: string
+  }
+  expiresIn?: number     // seconds, default 3600
+}
+
+export interface PixChargeResponse {
+  pixId: string
+  brCode: string
+  brCodeBase64: string
+  expiresAt: string
+  status: 'PENDING' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'REFUNDED'
+}
+
+export async function createPixCharge(params: CreatePixChargeParams): Promise<PixChargeResponse> {
+  if (isBypassPayment) {
+    return {
+      pixId: `pix_bypass_${Date.now()}`,
+      brCode: 'BYPASS_BR_CODE',
+      brCodeBase64: 'data:image/png;base64,BYPASS',
+      expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+      status: 'PENDING',
+    }
+  }
+
+  const apiKey = process.env.ABACATEPAY_API_KEY
+  if (!apiKey) throw new Error('ABACATEPAY_API_KEY not configured')
+
+  const body: Record<string, unknown> = {
+    amount: params.amount,
+    expiresIn: params.expiresIn ?? 3600,
+    description: 'Relatório EOPIX',
+    metadata: { externalId: params.purchaseCode },
+  }
+  if (params.customer) body.customer = params.customer
+
+  const res = await fetch('https://api.abacatepay.com/v1/pixQrCode/create', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+
+  const data = await res.json()
+  if (!res.ok || !data.data?.id) {
+    throw new Error(`PIX charge error: ${data.error || res.status}`)
+  }
+
+  return {
+    pixId: data.data.id,
+    brCode: data.data.brCode,
+    brCodeBase64: data.data.brCodeBase64,
+    expiresAt: data.data.expiresAt,
+    status: data.data.status,
+  }
+}
+
+export async function checkPixStatus(pixId: string): Promise<{ status: string; expiresAt: string }> {
+  const apiKey = process.env.ABACATEPAY_API_KEY
+  if (!apiKey) throw new Error('ABACATEPAY_API_KEY not configured')
+
+  const res = await fetch(`https://api.abacatepay.com/v1/pixQrCode/check?id=${pixId}`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  })
+
+  const data = await res.json()
+  if (!res.ok) throw new Error(`PIX status error: ${data.error || res.status}`)
+
+  return { status: data.data.status, expiresAt: data.data.expiresAt }
+}
+
+export async function simulatePixPayment(pixId: string): Promise<void> {
+  const apiKey = process.env.ABACATEPAY_API_KEY
+  if (!apiKey) throw new Error('ABACATEPAY_API_KEY not configured')
+
+  await fetch(`https://api.abacatepay.com/v1/pixQrCode/simulate-payment?id=${pixId}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+  })
+}
+
+// ─── Webhook Validation ───────────────────────────────────────────────────────
+
 export function validateWebhookSecret(url: string): boolean {
   const parsed = new URL(url)
   const secret = parsed.searchParams.get('webhookSecret')

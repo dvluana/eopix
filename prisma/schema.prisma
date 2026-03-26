@@ -57,6 +57,9 @@ model Purchase {
   failureDetails        String?
   refundReason          String?
   refundDetails         String?
+  pixBrCode             String?
+  pixBrCodeBase64       String?
+  pixExpiresAt          DateTime?
   searchResult          SearchResult? @relation(fields: [searchResultId], references: [id])
   user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
