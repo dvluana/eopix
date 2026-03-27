@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
               const billingData = await billingRes.json()
               const checkoutUrl = billingData?.data?.url
               if (checkoutUrl) {
-                return NextResponse.json({ code: existingPending.code, checkoutUrl })
+                return NextResponse.json({ purchaseId: existingPending.id, code: existingPending.code, checkoutUrl })
               }
             }
           }
@@ -255,6 +255,7 @@ export async function POST(request: NextRequest) {
 
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
       return NextResponse.json({
+        purchaseId: purchase.id,
         code: purchase.code,
         checkoutUrl: `${appUrl}/compra/confirmacao?code=${purchase.code}`,
         _bypassMode: true,
@@ -339,6 +340,7 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json({
+        purchaseId: purchase.id,
         code: purchase.code,
         checkoutUrl,
       })

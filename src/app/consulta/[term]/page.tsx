@@ -209,15 +209,8 @@ export default function Page({ params }: PageProps) {
       throw new Error(data.error || 'Erro ao criar compra');
     }
 
-    if (data.checkoutUrl) {
-      // Redirect to AbacatePay checkout (same tab).
-      // After payment: completionUrl brings user back to /compra/confirmacao.
-      // If cancelled: returnUrl brings user back to /.
-      window.location.href = data.checkoutUrl;
-    } else {
-      // Bypass mode — no external checkout
-      router.push(`/compra/confirmacao?code=${data.code}`);
-    }
+    // PIX inline checkout — redirect to /compra/pix with purchaseId (UUID)
+    router.push(`/compra/pix?purchaseId=${data.purchaseId}`);
   };
 
   const handlePurchaseLoggedIn = async (e?: React.FormEvent) => {
