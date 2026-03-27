@@ -87,11 +87,11 @@ Plans:
   1. Após iniciar compra com PIX, usuário vê QR Code e código copia-e-cola na mesma página do EOPIX
   2. Página faz polling a cada 3 segundos e redireciona automaticamente para `/minhas-consultas` após confirmação do pagamento
   3. PIX expirado mostra mensagem clara com botão para gerar novo QR Code (sem precisar recomeçar o fluxo)
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 **UI hint**: yes
 
 Plans:
-- [ ] 05-01-PLAN.md — PixCheckout component + page + entry point wiring
+- [x] 05-01-PLAN.md — PixCheckout component + page + entry point wiring
 - [ ] 05-02-PLAN.md — Unit tests + docs update + visual checkpoint
 
 ### Phase 6: Consolidação de Tipos
@@ -136,7 +136,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. Sentry com Contexto | 1/1 | Complete   | 2026-03-26 |
 | 3. Alertas de Falha | 1/1 | Complete    | 2026-03-26 |
 | 4. PIX Backend | 1/1 | Complete   | 2026-03-26 |
-| 5. PIX Frontend | 0/2 | Planning complete | - |
+| 5. PIX Frontend | 1/2 | In Progress|  |
 | 6. Consolidação de Tipos | 0/TBD | Not started | - |
 | 7. Camada de Serviços | 0/TBD | Not started | - |
 | 8. Documentação Atualizada | 0/TBD | Not started | - |
