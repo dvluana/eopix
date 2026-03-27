@@ -11,17 +11,29 @@ PENDING → PAID → PROCESSING → COMPLETED
 
 ## Fluxo Principal (LIVE)
 
+### PIX Inline (padrão atual)
+
 1. User submete CPF/CNPJ em `/consulta/[term]`
-2. Frontend POST `/api/purchases` com document + metadata
+2. Frontend POST `/api/purchases` com document + metadata — retorna `purchaseId` (UUID)
 3. Backend valida rate limit, blocklist, duplicata (409 se já existe relatório)
 4. Cria Purchase(PENDING) + User (ou reutiliza)
-5. Cria billing no AbacatePay (produto inline com externalId fixo)
-6. Retorna checkout URL → frontend redireciona
-7. User paga (PIX/cartão)
-8. AbacatePay envia webhook `billing.paid` → `/api/webhooks/abacatepay`
-9. Webhook marca Purchase PAID + dispara Inngest `search/process`
+5. Retorna `purchaseId` → frontend redireciona para `/compra/pix?purchaseId=<uuid>`
+6. Página `/compra/pix` chama `POST /api/purchases/pix` para criar cobrança PIX inline
+7. AbacatePay retorna brCode + brCodeBase64 → QR exibido na própria página EOPIX
+8. User escaneia QR code e paga
+9. AbacatePay envia webhook `transparent.completed` → Purchase PAID → Inngest `search/process`
 10. Pipeline processa → Purchase COMPLETED
-11. User vê relatório em `/relatorio/[id]`
+11. Polling 3s detecta PAID/COMPLETED → redireciona para `/minhas-consultas`
+12. User vê relatório em `/relatorio/[id]`
+
+### Checkout Hosted (legado / fallback)
+
+1-4 igual ao fluxo PIX Inline
+5. Cria billing no AbacatePay (produto inline com externalId fixo)
+6. Retorna `checkoutUrl` → frontend redireciona para página hosted AbacatePay
+7. User paga (PIX/cartão)
+8. AbacatePay envia webhook `checkout.completed` → `/api/webhooks/abacatepay`
+9-12 igual ao fluxo PIX Inline
 
 ## Fluxo Bypass (MOCK/TEST)
 
@@ -51,6 +63,8 @@ PENDING → PAID → PROCESSING → COMPLETED
 - Payment lib: `src/lib/payment.ts`, `src/lib/abacatepay.ts`
 - Confirmação: `src/app/confirmacao/page.tsx`
 - Minhas consultas: `src/app/minhas-consultas/page.tsx`
+- PIX checkout page: `src/app/compra/pix/page.tsx`
+- PIX checkout component: `src/components/PixCheckout.tsx`
 
 ## PIX Transparent Checkout
 

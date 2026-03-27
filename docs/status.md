@@ -2,12 +2,13 @@
 title: "Status"
 ---
 
-**Atualizado em:** 2026-03-26 (PIX backend)
+**Atualizado em:** 2026-03-27 (PIX frontend)
 **Branch atual:** develop (merged to main for production)
 **Modo de execução:** MOCK_MODE=true (local) / TEST_MODE validado com APIs reais
 
 ## O que está funcionando ✓
 
+- **PIX Frontend (Checkout Inline)** — Pagina `/compra/pix` com QR Code inline (imagem base64 do AbacatePay), codigo copia-e-cola, countdown MM:SS com urgencia vermelha em <=60s, polling 3s redireciona para `/minhas-consultas` em PAID/COMPLETED, estado expirado com botao "GERAR NOVO QR CODE", mock mode com placeholder. Entry point: `consulta/[term]/page.tsx` redireciona para `/compra/pix?purchaseId=<uuid>`. Substitui checkout hosted do AbacatePay.
 - **PIX Transparent Checkout (backend)** — `createPixCharge`, `checkPixStatus`, `simulatePixPayment` em `abacatepay.ts`. API routes `POST /api/purchases/pix` (cria cobrança, armazena brCode/brCodeBase64 em DB) e `GET /api/purchases/pix/status` (polling — DB para COMPLETED/FAILED, AbacatePay para PENDING). Webhook `transparent.completed` com idempotência via `WebhookLog (abacate:transparent:<pixId>)`. Campos `pixBrCode`, `pixBrCodeBase64`, `pixExpiresAt` no modelo Purchase. Reutilização automática de cobrança existente em refresh. 142/142 testes, tsc clean, lint clean.
 - **Alertas WhatsApp (Callmebot)** — FAILED (primeira transição, exclui PAYMENT_EXPIRED) e COMPLETED disparam alerta WhatsApp via Callmebot para 3 destinatários (Luana, Kevin, Carolina). Fire-and-forget, falha do alerta não bloqueia pipeline. Deduplicação via `wasAlreadyFailed`. 3 destinatários via env vars (CALLMEBOT_PHONE/API_KEY, _2, _3). `src/lib/callmebot.ts` com `sendFailureAlert` e `sendCompletedAlert`. Vitest 124/124.
 - **Recuperação de senha** — fluxo completo: "Esqueci minha senha" no RegisterModal (modo login) → email com link token seguro (1h) via Resend → página `/redefinir-senha?token=xxx` → reset atômico (bcrypt + `$transaction`) + email de confirmação disparado. Rate limit 3/15min por email. Token invalidado após uso (`usedAt`). Cron diário (03:45) limpa tokens expirados/usados. MagicCode model removido (era legado).
@@ -71,6 +72,8 @@ title: "Status"
 - ~~Configurar GitHub Secrets~~ ✓ — `NEON_API_KEY`, `APIFULL_API_KEY`, `SERPER_API_KEY`, `OPENAI_API_KEY` todos configurados
 
 ## Últimas mudanças
+
+- **PIX Frontend (Checkout Inline)** (2026-03-27): Nova pagina `/compra/pix` com `PixCheckout` component. QR Code renderizado como `<img>` do brCodeBase64 do AbacatePay. Polling 3s via `setInterval` redireciona para `/minhas-consultas` em PAID/COMPLETED. Countdown MM:SS com `font-variant-numeric: tabular-nums`, texto vermelho em <=60s. Estado expirado com callout e botao de renovacao (re-chama `POST /api/purchases/pix`). Mock mode: placeholder cinza quando brCodeBase64 contem "BYPASS". `POST /api/purchases` agora retorna `purchaseId` em todas as respostas. `consulta/[term]/page.tsx` redireciona para `/compra/pix?purchaseId=<uuid>` em vez de checkout hosted. CSS brutalist em `components.css`. tsc clean, lint clean.
 
 - **PIX Transparent Checkout (backend)** (2026-03-26): `createPixCharge`, `checkPixStatus`, `simulatePixPayment` adicionados a `src/lib/abacatepay.ts`. `POST /api/purchases/pix` cria cobrança PIX e armazena brCode/brCodeBase64/pixExpiresAt em DB. `GET /api/purchases/pix/status` retorna status do DB para COMPLETED/FAILED, chama AbacatePay para PENDING com PIX. Webhook `transparent.completed` adicionado ao handler existente com idempotência `abacate:transparent:<pixId>`. Migration `add_pix_fields` aplicada no Neon develop (campos `pixBrCode`, `pixBrCodeBase64`, `pixExpiresAt` no Purchase). 13 novos unit tests. vitest 142/142, tsc clean, lint clean.
 
