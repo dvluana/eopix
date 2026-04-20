@@ -486,8 +486,8 @@ function mapCnpjDossieResponse(raw: any, cnpj: string): DossieResponse {
   const acoesRaw = relatorioJuridico.ACOES || {}
   const acoesOcorrencias = acoesRaw.OCORRENCIAS || []
   const acoesAtivas = {
-    quantidade: acoesRaw.QUANTIDADE_OCORRENCIAS || acoesOcorrencias.length,
-    valorTotal: acoesRaw.VALOR_TOTAL || 0,
+    quantidade: parseInt(acoesRaw.QUANTIDADE_OCORRENCIAS || '0') || acoesOcorrencias.length,
+    valorTotal: parseFloat(acoesRaw.VALOR_TOTAL || '0') || 0,
     ocorrencias: (Array.isArray(acoesOcorrencias) ? acoesOcorrencias : []).map(mapDossieOcorrencia),
   }
 
@@ -495,7 +495,7 @@ function mapCnpjDossieResponse(raw: any, cnpj: string): DossieResponse {
   const arquivadasRaw = relatorioJuridico.ACOES_ARQUIVADAS || {}
   const arquivadasOcorrencias = arquivadasRaw.OCORRENCIAS || []
   const acoesArquivadas = {
-    quantidade: arquivadasRaw.QUANTIDADE_OCORRENCIAS || arquivadasOcorrencias.length,
+    quantidade: parseInt(arquivadasRaw.QUANTIDADE_OCORRENCIAS || '0') || arquivadasOcorrencias.length,
     ocorrencias: (Array.isArray(arquivadasOcorrencias) ? arquivadasOcorrencias : []).map(mapDossieOcorrencia),
   }
 
@@ -503,14 +503,14 @@ function mapCnpjDossieResponse(raw: any, cnpj: string): DossieResponse {
   const alertasRaw = credCadastral.INFORMACOES_ALERTAS_RESTRICOES || {}
   const alertasOcorrencias = alertasRaw.OCORRENCIAS || []
   const alertas = {
-    quantidade: alertasRaw.QUANTIDADE_OCORRENCIAS || alertasOcorrencias.length,
+    quantidade: parseInt(alertasRaw.QUANTIDADE_OCORRENCIAS || '0') || alertasOcorrencias.length,
     ocorrencias: (Array.isArray(alertasOcorrencias) ? alertasOcorrencias : []).map(mapDossieOcorrencia),
   }
 
   return {
     razaoSocial: identificacao.RAZAO_SOCIAL || identificacao.NOME || '',
     cnpj: cnpj,
-    situacao: identificacao.SITUACAO_RECEITA || identificacao.SITUACAO || identificacao.SITUACAO_CADASTRAL || null,
+    situacao: credCadastral.DADOS_RECEITA_FEDERAL?.SITUACAO_RECEITA || identificacao.SITUACAO_RECEITA || identificacao.SITUACAO || identificacao.SITUACAO_CADASTRAL || null,
     dataAbertura: identificacao.DATA_FUNDACAO || identificacao.DATA_NASCIMENTO_FUNDACAO || identificacao.DATA_ABERTURA || null,
     naturezaJuridica: identificacao.NATUREZA_JURIDICA || null,
     capitalSocial: identificacao.CAPITAL_SOCIAL ? parseFloat(identificacao.CAPITAL_SOCIAL) : null,
