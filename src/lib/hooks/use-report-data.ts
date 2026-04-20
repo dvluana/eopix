@@ -168,10 +168,10 @@ export function useReportData(reportId: string) {
     const hasProtests = (financialSummary?.totalProtestos || 0) > 0
     const hasDebts = (financialSummary?.totalDividas || 0) > 0
     const hasBouncedChecks = (financialSummary?.chequesSemFundo || 0) > 0
-    const hasProcesses = processCount > 0 || (dossie?.acoesAtivas?.quantidade || 0) > 0
+    const hasProcesses = processCount > 0 || Number(dossie?.acoesAtivas?.quantidade || 0) > 0
     const allMentions = [...(google?.byDocument || []), ...(google?.byName || []), ...(google?.news || [])]
     const hasNegativeMentions = allMentions.some(m => m.classification === 'negative')
-    const isCompanyInactive = report.type === 'CNPJ' && dossie != null && dossie.situacao !== 'ATIVA'
+    const isCompanyInactive = report.type === 'CNPJ' && dossie != null && dossie.situacao != null && dossie.situacao !== 'ATIVA'
     const hasNegativeReclameAqui = reclameAqui != null && reclameAqui.nota !== null && reclameAqui.nota < 7
 
     const weatherStatus: WeatherStatus =
@@ -185,7 +185,7 @@ export function useReportData(reportId: string) {
       (financialSummary?.totalDividas || 0) +
       (hasBouncedChecks ? financialSummary?.chequesSemFundo || 0 : 0) +
       processCount +
-      (dossie?.acoesAtivas?.quantidade || 0) +
+      Number(dossie?.acoesAtivas?.quantidade || 0) +
       allMentions.filter(m => m.classification === 'negative').length +
       (isCompanyInactive ? 1 : 0) +
       (hasNegativeReclameAqui ? 1 : 0)
