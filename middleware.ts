@@ -151,7 +151,7 @@ export async function middleware(request: NextRequest) {
           { status: 503 }
         )
       }
-      return NextResponse.rewrite(new URL('/manutencao', request.url))
+      return NextResponse.redirect(new URL('/manutencao', request.url), 307)
     }
   }
 
