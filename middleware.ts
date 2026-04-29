@@ -228,8 +228,18 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all routes (maintenance mode needs to intercept everything)
-    // Excludes _next, static files, and favicon via Next.js default behavior
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/api/:path*',
+    '/admin/:path*',
+    '/',
+    '/consulta/:path*',
+    '/relatorio/:path*',
+    '/compra/:path*',
+    '/minhas-consultas',
+    '/confirmar/:path*',
+    '/cadastro/:path*',
+    '/redefinir-senha',
+    '/privacidade/:path*',
+    '/termos',
+    '/manutencao',
   ],
 }
