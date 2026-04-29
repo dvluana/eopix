@@ -135,6 +135,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Maintenance mode — block everything except admin, webhooks, inngest, and the maintenance page itself
+  if (process.env.MAINTENANCE_MODE === 'true') {
+    const isAllowed =
+      path === '/manutencao' ||
+      path.startsWith('/admin') ||
+      path.startsWith('/api/admin') ||
+      path.startsWith('/api/webhooks') ||
+      path.startsWith('/api/inngest')
+
+    if (!isAllowed) {
+      if (path.startsWith('/api/')) {
+        return NextResponse.json(
+          { error: 'Sistema em manutencao. Tente novamente em breve.' },
+          { status: 503 }
+        )
+      }
+      return NextResponse.rewrite(new URL('/manutencao', request.url))
+    }
+  }
+
   // Rate limiting for API routes
   if (path.startsWith('/api/')) {
     cleanupRateLimitStore()
@@ -208,9 +228,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all API routes
-    '/api/:path*',
-    // Match admin pages
-    '/admin/:path*',
+    // Match all routes (maintenance mode needs to intercept everything)
+    // Excludes _next, static files, and favicon via Next.js default behavior
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }
