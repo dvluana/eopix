@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Em Manutencao | EOPIX',
+  title: 'Em Manutenção | EOPIX',
 }
 
 export default function ManutencaoPage() {
@@ -41,7 +41,7 @@ export default function ManutencaoPage() {
             marginBottom: '1.5rem',
           }}
         >
-          Manutencao
+          Manutenção
         </div>
 
         <h1
@@ -53,7 +53,7 @@ export default function ManutencaoPage() {
             lineHeight: 1.2,
           }}
         >
-          Estamos em manutencao
+          Estamos em manutenção
         </h1>
 
         <p
@@ -64,9 +64,9 @@ export default function ManutencaoPage() {
             margin: '0 0 1.5rem',
           }}
         >
-          O sistema esta passando por uma atualizacao e voltara em breve.
+          O sistema está passando por uma atualização e voltará em breve.
           <br />
-          Se voce ja fez uma compra, seu relatorio nao sera afetado.
+          Se você já fez uma compra, seu relatório não será afetado.
         </p>
 
         <div
