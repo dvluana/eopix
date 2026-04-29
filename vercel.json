@@ -26,5 +26,6 @@
       "permanent": true
     }
   ],
-  "crons": []
+  "crons": [],
+  "installCommand": "npm ci"
 }
